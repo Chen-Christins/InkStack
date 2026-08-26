@@ -11,6 +11,7 @@ import {
     FaTimes,
     FaRegComments,
     FaQuestionCircle,
+    FaCube,
 } from "react-icons/fa";
 import { useTranslation } from "react-i18next";
 import styles from "./Navbar.module.css";
@@ -133,11 +134,18 @@ const Navbar: React.FC = () => {
         if (path === "/messages") {
             return location.pathname === "/messages";
         }
+        if (path === "/products") {
+            return location.pathname.startsWith("/products");
+        }
         return location.pathname === path;
     };
 
     const getNavLinks = () => {
-        const links = [...navLinks, { label: t("help"), icon: <FaQuestionCircle />, path: "/help" }];
+        const links = [
+            ...navLinks,
+            ...(import.meta.env.DEV ? [{ label: "产品", icon: <FaCube />, path: "/products" }] : []),
+            { label: t("help"), icon: <FaQuestionCircle />, path: "/help" },
+        ];
         return links;
     };
 
