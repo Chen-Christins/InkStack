@@ -15,18 +15,25 @@
 }
 
 .editorContainer {
-    background-color: var(--card-bg);
-    border-radius: 12px;
-    box-shadow:
-        0 2px 12px rgba(0, 0, 0, 0.06),
-        0 0 0 1px var(--border-primary);
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    scrollbar-width: none;
+    background-color: var(--bg-canvas);
+    border-radius: 20px;
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--border-primary);
     padding: 36px;
-    margin: 30px auto 20px auto;
-    width: calc(100% - 60px);
+    margin: 0 auto 0.5rem;
+    width: calc(100% - 2rem);
     max-width: var(--page-max-width);
     min-width: 0;
+    box-sizing: border-box;
     position: relative;
-    overflow: hidden;
+}
+
+.editorContainer::-webkit-scrollbar {
+    display: none;
 }
 
 .editorContainer::before {
@@ -37,7 +44,7 @@
     right: 0;
     height: 3px;
     background: linear-gradient(90deg, var(--primary), #60a5fa, #a78bfa);
-    border-radius: 12px 12px 0 0;
+    border-radius: 20px 20px 0 0;
 }
 
 .editorHeader {
@@ -69,6 +76,10 @@
     border-radius: 10px;
     padding: 18px 20px;
     border: 1px solid var(--border-secondary);
+}
+
+.formSection:last-child {
+    margin-bottom: 0;
 }
 
 .formSection:focus-within {
@@ -377,22 +388,6 @@
     color: #ef4444;
 }
 
-.actionButtons {
-    margin-top: 28px;
-    display: flex;
-    justify-content: flex-end;
-    gap: 12px;
-    padding: 16px 0 0;
-    border-top: 1px solid var(--border-secondary);
-}
-
-.actionButtons .btn {
-    padding: 12px 28px;
-    font-size: 15px;
-    border-radius: 10px;
-    font-weight: 600;
-}
-
 /* 响应式调整 */
 @media (max-width: 768px) {
     .editorContainer {
@@ -408,15 +403,6 @@
 
     .formSection {
         padding: 14px 16px;
-    }
-
-    .actionButtons {
-        flex-direction: column;
-    }
-
-    .actionButtons .btn {
-        width: 100%;
-        justify-content: center;
     }
 
     .editorRow {

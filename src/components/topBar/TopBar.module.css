@@ -1,0 +1,324 @@
+.topBar {
+    position: sticky;
+    top: 0;
+    z-index: 990;
+    padding: 12px 0;
+    background-color: transparent;
+    border-bottom: 1px solid transparent;
+    transition:
+        background-color 0.2s ease,
+        box-shadow 0.2s ease,
+        border-color 0.2s ease;
+}
+
+.topBarScrolled {
+    background-color: var(--navbar-bg);
+    backdrop-filter: blur(10px);
+    border-bottom-color: var(--navbar-border);
+    box-shadow: var(--shadow-sm);
+}
+
+.bar {
+    max-width: var(--page-max-width);
+    margin: 0 auto;
+    padding: 0 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 40px;
+}
+
+.leftGroup {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.menuBtn {
+    display: none;
+    width: 40px;
+    height: 40px;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border-primary);
+    border-radius: 12px;
+    background: var(--surface-chrome);
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.menuBtn:hover {
+    color: var(--text-primary);
+    background: var(--bg-hover);
+}
+
+.logoPill {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    height: 40px;
+    padding: 0 14px 0 8px;
+    border: 1px solid var(--border-primary);
+    border-radius: 999px;
+    background: var(--surface-chrome);
+    cursor: pointer;
+    user-select: none;
+    transition: border-color 0.2s ease;
+}
+
+.logoPill:hover {
+    border-color: var(--primary);
+}
+
+.logoImage {
+    width: 26px;
+    height: 26px;
+    object-fit: contain;
+}
+
+.siteName {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-primary);
+    white-space: nowrap;
+    max-width: 160px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.centerGroup {
+    flex: 1 1 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.actionBtn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    height: 40px;
+    padding: 0 18px;
+    border: none;
+    border-radius: 999px;
+    background: var(--primary);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition:
+        background-color 0.2s ease,
+        transform 0.2s ease;
+}
+
+.actionBtn:hover {
+    background: var(--primary-hover);
+}
+
+.actionBtn:active {
+    transform: scale(0.98);
+}
+
+.actionBtn:disabled {
+    opacity: 0.6;
+    cursor: default;
+}
+
+.secondaryActionBtn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    height: 40px;
+    padding: 0 18px;
+    border: 1px solid var(--border-primary);
+    border-radius: 999px;
+    background: var(--surface-chrome);
+    color: var(--text-primary);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition:
+        border-color 0.2s ease,
+        background-color 0.2s ease;
+}
+
+.secondaryActionBtn:hover {
+    border-color: var(--primary);
+}
+
+.secondaryActionBtn:disabled {
+    opacity: 0.6;
+    cursor: default;
+}
+
+.actionIcon {
+    font-size: 13px;
+}
+
+.rightGroup {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    height: 40px;
+    box-sizing: border-box;
+    padding: 2px 4px;
+    border: 1px solid var(--border-primary);
+    border-radius: 999px;
+    background: var(--surface-chrome);
+    min-width: 0;
+}
+
+.iconBtn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 15px;
+}
+
+.iconBtn:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+}
+
+.avatarPlaceholder {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--bg-tertiary);
+    flex-shrink: 0;
+}
+
+.userArea {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.userArea:hover {
+    background: var(--bg-hover);
+}
+
+.userDropdown {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    width: 220px;
+    background: var(--card-bg);
+    border: 1px solid var(--border-primary);
+    border-radius: 16px;
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+    z-index: 1200;
+}
+
+.dropdownHeader {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+}
+
+.dropdownUserInfo {
+    min-width: 0;
+}
+
+.dropdownUserName {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-primary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.dropdownUserEmail {
+    font-size: 12px;
+    color: var(--text-tertiary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.dropdownDivider {
+    height: 1px;
+    background: var(--border-light);
+}
+
+.dropdownMenu {
+    padding: 6px;
+}
+
+.dropdownItem {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border: none;
+    border-radius: 10px;
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 13.5px;
+    font-family: inherit;
+    text-align: left;
+    cursor: pointer;
+    transition:
+        background-color 0.2s ease,
+        color 0.2s ease;
+}
+
+.dropdownItem:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+}
+
+@media (max-width: 960px) {
+    .menuBtn {
+        display: inline-flex;
+    }
+
+    .logoPill {
+        display: flex;
+    }
+}
+
+@media (max-width: 640px) {
+    .bar {
+        padding: 8px 0.9rem;
+        gap: 8px;
+    }
+
+    .siteName {
+        display: none;
+    }
+
+    .logoPill {
+        padding: 0 8px;
+    }
+
+    .actionBtn span {
+        display: none;
+    }
+
+    .actionBtn {
+        padding: 0 12px;
+    }
+}

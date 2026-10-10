@@ -31,6 +31,63 @@ html.no-transition *::after {
     transition: none !important;
 }
 
+/* OPPO Sans（用于极简黑白主题） */
+@font-face {
+    font-family: "OPPO Sans";
+    src: url("/fonts/OPPO-Sans-4.0.ttf") format("truetype");
+    font-style: normal;
+    font-weight: 100 900;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "Inter";
+    src: url("/fonts/Inter.ttf") format("truetype");
+    font-style: normal;
+    font-weight: 100 900;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "Source Sans 3";
+    src: url("/fonts/SourceSans3.ttf") format("truetype");
+    font-style: normal;
+    font-weight: 200 900;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "Poppins";
+    src: url("/fonts/Poppins-Regular.ttf") format("truetype");
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "Poppins";
+    src: url("/fonts/Poppins-Medium.ttf") format("truetype");
+    font-style: normal;
+    font-weight: 500;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "Poppins";
+    src: url("/fonts/Poppins-SemiBold.ttf") format("truetype");
+    font-style: normal;
+    font-weight: 600;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "Poppins";
+    src: url("/fonts/Poppins-Bold.ttf") format("truetype");
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+}
+
 /* CSS 变量定义 - 浅色主题 */
 :root {
     --page-max-width: 1560px;
@@ -42,6 +99,9 @@ html.no-transition *::after {
     --font-mono:
         "JetBrains Mono", "SFMono-Regular", "SF Mono", "Fira Code", Consolas, "Liberation Mono", Menlo, "Courier New", monospace;
     --font-neutral: "Helvetica Neue", Helvetica, Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    --font-oppo:
+        "OPPO Sans", "Inter", "Source Sans 3", Poppins, -apple-system, BlinkMacSystemFont, "Helvetica Neue", Tahoma, Arial, sans-serif,
+        "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
     --font-rounded: "Hiragino Maru Gothic ProN", "Yuanti SC", "PingFang SC", "Microsoft YaHei", "Verdana", sans-serif;
     --font-kai: "Kaiti SC", "STKaiti", "KaiTi", "BiauKai", "DFKai-SB", serif;
     --font-fangsong: "STFangsong", "FangSong", "FangSong_GB2312", "Noto Serif SC", serif;
@@ -98,6 +158,10 @@ html.no-transition *::after {
     --navbar-border: #e2e8f0;
     --card-bg: #ffffff;
     --card-hover: #ffffff;
+    /* 悬浮控件（顶部工具栏 / 左侧导航胶囊）表面：略浅于正文卡片 */
+    --surface-chrome: color-mix(in srgb, var(--card-bg) 55%, var(--bg-tertiary) 45%);
+    /* 页面画布（mainContent 之外的底色） */
+    --bg-canvas: var(--bg-tertiary);
     --button-primary: #3b82f6;
     --button-primary-hover: #2563eb;
     --button-secondary: #f1f5f9;
@@ -204,6 +268,7 @@ html.no-transition *::after {
     --navbar-border: #334155;
     --card-bg: #1e293b;
     --card-hover: #1e293b;
+    --bg-canvas: var(--bg-primary);
     --button-primary: #3b82f6;
     --button-primary-hover: #2563eb;
     --button-secondary: #334155;
@@ -442,7 +507,7 @@ html.no-transition *::after {
 /* ========== 极简黑白（data-skin="monochrome"） ========== */
 
 [data-skin="monochrome"] {
-    --font-family: var(--font-neutral);
+    --font-family: var(--font-oppo);
 
     --bg-primary: #fafafa;
     --bg-secondary: #f2f2f2;
@@ -1712,7 +1777,7 @@ html.no-transition *::after {
 [data-skin="monochrome"] h3,
 [data-skin="monochrome"] .page-title,
 [data-skin="monochrome"] .panel-title {
-    font-family: var(--font-neutral);
+    font-family: var(--font-oppo);
     font-weight: 700;
 }
 

@@ -314,3 +314,31 @@
         padding: 14px 10px;
     }
 }
+
+/* 帮助中心内容大卡片（与首页/组织页统一） */
+.pageCard {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    scrollbar-width: none;
+    width: calc(100% - 2rem);
+    max-width: var(--page-max-width);
+    margin: 0 auto 0.5rem;
+    padding: 1.5rem;
+    box-sizing: border-box;
+    background-color: var(--bg-canvas);
+    border: 1px solid var(--border-primary);
+    border-radius: 20px;
+    box-shadow: var(--shadow-md);
+}
+
+.pageCard::-webkit-scrollbar {
+    display: none;
+}
+
+/* 卡片内沿用原容器时清零其宽度/内边距，避免双重留白 */
+.pageCard > div {
+    max-width: none;
+    margin: 0;
+    padding: 0;
+}

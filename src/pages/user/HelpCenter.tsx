@@ -17,8 +17,6 @@ import {
 } from "react-icons/fa";
 import styles from "./UserPage.module.css";
 import helpStyles from "./HelpCenter.module.css";
-import Navbar from "@/components/navbar/Navbar";
-import Footer from "@/components/footer/Footer";
 import Input from "@/components/input/Input";
 import Button from "@/components/button/Button";
 import CustomSelect from "@/components/customSelect/CustomSelect";
@@ -229,13 +227,7 @@ const HelpCenter: React.FC = () => {
         );
     };
 
-    return (
-        <div className={styles.page}>
-            <Navbar />
-            {renderContent()}
-            <Footer startYear={2025} />
-        </div>
-    );
+    return <div className={helpStyles.pageCard}>{renderContent()}</div>;
 };
 
 export default HelpCenter;

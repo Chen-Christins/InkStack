@@ -111,9 +111,6 @@ const Navbar: React.FC = () => {
         if (path === "/organizations/list") {
             return location.pathname.startsWith("/organizations") || location.pathname.startsWith("/organization");
         }
-        if (path === "/rd") {
-            return location.pathname.startsWith("/rd");
-        }
         if (path === "/help") {
             return location.pathname === "/help";
         }
@@ -124,11 +121,7 @@ const Navbar: React.FC = () => {
     };
 
     const getNavLinks = () => {
-        const links = [
-            ...navLinks,
-            { label: "研发", icon: <FaFlask />, path: "/rd" },
-            { label: "帮助", icon: <FaQuestionCircle />, path: "/help" },
-        ];
+        const links = [...navLinks, { label: "帮助", icon: <FaQuestionCircle />, path: "/help" }];
         return links;
     };
 

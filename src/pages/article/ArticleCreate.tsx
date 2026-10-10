@@ -7,15 +7,13 @@ import { encodeId, decodeId } from "@/utils/HashId.ts";
 import ReactMarkdown from "react-markdown";
 import { articleMarkdownComponents, articleMarkdownPlugins } from "@/components/articleView/Markdown";
 import type { ArticleCreateProps, ArticleFormData, SelectOption, Tag } from "@/types";
-import { FaEdit, FaEye, FaFileImport, FaInfoCircle, FaSave, FaFly, FaLock } from "react-icons/fa";
+import { FaEdit, FaEye, FaFileImport, FaInfoCircle, FaLock } from "react-icons/fa";
 import styles from "./ArticleCreate.module.css";
-import Footer from "@/components/footer/Footer";
-import Navbar from "@/components/navbar/Navbar";
 import CustomSelect from "@/components/customSelect/CustomSelect";
 import AddButton from "@/components/addButton/AddButton";
-import BackToTop from "@/components/backToTop/BackToTop";
 import Skeleton from "@/components/skeleton/Skeleton";
 import { useAuth } from "@/contexts/AuthContext";
+import { useEditorToolbar } from "@/contexts/EditorToolbarContext";
 import message from "@/components/message/Message";
 
 // 模拟数据（已移除）
@@ -101,7 +99,7 @@ const markdownHelpData = [
     },
 ];
 
-const ArticleCreate: React.FC<ArticleCreateProps> = ({ className = "", onSaveDraft, onPublish, initialData }) => {
+const ArticleCreate: React.FC<ArticleCreateProps> = ({ onSaveDraft, onPublish, initialData }) => {
     const { user } = useAuth();
     const { id: encodedId } = useParams();
     const id = encodedId ? decodeId(encodedId, "article") : null;
@@ -468,6 +466,22 @@ const ArticleCreate: React.FC<ArticleCreateProps> = ({ className = "", onSaveDra
         }
     };
 
+    // 将保存/发布动作暴露给顶部工具栏（撰写文章的胶囊位置）
+    const editorToolbar = useEditorToolbar();
+    const editorHandlersRef = editorToolbar?.handlersRef;
+    const setEditorToolbarState = editorToolbar?.setState;
+    if (editorHandlersRef) {
+        editorHandlersRef.current = { onSaveDraft: handleSaveDraft, onPublish: handlePublish };
+    }
+
+    useEffect(() => {
+        if (!setEditorToolbarState) {
+            return;
+        }
+        setEditorToolbarState({ active: true, submitting, isEdit: !!id });
+        return () => setEditorToolbarState({ active: false, submitting: false, isEdit: false });
+    }, [setEditorToolbarState, submitting, id]);
+
     // 创建标题组件工厂函数
     const createHeadingComponent = (level: number) => {
         return ({ children, ...props }: any) => {
@@ -531,25 +545,22 @@ const ArticleCreate: React.FC<ArticleCreateProps> = ({ className = "", onSaveDra
 
     if (loading) {
         return (
-            <div className={`${styles.container} ${className}`}>
-                <Navbar />
-                <div className={styles.editorContainer}>
-                    <div className={styles.editorHeader}>
-                        <Skeleton variant="text" width={200} height={32} />
+            <div className={styles.editorContainer}>
+                <div className={styles.editorHeader}>
+                    <Skeleton variant="text" width={200} height={32} />
+                </div>
+                <div style={{ padding: "20px 0" }}>
+                    <div style={{ marginBottom: "24px" }}>
+                        <div style={{ marginBottom: "10px" }}>
+                            <Skeleton variant="text" width={100} height={24} />
+                        </div>
+                        <Skeleton variant="rounded" height={40} />
                     </div>
-                    <div style={{ padding: "20px 0" }}>
-                        <div style={{ marginBottom: "24px" }}>
-                            <div style={{ marginBottom: "10px" }}>
-                                <Skeleton variant="text" width={100} height={24} />
-                            </div>
-                            <Skeleton variant="rounded" height={40} />
+                    <div style={{ marginBottom: "24px" }}>
+                        <div style={{ marginBottom: "10px" }}>
+                            <Skeleton variant="text" width={100} height={24} />
                         </div>
-                        <div style={{ marginBottom: "24px" }}>
-                            <div style={{ marginBottom: "10px" }}>
-                                <Skeleton variant="text" width={100} height={24} />
-                            </div>
-                            <Skeleton variant="rounded" height={400} />
-                        </div>
+                        <Skeleton variant="rounded" height={400} />
                     </div>
                 </div>
             </div>
@@ -558,300 +569,280 @@ const ArticleCreate: React.FC<ArticleCreateProps> = ({ className = "", onSaveDra
 
     if (permissionDenied) {
         return (
-            <div className={`${styles.container} ${className}`}>
-                <Navbar />
-                <div
-                    className={styles.editorContainer}
-                    style={{
-                        minHeight: "400px",
-                        display: "flex",
-                        flexDirection: "column",
-                        alignItems: "center",
-                        justifyContent: "center",
-                    }}
-                >
-                    <div style={{ fontSize: "48px", color: "#dc3545", marginBottom: "20px" }}>
-                        <FaLock />
-                    </div>
-                    <h2 style={{ marginBottom: "10px", color: "#333" }}>访问被拒绝</h2>
-                    <p style={{ color: "#666", marginBottom: "20px" }}>您没有权限编辑此文章，因为它不属于您。</p>
-                    <button className={`${styles.btn} ${styles.btnPrimary}`} onClick={() => navigate("/")}>
-                        返回首页
-                    </button>
+            <div
+                className={styles.editorContainer}
+                style={{
+                    minHeight: "400px",
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                }}
+            >
+                <div style={{ fontSize: "48px", color: "#dc3545", marginBottom: "20px" }}>
+                    <FaLock />
                 </div>
+                <h2 style={{ marginBottom: "10px", color: "#333" }}>访问被拒绝</h2>
+                <p style={{ color: "#666", marginBottom: "20px" }}>您没有权限编辑此文章，因为它不属于您。</p>
+                <button className={`${styles.btn} ${styles.btnPrimary}`} onClick={() => navigate("/")}>
+                    返回首页
+                </button>
             </div>
         );
     }
 
     return (
         <>
-            <div className={`${styles.container} ${className}`}>
-                <Navbar />
+            <div className={styles.editorContainer}>
+                {/* 头部 */}
+                <div className={styles.editorHeader}>
+                    <h2>
+                        <Link to="/" className={styles.editorHeaderLink}>
+                            {id ? "编辑文章" : "创建新文章"}
+                        </Link>
+                    </h2>
+                </div>
 
-                <div className={styles.editorContainer}>
-                    {/* 头部 */}
-                    <div className={styles.editorHeader}>
-                        <h2>
-                            <Link to="/" className={styles.editorHeaderLink}>
-                                {id ? "编辑文章" : "创建新文章"}
-                            </Link>
-                        </h2>
+                {/* 文章标题 */}
+                <div className={styles.formSection}>
+                    <div className={styles.formSectionTitle}>
+                        <i className="bi bi-type"></i>
+                        文章标题
                     </div>
+                    <input
+                        type="text"
+                        className={styles.formControl}
+                        placeholder="请输入文章标题..."
+                        value={formData.title}
+                        onChange={handleTitleChange}
+                    />
+                </div>
 
-                    {/* 文章标题 */}
-                    <div className={styles.formSection}>
-                        <div className={styles.formSectionTitle}>
-                            <i className="bi bi-type"></i>
-                            文章标题
-                        </div>
-                        <input
-                            type="text"
-                            className={styles.formControl}
-                            placeholder="请输入文章标题..."
-                            value={formData.title}
-                            onChange={handleTitleChange}
-                        />
+                {/* 文章类型 */}
+                <div className={styles.formSection}>
+                    <div className={styles.formSectionTitle}>
+                        <i className="bi bi-file-earmark"></i>
+                        文章类型
                     </div>
-
-                    {/* 文章类型 */}
-                    <div className={styles.formSection}>
-                        <div className={styles.formSectionTitle}>
-                            <i className="bi bi-file-earmark"></i>
-                            文章类型
-                        </div>
-                        <div className={styles.radioGroup}>
-                            <label className={styles.radioItem}>
-                                <input
-                                    type="radio"
-                                    className={styles.radioInput}
-                                    name="article-type"
-                                    value="original"
-                                    checked={formData.articleType === "original"}
-                                    onChange={() => handleTypeChange("original")}
-                                />
-                                <span className={styles.radioLabel}>原创文章</span>
-                            </label>
-                            <label className={styles.radioItem}>
-                                <input
-                                    type="radio"
-                                    className={styles.radioInput}
-                                    name="article-type"
-                                    value="repost"
-                                    checked={formData.articleType === "repost"}
-                                    onChange={() => handleTypeChange("repost")}
-                                />
-                                <span className={styles.radioLabel}>转载文章</span>
-                            </label>
-                        </div>
-                    </div>
-
-                    {/* 文章分类 */}
-                    <div className={styles.formSection}>
-                        <div className={styles.formSectionTitle}>
-                            <i className="bi bi-folder"></i>
-                            文章分类
-                        </div>
-                        <div style={{ position: "relative" }}>
-                            <CustomSelect
-                                name={"分类"}
-                                options={categories}
-                                value={formData.category}
-                                hideBadge
-                                onChange={(selected, _idx) => {
-                                    setFormData((prev) => ({ ...prev, category: selected }));
-                                }}
+                    <div className={styles.radioGroup}>
+                        <label className={styles.radioItem}>
+                            <input
+                                type="radio"
+                                className={styles.radioInput}
+                                name="article-type"
+                                value="original"
+                                checked={formData.articleType === "original"}
+                                onChange={() => handleTypeChange("original")}
                             />
-                        </div>
-                    </div>
-
-                    {/* 文章标签 */}
-                    <div className={styles.formSection}>
-                        <div className={styles.formSectionTitle}>
-                            <i className="bi bi-tags"></i>
-                            文章标签
-                            <AddButton name="标签" onAdd={handleAddTag} />
-                        </div>
-                        <div style={{ position: "relative" }}>
-                            <CustomSelect
-                                name={"标签"}
-                                options={tags.filter((tag) => !selectedTags.find((t) => t.id === tag.id))}
-                                value={null}
-                                onChange={(selected, _idx) => {
-                                    if (selected) {
-                                        // 多选逻辑，添加到 selectedTags
-                                        if (!selectedTags.find((t) => t.id === selected.id)) {
-                                            const newTags = [...selectedTags, selected];
-                                            setSelectedTags(newTags);
-                                            setFormData((prev) => ({ ...prev, tags: newTags }));
-                                        }
-                                    }
-                                }}
+                            <span className={styles.radioLabel}>原创文章</span>
+                        </label>
+                        <label className={styles.radioItem}>
+                            <input
+                                type="radio"
+                                className={styles.radioInput}
+                                name="article-type"
+                                value="repost"
+                                checked={formData.articleType === "repost"}
+                                onChange={() => handleTypeChange("repost")}
                             />
-                        </div>
-                        <div className={styles.tagsContainer}>
-                            {selectedTags.map((tag) => (
-                                <div key={tag.id} className={styles.tagItem}>
-                                    {tag.name}
-                                    <button className={styles.removeTag} onClick={() => handleRemoveTag(tag.id)}>
-                                        <i className="bi bi-x"></i>
-                                    </button>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* 文章内容 */}
-                    <div className={styles.formSection}>
-                        <div className={styles.formSectionTitle}>
-                            <i className="bi bi-pencil"></i>
-                            文章内容
-                        </div>
-
-                        {/* 工具栏 */}
-                        <div className={styles.toolbar}>
-                            <div className={styles.toolbarLeft}>
-                                <button className={`${styles.btn} ${styles.btnOutlinePrimary}`} onClick={handleImportClick}>
-                                    <FaFileImport /> 导入Markdown
-                                </button>
-                                <input
-                                    ref={fileInputRef}
-                                    type="file"
-                                    className={styles.fileInput}
-                                    accept=".md,.markdown"
-                                    onChange={handleFileImport}
-                                />
-                                <button className={`${styles.btn} ${styles.btnOutline}`} onClick={() => setShowHelpModal(true)}>
-                                    <FaInfoCircle /> 语法帮助
-                                </button>
-                            </div>
-                            <div className={styles.toolbarRight}>
-                                <button
-                                    className={`${styles.editorTab} ${viewMode === "editor" ? styles.active : ""}`}
-                                    onClick={() => setViewMode("editor")}
-                                >
-                                    <FaEdit /> 编辑
-                                </button>
-                                <button
-                                    className={`${styles.editorTab} ${viewMode === "preview" ? styles.active : ""}`}
-                                    onClick={() => setViewMode("preview")}
-                                >
-                                    <FaEye /> 预览
-                                </button>
-                                <button
-                                    className={`${styles.editorTab} ${viewMode === "both" ? styles.active : ""}`}
-                                    onClick={() => setViewMode("both")}
-                                >
-                                    分屏
-                                </button>
-                            </div>
-                        </div>
-
-                        {/* 编辑器区域 */}
-                        <div className={styles.editorRow}>
-                            {(viewMode === "editor" || viewMode === "both") && (
-                                <div className={styles.editorColumn}>
-                                    <textarea
-                                        className={`${styles.markdownEditor} ${styles.editorContent} ${styles.active}`}
-                                        placeholder="在这里输入Markdown格式的内容..."
-                                        value={formData.content}
-                                        onChange={handleContentChange}
-                                    />
-                                </div>
-                            )}
-                            {(viewMode === "preview" || viewMode === "both") && (
-                                <div className={styles.editorColumn}>
-                                    <div className={`${styles.markdownPreview} ${styles.editorContent} ${styles.active}`}>
-                                        <ReactMarkdown
-                                            {...articleMarkdownPlugins}
-                                            components={articleMarkdownComponents({
-                                                styles,
-                                                paragraph: ParagraphComponent,
-                                                heading: createHeadingComponent,
-                                                onCopy: (text) => {
-                                                    void navigator.clipboard.writeText(text);
-                                                },
-                                                mermaidCopyLabel: "复制代码",
-                                                trimMermaidCopy: false,
-                                            })}
-                                        >
-                                            {formData.content}
-                                        </ReactMarkdown>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-
-                    {/* 操作按钮 */}
-                    <div className={styles.actionButtons}>
-                        <button className={`${styles.btn} ${styles.btnOutline}`} onClick={handleSaveDraft} disabled={submitting}>
-                            <FaSave /> {id ? "保存修改" : "保存草稿"}
-                        </button>
-                        <button className={`${styles.btn} ${styles.btnPrimary}`} onClick={handlePublish} disabled={submitting}>
-                            <FaFly /> {id ? "更新文章" : "发布文章"}
-                        </button>
+                            <span className={styles.radioLabel}>转载文章</span>
+                        </label>
                     </div>
                 </div>
 
-                {/* Markdown 帮助模态框 */}
-                {showHelpModal && (
-                    <div className={styles.modalOverlay}>
-                        <div className={styles.modalContent}>
-                            <div className={styles.modalHeader}>
-                                <h3 className={styles.modalTitle}>Markdown 语法帮助</h3>
-                                <button className={styles.modalClose} onClick={() => setShowHelpModal(false)}>
-                                    ×
+                {/* 文章分类 */}
+                <div className={styles.formSection}>
+                    <div className={styles.formSectionTitle}>
+                        <i className="bi bi-folder"></i>
+                        文章分类
+                    </div>
+                    <div style={{ position: "relative" }}>
+                        <CustomSelect
+                            name={"分类"}
+                            options={categories}
+                            value={formData.category}
+                            hideBadge
+                            onChange={(selected, _idx) => {
+                                setFormData((prev) => ({ ...prev, category: selected }));
+                            }}
+                        />
+                    </div>
+                </div>
+
+                {/* 文章标签 */}
+                <div className={styles.formSection}>
+                    <div className={styles.formSectionTitle}>
+                        <i className="bi bi-tags"></i>
+                        文章标签
+                        <AddButton name="标签" onAdd={handleAddTag} />
+                    </div>
+                    <div style={{ position: "relative" }}>
+                        <CustomSelect
+                            name={"标签"}
+                            options={tags.filter((tag) => !selectedTags.find((t) => t.id === tag.id))}
+                            value={null}
+                            onChange={(selected, _idx) => {
+                                if (selected) {
+                                    // 多选逻辑，添加到 selectedTags
+                                    if (!selectedTags.find((t) => t.id === selected.id)) {
+                                        const newTags = [...selectedTags, selected];
+                                        setSelectedTags(newTags);
+                                        setFormData((prev) => ({ ...prev, tags: newTags }));
+                                    }
+                                }
+                            }}
+                        />
+                    </div>
+                    <div className={styles.tagsContainer}>
+                        {selectedTags.map((tag) => (
+                            <div key={tag.id} className={styles.tagItem}>
+                                {tag.name}
+                                <button className={styles.removeTag} onClick={() => handleRemoveTag(tag.id)}>
+                                    <i className="bi bi-x"></i>
                                 </button>
                             </div>
-                            <div className={styles.modalBody}>
-                                <table className={styles.table}>
-                                    <thead>
-                                        <tr>
-                                            <th>元素</th>
-                                            <th>语法</th>
-                                            <th>示例</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {markdownHelpData.map((item, index) => (
-                                            <tr key={index}>
-                                                <td>{item.element}</td>
-                                                <td style={{ whiteSpace: "pre-line" }}>{item.syntax}</td>
-                                                <td className={styles.exampleCell}>
-                                                    <div className={styles.markdownExample}>
-                                                        <ReactMarkdown
-                                                            {...articleMarkdownPlugins}
-                                                            components={articleMarkdownComponents({
-                                                                styles,
-                                                                paragraph: ParagraphComponent,
-                                                                heading: createHeadingComponent,
-                                                                onCopy: handleCopy,
-                                                                mermaidCopyLabel: "复制代码",
-                                                                trimMermaidCopy: true,
-                                                            })}
-                                                        >
-                                                            {item.example}
-                                                        </ReactMarkdown>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                            <div className={styles.modalFooter}>
-                                {copySuccess && <div className={styles.copySuccessMessage}>{copySuccess}</div>}
-                                <button className={`${styles.btn} ${styles.btnPrimary}`} onClick={() => setShowHelpModal(false)}>
-                                    我知道了
-                                </button>
-                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                {/* 文章内容 */}
+                <div className={styles.formSection}>
+                    <div className={styles.formSectionTitle}>
+                        <i className="bi bi-pencil"></i>
+                        文章内容
+                    </div>
+
+                    {/* 工具栏 */}
+                    <div className={styles.toolbar}>
+                        <div className={styles.toolbarLeft}>
+                            <button className={`${styles.btn} ${styles.btnOutlinePrimary}`} onClick={handleImportClick}>
+                                <FaFileImport /> 导入Markdown
+                            </button>
+                            <input
+                                ref={fileInputRef}
+                                type="file"
+                                className={styles.fileInput}
+                                accept=".md,.markdown"
+                                onChange={handleFileImport}
+                            />
+                            <button className={`${styles.btn} ${styles.btnOutline}`} onClick={() => setShowHelpModal(true)}>
+                                <FaInfoCircle /> 语法帮助
+                            </button>
+                        </div>
+                        <div className={styles.toolbarRight}>
+                            <button
+                                className={`${styles.editorTab} ${viewMode === "editor" ? styles.active : ""}`}
+                                onClick={() => setViewMode("editor")}
+                            >
+                                <FaEdit /> 编辑
+                            </button>
+                            <button
+                                className={`${styles.editorTab} ${viewMode === "preview" ? styles.active : ""}`}
+                                onClick={() => setViewMode("preview")}
+                            >
+                                <FaEye /> 预览
+                            </button>
+                            <button
+                                className={`${styles.editorTab} ${viewMode === "both" ? styles.active : ""}`}
+                                onClick={() => setViewMode("both")}
+                            >
+                                分屏
+                            </button>
                         </div>
                     </div>
-                )}
 
-                <Footer startYear={2025} />
+                    {/* 编辑器区域 */}
+                    <div className={styles.editorRow}>
+                        {(viewMode === "editor" || viewMode === "both") && (
+                            <div className={styles.editorColumn}>
+                                <textarea
+                                    className={`${styles.markdownEditor} ${styles.editorContent} ${styles.active}`}
+                                    placeholder="在这里输入Markdown格式的内容..."
+                                    value={formData.content}
+                                    onChange={handleContentChange}
+                                />
+                            </div>
+                        )}
+                        {(viewMode === "preview" || viewMode === "both") && (
+                            <div className={styles.editorColumn}>
+                                <div className={`${styles.markdownPreview} ${styles.editorContent} ${styles.active}`}>
+                                    <ReactMarkdown
+                                        {...articleMarkdownPlugins}
+                                        components={articleMarkdownComponents({
+                                            styles,
+                                            paragraph: ParagraphComponent,
+                                            heading: createHeadingComponent,
+                                            onCopy: (text) => {
+                                                void navigator.clipboard.writeText(text);
+                                            },
+                                            mermaidCopyLabel: "复制代码",
+                                            trimMermaidCopy: false,
+                                        })}
+                                    >
+                                        {formData.content}
+                                    </ReactMarkdown>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
             </div>
-            <BackToTop />
+
+            {/* Markdown 帮助模态框 */}
+            {showHelpModal && (
+                <div className={styles.modalOverlay}>
+                    <div className={styles.modalContent}>
+                        <div className={styles.modalHeader}>
+                            <h3 className={styles.modalTitle}>Markdown 语法帮助</h3>
+                            <button className={styles.modalClose} onClick={() => setShowHelpModal(false)}>
+                                ×
+                            </button>
+                        </div>
+                        <div className={styles.modalBody}>
+                            <table className={styles.table}>
+                                <thead>
+                                    <tr>
+                                        <th>元素</th>
+                                        <th>语法</th>
+                                        <th>示例</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {markdownHelpData.map((item, index) => (
+                                        <tr key={index}>
+                                            <td>{item.element}</td>
+                                            <td style={{ whiteSpace: "pre-line" }}>{item.syntax}</td>
+                                            <td className={styles.exampleCell}>
+                                                <div className={styles.markdownExample}>
+                                                    <ReactMarkdown
+                                                        {...articleMarkdownPlugins}
+                                                        components={articleMarkdownComponents({
+                                                            styles,
+                                                            paragraph: ParagraphComponent,
+                                                            heading: createHeadingComponent,
+                                                            onCopy: handleCopy,
+                                                            mermaidCopyLabel: "复制代码",
+                                                            trimMermaidCopy: true,
+                                                        })}
+                                                    >
+                                                        {item.example}
+                                                    </ReactMarkdown>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div className={styles.modalFooter}>
+                            {copySuccess && <div className={styles.copySuccessMessage}>{copySuccess}</div>}
+                            <button className={`${styles.btn} ${styles.btnPrimary}`} onClick={() => setShowHelpModal(false)}>
+                                我知道了
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </>
     );
 };

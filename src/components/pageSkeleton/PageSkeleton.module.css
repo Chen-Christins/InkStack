@@ -1,27 +1,27 @@
-/* 页面骨架屏容器 */
-.pageSkeleton {
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    background: transparent;
-}
-
-/* 主内容骨架 */
+/* 主内容骨架（与首页 .mainContent 同构，外壳由 AppShell 提供） */
 .mainSkeleton {
-    flex: 1;
-    max-width: var(--page-max-width);
-    margin: 1rem auto;
-    padding: 0 1.8rem;
-    padding-top: 48px;
     display: flex;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
     gap: 1.5rem;
-    width: 100%;
+    width: calc(100% - 2rem);
+    max-width: var(--page-max-width);
+    margin: 0 auto 0.5rem;
+    padding: 1.5rem;
+    box-sizing: border-box;
+    background-color: var(--bg-canvas);
+    border: 1px solid var(--border-primary);
+    border-radius: 20px;
+    box-shadow: var(--shadow-md);
 }
 
 /* 左列骨架 */
 .leftColumn {
     flex: 2;
     min-width: 0;
+    min-height: 0;
+    overflow-y: auto;
     display: flex;
     flex-direction: column;
     gap: 20px;
@@ -38,16 +38,13 @@
 }
 
 .articleCardSkeleton {
-    background: rgba(255, 255, 255, 0.8);
-    border: 1px solid rgba(0, 0, 0, 0.06);
+    background: var(--surface-chrome);
+    border: 1px solid var(--border-primary);
     border-radius: 16px;
     padding: 28px;
     display: flex;
     flex-direction: column;
     gap: 20px;
-    box-shadow:
-        0 1px 3px rgba(0, 0, 0, 0.04),
-        0 1px 2px rgba(0, 0, 0, 0.06);
 }
 
 .articleHeader {
@@ -56,7 +53,7 @@
     align-items: flex-start;
     gap: 16px;
     padding-bottom: 12px;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+    border-bottom: 1px solid var(--border-primary);
 }
 
 .articleContent {
@@ -82,10 +79,14 @@
 /* 右列骨架 */
 .rightColumn {
     flex: 1;
-    display: flex;
-    flex-direction: column;
-    max-width: 460px;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-content: start;
+    align-items: stretch;
+    max-width: 520px;
     min-width: 0;
+    min-height: 0;
+    overflow-y: auto;
     gap: 1rem;
 }
 
@@ -95,13 +96,10 @@
 .categorySkeleton,
 .statsSkeleton,
 .calendarSkeleton {
-    background: rgba(255, 255, 255, 0.8);
-    border: 1px solid rgba(0, 0, 0, 0.06);
+    background: var(--surface-chrome);
+    border: 1px solid var(--border-primary);
     border-radius: 16px;
     padding: 24px;
-    box-shadow:
-        0 1px 3px rgba(0, 0, 0, 0.04),
-        0 1px 2px rgba(0, 0, 0, 0.06);
 }
 
 .tagCloud {
@@ -116,90 +114,34 @@
     justify-content: space-between;
     align-items: center;
     padding: 12px 0;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+    border-bottom: 1px solid var(--border-primary);
 }
 
 .categoryItem:last-child {
     border-bottom: none;
 }
 
-.categoryItem:hover {
-    background: rgba(0, 0, 0, 0.02);
-    padding-left: 8px;
-    padding-right: 8px;
-    margin-left: -8px;
-    margin-right: -8px;
-    border-radius: 8px;
-}
-
-/* 页脚骨架 */
-.footerSkeleton {
-    background: white;
-    border-top: 1px solid #f0f0f0;
-    padding: 32px 20px;
-    margin-top: 60px;
-}
-
-.footerContent {
-    max-width: 1200px;
-    margin: 0 auto;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    align-items: center;
-}
-
-/* 暗色主题适配（支持 data-theme） */
-:root[data-theme="dark"] .pageSkeleton {
-    background: transparent;
-}
-
-:root[data-theme="dark"] .articleCardSkeleton,
-:root[data-theme="dark"] .searchPanelSkeleton,
-:root[data-theme="dark"] .tagPanelSkeleton,
-:root[data-theme="dark"] .subscribeSkeleton,
-:root[data-theme="dark"] .categorySkeleton,
-:root[data-theme="dark"] .statsSkeleton,
-:root[data-theme="dark"] .calendarSkeleton {
-    background: rgba(26, 26, 26, 0.8);
-    border-color: rgba(255, 255, 255, 0.1);
-    box-shadow:
-        0 1px 3px rgba(0, 0, 0, 0.3),
-        0 1px 2px rgba(0, 0, 0, 0.2);
-}
-
-:root[data-theme="dark"] .articleHeader,
-:root[data-theme="dark"] .categoryItem {
-    border-bottom-color: rgba(255, 255, 255, 0.1);
-}
-
-:root[data-theme="dark"] .categoryItem:hover {
-    background: rgba(255, 255, 255, 0.05);
-}
-
-:root[data-theme="dark"] .footerSkeleton {
-    background: rgba(26, 26, 26, 0.9);
-    border-top-color: rgba(255, 255, 255, 0.1);
-}
-
-/* 响应式设计 */
-@media (max-width: 1024px) {
+/* 响应式：平板及以下恢复正常文档流 */
+@media (max-width: 1164px) {
     .mainSkeleton {
+        flex: none;
+        overflow: visible;
         flex-direction: column;
         align-items: center;
+        padding: 1.25rem;
         gap: 20px;
     }
 
     .leftColumn {
-        flex: 2;
         width: 100%;
         max-width: 100%;
+        overflow: visible;
     }
 
     .rightColumn {
         width: 100%;
         max-width: 100%;
-        display: grid;
+        overflow: visible;
         grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
         gap: 20px;
     }
@@ -209,15 +151,12 @@
     .mainSkeleton {
         padding: 16px;
         gap: 16px;
-    }
-
-    .leftColumn {
-        min-width: auto;
+        width: calc(100% - 1.6rem);
+        border-radius: 16px;
     }
 
     .rightColumn {
         grid-template-columns: 1fr;
-        min-width: auto;
     }
 
     .articleCardSkeleton {

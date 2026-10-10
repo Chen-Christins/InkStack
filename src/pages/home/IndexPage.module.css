@@ -1,65 +1,36 @@
-.index {
-    min-height: 100vh;
-    background-color: transparent;
-    font-family: var(--font-family);
-    color: var(--text-primary);
+.mainCardWrap {
+    position: relative;
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    width: calc(100% - 2rem);
+    max-width: var(--page-max-width);
+    margin: 0 auto 0.5rem;
+    box-sizing: border-box;
 }
 
 .mainContent {
     display: flex;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
     gap: 1.5rem;
-    max-width: var(--page-max-width);
-    margin: 1rem auto;
-    padding: 0 1.8rem;
+    padding: 1.5rem;
+    box-sizing: border-box;
+    background-color: var(--bg-canvas);
+    border: 1px solid var(--border-primary);
+    border-radius: 20px;
+    box-shadow: var(--shadow-md);
 }
 
-/* 导航栏骨架屏样式 */
-.navbarSkeleton {
-    position: sticky;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 56px;
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(10px);
-    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-    z-index: 1000;
+/* mainContent 内所有滚动都隐藏滚动条 */
+.mainContent,
+.mainContent * {
+    scrollbar-width: none;
 }
 
-/* 导航栏实际容器 */
-.navbarActual {
-    position: sticky;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 1000;
-}
-
-.navbarVisible {
-    opacity: 1;
-    transform: translateY(0);
-}
-
-.navbarHidden {
-    opacity: 0;
-    transform: translateY(-20px);
-}
-
-.navbarSkeleton .navContainer {
-    max-width: var(--page-max-width);
-    margin: 0 auto;
-    padding: 0 1.5rem;
-    height: 100%;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.navbarSkeleton .navActions {
-    display: flex;
-    align-items: center;
-    gap: 12px;
+.mainContent *::-webkit-scrollbar {
+    display: none;
 }
 
 /* 内容显示/隐藏过渡动画 */
@@ -73,56 +44,109 @@
     transform: translateY(0);
 }
 
-/* 暗色主题下的导航栏骨架屏 */
-@media (prefers-color-scheme: dark) {
-    .navbarSkeleton {
-        background: rgba(26, 26, 26, 0.95);
-        border-bottom-color: rgba(255, 255, 255, 0.1);
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-    }
-}
-
 .leftColumn {
     flex: 2;
     min-width: 0;
+    min-height: 0;
+    overflow-y: auto;
     display: flex;
     flex-direction: column;
-    margin-bottom: 0.5rem;
+    scrollbar-width: none;
+}
+
+.leftColumn::-webkit-scrollbar {
+    display: none;
 }
 
 .rightColumn {
     flex: 1;
-    display: flex;
-    flex-direction: column;
-    max-width: 460px;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-auto-flow: dense;
+    align-content: start;
+    align-items: stretch;
+    max-width: 520px;
     min-width: 0;
+    min-height: 0;
+    overflow-y: auto;
     gap: 1rem;
+    scrollbar-width: none;
 }
 
-/* 平板：左右布局改为上下布局 */
+.rightColumn::-webkit-scrollbar {
+    display: none;
+}
+
+/* 右侧面板外壳：统一为略浅的悬浮块，内部面板透明化避免双重卡片 */
+.panelSlot {
+    background-color: var(--surface-chrome);
+    border: 1px solid var(--border-primary);
+    border-radius: 16px;
+    min-width: 0;
+    transition: box-shadow 0.2s ease;
+}
+
+.panelSlot:hover {
+    box-shadow: var(--shadow-sm);
+}
+
+.panelSlot > div {
+    background-color: transparent;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    margin-bottom: 0;
+    min-width: 0;
+}
+
+/* 需要整行宽度的面板（搜索、主题风格、日历） */
+.wide {
+    grid-column: 1 / -1;
+}
+
+/* 平板：左右布局改为上下布局，恢复正常文档流滚动 */
 @media (max-width: 1164px) {
+    .mainCardWrap {
+        flex: none;
+        display: block;
+        width: calc(100% - 2rem);
+    }
+
     .mainContent {
+        flex: none;
+        overflow: visible;
         flex-direction: column;
         align-items: center;
-        padding: 0 1.2rem;
+        padding: 1.25rem;
     }
 
     .leftColumn {
         width: 100%;
         max-width: 100%;
+        overflow: visible;
     }
 
     .rightColumn {
         width: 100%;
         max-width: 100%;
+        overflow: visible;
     }
 }
 
 /* 手机端 */
 @media (max-width: 768px) {
-    .mainContent {
-        padding: 0 0.8rem;
+    .mainCardWrap {
+        width: calc(100% - 1.6rem);
         margin: 1rem auto;
+    }
+
+    .mainContent {
+        padding: 1rem;
         gap: 1rem;
+        border-radius: 16px;
+    }
+
+    .rightColumn {
+        grid-template-columns: 1fr;
     }
 }

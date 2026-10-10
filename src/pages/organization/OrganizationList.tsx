@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom"; // Assuming react-router-dom is used
 import { encodeId } from "@/utils/HashId.ts";
-import { FaBuilding, FaCheckCircle, FaUserFriends, FaLock, FaClipboardList, FaArrowRight, FaPlus } from "react-icons/fa";
-import Navbar from "@/components/navbar/Navbar";
-import Footer from "@/components/footer/Footer";
+import { FaBuilding, FaCheckCircle, FaUserFriends, FaLock, FaClipboardList, FaArrowRight, FaPlus, FaFlask } from "react-icons/fa";
 import Skeleton from "@/components/skeleton/Skeleton";
 import ApplyCreateOrg from "@/components/orgApply/ApplyCreateOrg";
 import styles from "./OrganizationList.module.css";
@@ -89,9 +87,7 @@ const OrganizationList: React.FC = () => {
     };
 
     return (
-        <div className={styles.container}>
-            <Navbar />
-
+        <>
             <div className={styles.mainContent}>
                 <AuthRequired message="您需要登录后才能查看和管理组织列表。">
                     <>
@@ -164,18 +160,27 @@ const OrganizationList: React.FC = () => {
 
                                         <div className={styles.cardFooter}>
                                             <div className={styles.cardMetric}>
-                                                {" "}
-                                                {/* Changed from deadline to cardMetric */}
                                                 <FaUserFriends />
                                                 {org.memberCount} 成员
                                             </div>
-                                            <button
-                                                className={`${styles.actionBtn} ${styles.btnPrimary}`}
-                                                onClick={() => navigate(`/organization/detail/${encodeId(org.id, "organization")}`)}
-                                            >
-                                                查看详情
-                                                <FaArrowRight />
-                                            </button>
+                                            <div className={styles.cardActions}>
+                                                <button
+                                                    className={`${styles.actionBtn} ${styles.btnSecondary}`}
+                                                    onClick={() => navigate(`/rd?org=${encodeId(org.id, "organization")}`)}
+                                                >
+                                                    <FaFlask />
+                                                    研发
+                                                </button>
+                                                <button
+                                                    className={`${styles.actionBtn} ${styles.btnPrimary}`}
+                                                    onClick={() =>
+                                                        navigate(`/organization/detail/${encodeId(org.id, "organization")}`)
+                                                    }
+                                                >
+                                                    查看详情
+                                                    <FaArrowRight />
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                 ))}
@@ -192,9 +197,7 @@ const OrganizationList: React.FC = () => {
             </div>
 
             <ApplyCreateOrg visible={applyVisible} onClose={() => setApplyVisible(false)} />
-
-            <Footer startYear={2025} />
-        </div>
+        </>
     );
 };
 

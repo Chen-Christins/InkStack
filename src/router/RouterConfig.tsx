@@ -3,6 +3,7 @@ import NotFound404 from "../pages/error/NotFound404";
 import { Routes, Route, Navigate } from "react-router-dom";
 import AuthPage from "../pages/auth/AuthPage";
 import MaintenanceGuard from "../components/maintenance/MaintenanceGuard";
+import { FrontLayout } from "../components/appShell";
 import IndexPage from "../pages/home/IndexPage";
 import AuthRequired from "../components/auth/AuthRequired";
 import ArticleCreate from "../pages/article/ArticleCreate";
@@ -45,30 +46,32 @@ import Messages from "../pages/user/Messages";
 const RouterConfig: React.FC = () => {
     return (
         <Routes>
-                {/* 默认路由重定向到主页 */}
-                <Route path="/" element={<Navigate to="/index" replace />} />
+            {/* 默认路由重定向到主页 */}
+            <Route path="/" element={<Navigate to="/index" replace />} />
 
-                {/* 登录页不受维护模式限制（管理员需要登录后台） */}
-                <Route path="/auth" element={<AuthPage />} />
+            {/* 登录页不受维护模式限制（管理员需要登录后台） */}
+            <Route path="/auth" element={<AuthPage />} />
 
-                {/* 管理中心不受维护模式限制（管理员需要关闭维护模式） */}
-                <Route path="/admin" element={<AdminLayout />}>
-                    <Route index element={<Dashboard />} />
-                    <Route path="users" element={<UserManagement />} />
-                    <Route path="articles" element={<ArticleManagement />} />
-                    <Route path="assignments" element={<AssignmentManagement />} />
-                    <Route path="organizations" element={<OrganizationManagement />} />
-                    <Route path="comments" element={<CommentManagement />} />
-                    <Route path="categories" element={<CategoryManagement />} />
-                    {import.meta.env.DEV && <Route path="media" element={<MediaManagement />} />}
-                    <Route path="database" element={<DataManagement />} />
-                    <Route path="settings" element={<Settings />} />
-                    <Route path="notifications" element={<NotificationManagement />} />
-                    <Route path="feedbacks" element={<FeedbackManagement />} />
-                </Route>
+            {/* 管理中心不受维护模式限制（管理员需要关闭维护模式） */}
+            <Route path="/admin" element={<AdminLayout />}>
+                <Route index element={<Dashboard />} />
+                <Route path="users" element={<UserManagement />} />
+                <Route path="articles" element={<ArticleManagement />} />
+                <Route path="assignments" element={<AssignmentManagement />} />
+                <Route path="organizations" element={<OrganizationManagement />} />
+                <Route path="comments" element={<CommentManagement />} />
+                <Route path="categories" element={<CategoryManagement />} />
+                {import.meta.env.DEV && <Route path="media" element={<MediaManagement />} />}
+                <Route path="database" element={<DataManagement />} />
+                <Route path="settings" element={<Settings />} />
+                <Route path="notifications" element={<NotificationManagement />} />
+                <Route path="feedbacks" element={<FeedbackManagement />} />
+            </Route>
 
-                {/* 维护模式路由守卫 */}
-                <Route element={<MaintenanceGuard />}>
+            {/* 维护模式路由守卫 */}
+            <Route element={<MaintenanceGuard />}>
+                {/* 使用前台统一外壳（常驻侧栏/顶栏/页脚）的页面 */}
+                <Route element={<FrontLayout />}>
                     {/* 主页 */}
                     <Route path="/index" element={<IndexPage />} />
 
@@ -76,83 +79,84 @@ const RouterConfig: React.FC = () => {
                     <Route path="/article/create" element={<ArticleCreate />} />
                     <Route path="/article/edit/:id" element={<ArticleCreate />} />
 
-                    {/* 文章详情页 */}
-                    <Route path="/article/:id" element={<ArticleViewPage />} />
-
-                    {/* 作业列表页 */}
-                    <Route path="/assignments" element={<Navigate to="/personal?tab=assignments" replace />} />
-                    {/* 作业提交页 */}
-                    <Route path="/assignment/submit/:id" element={<AssignmentSubmit />} />
-                    {/* 作业提交详情页 */}
-                    <Route path="/assignment/submissions/:id" element={<AssignmentSubmissions />} />
-
-                    {/* 测试页面（仅开发环境可见） */}
-                    {import.meta.env.DEV && <Route path="/test/chunk-upload" element={<ChunkUploadTest />} />}
-                    {import.meta.env.DEV && <Route path="/test/theme-style-panel" element={<SampleThemeStylePanel />} />}
-
                     {/* 用户组织列表页 */}
                     <Route path="/organizations/list" element={<OrganizationList />} />
                     {/* 组织详情页 */}
                     <Route path="/organization/detail/:id" element={<OrganizationDetail />} />
 
-                    <Route
-                        path="/profile/:id"
-                        element={
-                            <AuthRequired>
-                                <Profile />
-                            </AuthRequired>
-                        }
-                    />
-
-                    {/* 个人管理中心 */}
-                    <Route path="/personal" element={<PersonalCenter />} />
-
-                    {/* 用户系统：帮助中心（仅开发环境可见） */}
+                    {/* 用户系统：帮助中心 */}
                     <Route path="/help" element={<HelpCenter />} />
+                </Route>
 
-                    {/* 私信会话：页面正式开放，但必须登录后访问 */}
-                    <Route
-                        path="/messages"
-                        element={
-                            <AuthRequired title="登录后查看私信" message="私信会话仅对已登录用户开放。">
-                                <Messages />
-                            </AuthRequired>
-                        }
-                    />
+                {/* 文章详情页（独立沉浸式阅读界面，不使用前台外壳） */}
+                <Route path="/article/:id" element={<ArticleViewPage />} />
 
-                    {import.meta.env.VITE_AGENT_ENABLED === "true" && import.meta.env.DEV && (
-                        <Route path="/test/agent-session-panel" element={<SampleAgentSessionPanel />} />
+                {/* 作业列表页 */}
+                <Route path="/assignments" element={<Navigate to="/personal?tab=assignments" replace />} />
+                {/* 作业提交页 */}
+                <Route path="/assignment/submit/:id" element={<AssignmentSubmit />} />
+                {/* 作业提交详情页 */}
+                <Route path="/assignment/submissions/:id" element={<AssignmentSubmissions />} />
+
+                {/* 测试页面（仅开发环境可见） */}
+                {import.meta.env.DEV && <Route path="/test/chunk-upload" element={<ChunkUploadTest />} />}
+                {import.meta.env.DEV && <Route path="/test/theme-style-panel" element={<SampleThemeStylePanel />} />}
+
+                <Route
+                    path="/profile/:id"
+                    element={
+                        <AuthRequired>
+                            <Profile />
+                        </AuthRequired>
+                    }
+                />
+
+                {/* 个人管理中心 */}
+                <Route path="/personal" element={<PersonalCenter />} />
+
+                {/* 私信会话：页面正式开放，但必须登录后访问 */}
+                <Route
+                    path="/messages"
+                    element={
+                        <AuthRequired title="登录后查看私信" message="私信会话仅对已登录用户开放。">
+                            <Messages />
+                        </AuthRequired>
+                    }
+                />
+
+                {import.meta.env.VITE_AGENT_ENABLED === "true" && import.meta.env.DEV && (
+                    <Route path="/test/agent-session-panel" element={<SampleAgentSessionPanel />} />
+                )}
+
+                {/* 研发平台 */}
+                <Route path="/rd" element={<RdLayout />}>
+                    <Route index element={<RdDashboard />} />
+                    {import.meta.env.VITE_AGENT_ENABLED === "true" && (
+                        <Route
+                            path="agent"
+                            element={
+                                <AuthRequired title="登录后使用 Agent" message="请先登录。">
+                                    <AgentSessionPanel />
+                                </AuthRequired>
+                            }
+                        />
                     )}
 
-                    {/* 研发平台 */}
-                    <Route path="/rd" element={<RdLayout />}>
-                        <Route index element={<RdDashboard />} />
-                        {import.meta.env.VITE_AGENT_ENABLED === "true" && (
-                            <Route
-                                path="agent"
-                                element={
-                                    <AuthRequired title="登录后使用 Agent" message="请先登录。">
-                                        <AgentSessionPanel />
-                                    </AuthRequired>
-                                }
-                            />
-                        )}
-
-                        <Route path="trends" element={<TrendAnalysis />} />
-                        <Route path="requirements" element={<RequirementList />} />
-                        <Route path="requirements/:id" element={<TicketDetail />} />
-                        <Route path="bugs" element={<BugList />} />
-                        <Route path="bugs/:id" element={<TicketDetail />} />
-                        <Route path="tasks" element={<TaskList />} />
-                        <Route path="tasks/:id" element={<TicketDetail />} />
-                        <Route path="reviews" element={<CodeReviewList />} />
-                        <Route path="my-tickets" element={<MyTickets />} />
-                    </Route>
-
-                    {/* 404 页面 */}
-                    <Route path="*" element={<NotFound404 />} />
+                    <Route path="trends" element={<TrendAnalysis />} />
+                    <Route path="requirements" element={<RequirementList />} />
+                    <Route path="requirements/:id" element={<TicketDetail />} />
+                    <Route path="bugs" element={<BugList />} />
+                    <Route path="bugs/:id" element={<TicketDetail />} />
+                    <Route path="tasks" element={<TaskList />} />
+                    <Route path="tasks/:id" element={<TicketDetail />} />
+                    <Route path="reviews" element={<CodeReviewList />} />
+                    <Route path="my-tickets" element={<MyTickets />} />
                 </Route>
-            </Routes>
+
+                {/* 404 页面 */}
+                <Route path="*" element={<NotFound404 />} />
+            </Route>
+        </Routes>
     );
 };
 

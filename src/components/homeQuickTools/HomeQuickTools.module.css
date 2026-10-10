@@ -1,0 +1,74 @@
+.dock {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+}
+
+.group {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    height: 40px;
+    box-sizing: border-box;
+    padding: 2px 4px;
+    border: 1px solid var(--border-primary);
+    border-radius: 999px;
+    background: var(--surface-chrome);
+}
+
+.toolBtn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 34px;
+    border: none;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 15px;
+    transition:
+        background-color 0.2s ease,
+        color 0.2s ease;
+}
+
+.toolBtn:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+}
+
+.toolBtn[data-active="true"] {
+    background: var(--primary-light);
+    color: var(--primary);
+}
+
+.popup {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    width: 360px;
+    max-width: calc(100vw - 3rem);
+    background: var(--card-bg);
+    border: 1px solid var(--border-primary);
+    border-radius: 16px;
+    box-shadow: var(--shadow-lg);
+    z-index: 1200;
+    overflow: hidden;
+}
+
+.popupBody {
+    padding: 4px;
+    max-height: min(72vh, 640px);
+    overflow-y: auto;
+    scrollbar-width: thin;
+}
+
+/* 弹框内面板去掉自带卡片外壳，避免卡中卡 */
+.popupBody > div {
+    background-color: transparent;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    margin-bottom: 0;
+}
