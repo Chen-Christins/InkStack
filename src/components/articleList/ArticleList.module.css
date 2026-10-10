@@ -6,12 +6,26 @@
     min-height: 0;
 }
 
-.title {
-    font-size: 1.4rem;
-    color: var(--text-primary);
+.listHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
     margin-bottom: 1rem;
     border-bottom: 2px solid var(--primary);
     padding-bottom: 0.4rem;
+}
+
+.title {
+    font-size: 1.4rem;
+    color: var(--text-primary);
+    margin: 0;
+    white-space: nowrap;
+}
+
+.headerRight {
+    flex: 0 1 300px;
+    min-width: 0;
 }
 
 .articles {

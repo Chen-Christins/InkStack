@@ -1,16 +1,16 @@
 import React, { useEffect, useRef, useState } from "react";
-import { FaPalette, FaChartLine, FaCalendarAlt } from "react-icons/fa";
+import { FaPalette, FaCalendarAlt, FaRss } from "react-icons/fa";
 import styles from "./HomeQuickTools.module.css";
 import ThemeStylePanel from "../themeStylePanel/ThemeStylePanel";
-import StatsPanel from "../statsPanel/StatsPanel";
 import Calendar from "../calendar/Calendar";
+import SubscribeBox from "../subscribeBox/SubscribeBox";
 
-type ToolKey = "theme" | "stats" | "calendar";
+type ToolKey = "theme" | "calendar" | "subscribe";
 
 const TOOLS: { key: ToolKey; label: string; icon: React.ReactNode }[] = [
     { key: "theme", label: "主题风格", icon: <FaPalette /> },
-    { key: "stats", label: "访问统计", icon: <FaChartLine /> },
     { key: "calendar", label: "站点日历", icon: <FaCalendarAlt /> },
+    { key: "subscribe", label: "订阅更新", icon: <FaRss /> },
 ];
 
 const HomeQuickTools: React.FC = () => {
@@ -65,8 +65,8 @@ const HomeQuickTools: React.FC = () => {
                 <div className={styles.popup}>
                     <div className={styles.popupBody}>
                         {openKey === "theme" && <ThemeStylePanel />}
-                        {openKey === "stats" && <StatsPanel />}
                         {openKey === "calendar" && <Calendar />}
+                        {openKey === "subscribe" && <SubscribeBox />}
                     </div>
                 </div>
             )}

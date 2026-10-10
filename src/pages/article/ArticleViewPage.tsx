@@ -6,6 +6,7 @@ import ArticleView from "./ArticleView";
 import ArticleService from "@/services/ArticleService.ts";
 import BackToTop from "@/components/backToTop/BackToTop";
 import ThemeToggle from "@/components/themeToggle/ThemeToggle";
+import LayoutWidthToggle from "@/components/layoutWidthToggle/LayoutWidthToggle";
 import Notification from "@/components/notification/Notification";
 import AuthButtons from "@/components/authButtons/AuthButtons";
 import Avatar from "@/components/avatar/Avatar";
@@ -80,21 +81,24 @@ const ArticleViewPage: React.FC = () => {
         <div className={styles.reader}>
             {/* 沉浸式细顶栏：返回 + 品牌 + 操作 */}
             <header className={styles.readerBar}>
-                <button className={styles.backBtn} onClick={() => navigate(-1)} type="button" aria-label="返回">
-                    <FaArrowLeft />
-                    <span>返回</span>
-                </button>
+                <div className={styles.readerBarInner}>
+                    <button className={styles.backBtn} onClick={() => navigate(-1)} type="button" aria-label="返回">
+                        <FaArrowLeft />
+                        <span>返回</span>
+                    </button>
 
-                <div className={styles.actions}>
-                    <ThemeToggle />
-                    {isAuthenticated && <Notification />}
-                    {authLoading ? null : isAuthenticated ? (
-                        <div className={styles.avatarBtn} onClick={() => navigate("/personal")}>
-                            <Avatar src={user?.avatar} name={user?.name || "用户"} size={30} />
-                        </div>
-                    ) : (
-                        <AuthButtons />
-                    )}
+                    <div className={styles.actions}>
+                        <LayoutWidthToggle />
+                        <ThemeToggle />
+                        {isAuthenticated && <Notification />}
+                        {authLoading ? null : isAuthenticated ? (
+                            <div className={styles.avatarBtn} onClick={() => navigate("/personal")}>
+                                <Avatar src={user?.avatar} name={user?.name || "用户"} size={30} />
+                            </div>
+                        ) : (
+                            <AuthButtons />
+                        )}
+                    </div>
                 </div>
             </header>
 

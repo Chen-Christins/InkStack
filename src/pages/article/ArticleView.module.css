@@ -74,9 +74,9 @@
     flex-direction: column;
     gap: 16px;
     position: sticky;
-    top: 80px;
+    top: 72px;
     align-self: flex-start;
-    max-height: calc(100vh - 96px);
+    max-height: calc(100vh - 168px);
     overflow: hidden;
 }
 
@@ -88,6 +88,7 @@
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
     display: flex;
     flex-direction: column;
+    flex-shrink: 0;
 }
 
 .authorCardTop {

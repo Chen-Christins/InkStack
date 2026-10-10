@@ -11,16 +11,25 @@
 
 .mainContent {
     display: flex;
+    flex-direction: column;
     flex: 1 1 auto;
     min-height: 0;
     overflow: hidden;
-    gap: 1.5rem;
+    gap: 1rem;
     padding: 1.5rem;
     box-sizing: border-box;
     background-color: var(--bg-canvas);
     border: 1px solid var(--border-primary);
     border-radius: 20px;
     box-shadow: var(--shadow-md);
+}
+
+/* 左右两栏区域 */
+.contentRow {
+    display: flex;
+    flex: 1 1 auto;
+    min-height: 0;
+    gap: 1.5rem;
 }
 
 /* mainContent 内所有滚动都隐藏滚动条 */
@@ -115,9 +124,14 @@
     .mainContent {
         flex: none;
         overflow: visible;
-        flex-direction: column;
-        align-items: center;
+        align-items: stretch;
         padding: 1.25rem;
+    }
+
+    .contentRow {
+        flex: none;
+        flex-direction: column;
+        gap: 1.25rem;
     }
 
     .leftColumn {

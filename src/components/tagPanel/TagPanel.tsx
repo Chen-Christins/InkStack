@@ -78,8 +78,9 @@ const TagPanel: React.FC<TagPanelProps> = ({
                         </span>
                     ))
                 ) : (
-                    <div className={styles.emptyPlaceholder} style={{ color: "var(--text-secondary)" }}>
-                        暂无标签
+                    <div className={styles.emptyPlaceholder}>
+                        <FaTags className={styles.emptyIcon} />
+                        <span>暂无标签</span>
                     </div>
                 )}
 

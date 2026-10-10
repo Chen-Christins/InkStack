@@ -12,7 +12,11 @@ interface BroadcastItem {
 
 const POLL_INTERVAL = 30_000;
 
-const BroadcastMarquee: React.FC = () => {
+interface BroadcastMarqueeProps {
+    onActiveChange?: (active: boolean) => void;
+}
+
+const BroadcastMarquee: React.FC<BroadcastMarqueeProps> = ({ onActiveChange }) => {
     const [broadcasts, setBroadcasts] = useState<BroadcastItem[]>([]);
     const [dismissedIds, setDismissedIds] = useState<Set<number>>(() => new Set());
     const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -37,8 +41,13 @@ const BroadcastMarquee: React.FC = () => {
     }, []);
 
     const activeBroadcasts = broadcasts.filter((item) => !dismissedIds.has(item.id));
+    const hasActive = activeBroadcasts.length > 0;
 
-    if (activeBroadcasts.length === 0) {
+    useEffect(() => {
+        onActiveChange?.(hasActive);
+    }, [hasActive, onActiveChange]);
+
+    if (!hasActive) {
         return null;
     }
 

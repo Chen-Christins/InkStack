@@ -11,14 +11,20 @@
     position: sticky;
     top: 0;
     z-index: 990;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    height: 56px;
-    padding: 0 1.5rem;
     background-color: var(--navbar-bg);
     backdrop-filter: blur(10px);
     border-bottom: 1px solid var(--navbar-border);
+}
+
+.readerBarInner {
+    max-width: var(--page-max-width);
+    margin: 0 auto;
+    height: 56px;
+    padding: 0 20px;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    gap: 12px;
 }
 
 .backBtn {
@@ -80,7 +86,7 @@
 }
 
 @media (max-width: 640px) {
-    .readerBar {
+    .readerBarInner {
         padding: 0 0.9rem;
         gap: 8px;
     }

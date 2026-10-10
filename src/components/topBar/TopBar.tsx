@@ -25,6 +25,7 @@ const TopBar: React.FC<TopBarProps> = ({ onMenuClick, tools }) => {
 
     const [isScrolled, setIsScrolled] = useState(false);
     const [userMenuOpen, setUserMenuOpen] = useState(false);
+    const [hasBroadcast, setHasBroadcast] = useState(false);
     const userMenuRef = useRef<HTMLDivElement>(null);
 
     const currentUser = user
@@ -58,7 +59,7 @@ const TopBar: React.FC<TopBarProps> = ({ onMenuClick, tools }) => {
 
     return (
         <header className={`${styles.topBar} ${isScrolled ? styles.topBarScrolled : ""}`}>
-            <div className={styles.bar}>
+            <div className={`${styles.bar} ${hasBroadcast ? styles.barWithBroadcast : ""}`}>
                 <div className={styles.leftGroup}>
                     <button className={styles.menuBtn} onClick={onMenuClick} type="button" aria-label="打开导航菜单">
                         <FaBars />
@@ -67,6 +68,10 @@ const TopBar: React.FC<TopBarProps> = ({ onMenuClick, tools }) => {
                         <img src={siteSettings.siteLogo || defaultLogo} alt={siteSettings.siteName} className={styles.logoImage} />
                         <span className={styles.siteName}>{siteSettings.siteName}</span>
                     </div>
+                </div>
+
+                <div className={styles.marqueeInline}>
+                    <BroadcastMarquee onActiveChange={setHasBroadcast} />
                 </div>
 
                 <div className={styles.centerGroup}>
@@ -145,16 +150,6 @@ const TopBar: React.FC<TopBarProps> = ({ onMenuClick, tools }) => {
                                             <FaUserCircle />
                                             个人中心
                                         </div>
-                                        <div
-                                            className={styles.dropdownItem}
-                                            onClick={() => {
-                                                setUserMenuOpen(false);
-                                                navigate("/article/create");
-                                            }}
-                                        >
-                                            <FaPen />
-                                            撰写文章
-                                        </div>
                                         {!normalUser && (
                                             <>
                                                 <div
@@ -190,8 +185,6 @@ const TopBar: React.FC<TopBarProps> = ({ onMenuClick, tools }) => {
                     )}
                 </div>
             </div>
-
-            <BroadcastMarquee />
         </header>
     );
 };

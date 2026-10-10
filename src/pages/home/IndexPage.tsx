@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
 import styles from "./IndexPage.module.css";
 import ArticleList from "@/components/articleList/ArticleList";
-import SubscribeBox from "@/components/subscribeBox/SubscribeBox";
 import CategoryPanel from "@/components/categoryPanel/CategoryPanel";
 import TagPanel from "@/components/tagPanel/TagPanel";
-import SearchPanel from "@/components/searchArticle/SearchArticle";
+import SearchBox from "@/components/searchBox/SearchBox";
 import DailyQuote from "@/components/dailyQuote/DailyQuote";
+import StatsPanel from "@/components/statsPanel/StatsPanel";
 import LabelService from "@/services/LabelService.ts";
 import PageSkeleton from "@/components/pageSkeleton/PageSkeleton";
 import { useAuth } from "@/contexts/AuthContext";
@@ -67,73 +67,82 @@ const IndexPage: React.FC = () => {
             ) : (
                 <div className={styles.mainCardWrap}>
                     <div className={`${styles.mainContent} ${showContent ? styles.contentVisible : styles.contentHidden}`}>
-                        {/* 左侧：文章列表 */}
-                        <div className={styles.leftColumn}>
-                            <ArticleList
-                                labelId={selectedLabelId}
-                                labelName={selectedLabelName}
-                                categoryId={selectedCategoryId}
-                                categoryName={selectedCategoryName}
-                                searchKeyword={searchKeyword}
-                            />
-                        </div>
+                        <div className={styles.contentRow}>
+                            {/* 左侧：文章列表 */}
+                            <div className={styles.leftColumn}>
+                                <ArticleList
+                                    labelId={selectedLabelId}
+                                    labelName={selectedLabelName}
+                                    categoryId={selectedCategoryId}
+                                    categoryName={selectedCategoryName}
+                                    searchKeyword={searchKeyword}
+                                    headerRight={
+                                        <SearchBox
+                                            placeholder="搜索文章..."
+                                            size="small"
+                                            onSearch={(keyword) => setSearchKeyword(keyword.trim())}
+                                            onChange={(value) => {
+                                                if (!value) {
+                                                    setSearchKeyword("");
+                                                }
+                                            }}
+                                        />
+                                    }
+                                />
+                            </div>
 
-                        {/* 右侧：侧边栏 */}
-                        <div className={styles.rightColumn}>
-                            {/* 搜索文章 */}
-                            <div className={`${styles.panelSlot} ${styles.wide}`}>
-                                <SearchPanel onSearch={(keyword) => setSearchKeyword(keyword)} />
-                            </div>
-                            {/* 每日名言 + 订阅更新：两个小卡片并排（无订阅时名言占整行） */}
-                            <div className={`${styles.panelSlot} ${import.meta.env.DEV ? "" : styles.wide}`}>
-                                <DailyQuote />
-                            </div>
-                            {import.meta.env.DEV && (
-                                <div className={styles.panelSlot}>
-                                    <SubscribeBox />
+                            {/* 右侧：侧边栏 */}
+                            <div className={styles.rightColumn}>
+                                {/* 每日名言 */}
+                                <div className={`${styles.panelSlot} ${styles.wide}`}>
+                                    <DailyQuote />
                                 </div>
-                            )}
-                            {/* 文章标签 */}
-                            <div className={`${styles.panelSlot} ${styles.wide}`}>
-                                <TagPanel
-                                    tags={tags}
-                                    loading={tagsLoading}
-                                    selectedTagId={selectedLabelId}
-                                    onTagClick={(tag) => {
-                                        if (selectedLabelId === tag.id) {
-                                            // 再次点击取消选中
-                                            setSelectedLabelId(undefined);
-                                            setSelectedLabelName(undefined);
-                                        } else {
-                                            setSelectedLabelId(tag.id);
-                                            setSelectedLabelName(tag.name);
-                                            // 清除分类和搜索
-                                            setSelectedCategoryId(undefined);
-                                            setSelectedCategoryName(undefined);
-                                            setSearchKeyword("");
-                                        }
-                                    }}
-                                />
-                            </div>
-                            {/* 文章分类 */}
-                            <div className={`${styles.panelSlot} ${styles.wide}`}>
-                                <CategoryPanel
-                                    selectedCategoryId={selectedCategoryId}
-                                    onCategoryClick={(id, name) => {
-                                        if (selectedCategoryId === id) {
-                                            // 再次点击取消选中
-                                            setSelectedCategoryId(undefined);
-                                            setSelectedCategoryName(undefined);
-                                        } else {
-                                            setSelectedCategoryId(id);
-                                            setSelectedCategoryName(name);
-                                            // 清除标签和搜索
-                                            setSelectedLabelId(undefined);
-                                            setSelectedLabelName(undefined);
-                                            setSearchKeyword("");
-                                        }
-                                    }}
-                                />
+                                {/* 访问统计 */}
+                                <div className={`${styles.panelSlot} ${styles.wide}`}>
+                                    <StatsPanel />
+                                </div>
+                                {/* 文章标签 */}
+                                <div className={`${styles.panelSlot} ${styles.wide}`}>
+                                    <TagPanel
+                                        tags={tags}
+                                        loading={tagsLoading}
+                                        selectedTagId={selectedLabelId}
+                                        onTagClick={(tag) => {
+                                            if (selectedLabelId === tag.id) {
+                                                // 再次点击取消选中
+                                                setSelectedLabelId(undefined);
+                                                setSelectedLabelName(undefined);
+                                            } else {
+                                                setSelectedLabelId(tag.id);
+                                                setSelectedLabelName(tag.name);
+                                                // 清除分类和搜索
+                                                setSelectedCategoryId(undefined);
+                                                setSelectedCategoryName(undefined);
+                                                setSearchKeyword("");
+                                            }
+                                        }}
+                                    />
+                                </div>
+                                {/* 文章分类 */}
+                                <div className={`${styles.panelSlot} ${styles.wide}`}>
+                                    <CategoryPanel
+                                        selectedCategoryId={selectedCategoryId}
+                                        onCategoryClick={(id, name) => {
+                                            if (selectedCategoryId === id) {
+                                                // 再次点击取消选中
+                                                setSelectedCategoryId(undefined);
+                                                setSelectedCategoryName(undefined);
+                                            } else {
+                                                setSelectedCategoryId(id);
+                                                setSelectedCategoryName(name);
+                                                // 清除标签和搜索
+                                                setSelectedLabelId(undefined);
+                                                setSelectedLabelName(undefined);
+                                                setSearchKeyword("");
+                                            }
+                                        }}
+                                    />
+                                </div>
                             </div>
                         </div>
                     </div>
