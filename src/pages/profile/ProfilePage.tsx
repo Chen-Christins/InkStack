@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import styles from "./ProfilePage.module.css";
-import Navbar from "@/components/navbar/Navbar";
-import Footer from "@/components/footer/Footer";
 import { encodeId, decodeId } from "@/utils/HashId.ts";
 import BackToTop from "@/components/backToTop/BackToTop";
 import { useAuth } from "@/contexts/AuthContext";
@@ -277,7 +275,6 @@ const Profile: React.FC = () => {
     if (loading) {
         return (
             <div className={styles.profile}>
-                <Navbar />
                 <div className={styles.loadingContainer}>
                     <div className={styles.spinner} />
                     <span>加载中...</span>
@@ -289,7 +286,6 @@ const Profile: React.FC = () => {
     if (error || !profile) {
         return (
             <div className={styles.profile}>
-                <Navbar />
                 <div className={styles.loadingContainer}>
                     <span>{error || "用户不存在"}</span>
                 </div>
@@ -529,8 +525,6 @@ const Profile: React.FC = () => {
 
     return (
         <div className={styles.profile}>
-            <Navbar />
-
             {/* Main layout */}
             <div className={styles.mainContent}>
                 {/* Left sidebar */}
@@ -667,7 +661,6 @@ const Profile: React.FC = () => {
                 </main>
             </div>
 
-            <Footer startYear={2025} />
             <BackToTop />
         </div>
     );

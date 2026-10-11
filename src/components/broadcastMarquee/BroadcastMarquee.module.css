@@ -1,20 +1,13 @@
 .broadcastMarquee {
-    position: sticky;
-    top: 56px;
-    z-index: 990;
     display: flex;
     align-items: center;
     width: 100%;
-    max-width: none;
-    min-height: 32px;
-    border-top: 0;
-    border-right: 0;
-    border-bottom: 1px solid var(--border-light);
-    border-left: 0;
-    border-radius: 0;
-    background: color-mix(in srgb, var(--bg-card) 92%, #f59e0b 8%);
+    height: 40px;
+    border: 1px solid var(--border-primary);
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--card-bg) 92%, #f59e0b 8%);
     color: var(--text-secondary);
-    box-shadow: none;
+    overflow: hidden;
 }
 
 .danger {

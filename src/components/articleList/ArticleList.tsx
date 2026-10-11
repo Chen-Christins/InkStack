@@ -22,9 +22,10 @@ interface ArticleListProps {
     categoryId?: string | number;
     categoryName?: string;
     searchKeyword?: string;
+    headerRight?: React.ReactNode;
 }
 
-const ArticleList: React.FC<ArticleListProps> = ({ labelId, labelName, categoryId, categoryName, searchKeyword }) => {
+const ArticleList: React.FC<ArticleListProps> = ({ labelId, labelName, categoryId, categoryName, searchKeyword, headerRight }) => {
     const [searchParams, setSearchParams] = useSearchParams();
     const currentPage = parseInt(searchParams.get("page") || "1", 10);
     const itemsPerPage = 6;
@@ -181,7 +182,12 @@ const ArticleList: React.FC<ArticleListProps> = ({ labelId, labelName, categoryI
 
     return (
         <div className={styles.articleList}>
-            <h2 className={styles.title}>{labelName ? `标签：${labelName}` : categoryName ? `分类：${categoryName}` : "最新文章"}</h2>
+            <div className={styles.listHeader}>
+                <h2 className={styles.title}>
+                    {labelName ? `标签：${labelName}` : categoryName ? `分类：${categoryName}` : "最新文章"}
+                </h2>
+                {headerRight && <div className={styles.headerRight}>{headerRight}</div>}
+            </div>
             <div className={styles.articles}>
                 {loading ? (
                     Array.from({ length: 5 }, (_, index) => (

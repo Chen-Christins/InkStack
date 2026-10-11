@@ -2,8 +2,6 @@ import React, { useState, useRef, useEffect, useCallback } from "react";
 import { FaSearch, FaPaperPlane, FaCircle, FaRegSmile, FaArrowLeft, FaPlus, FaTrash } from "react-icons/fa";
 import styles from "./UserPage.module.css";
 import msgStyles from "./Messages.module.css";
-import Navbar from "@/components/navbar/Navbar";
-import Footer from "@/components/footer/Footer";
 import Avatar from "@/components/avatar/Avatar";
 import Input from "@/components/input/Input";
 import MessageService from "@/services/MessageService.ts";
@@ -350,20 +348,17 @@ const Messages: React.FC = () => {
     if (denied) {
         return (
             <div className={`${styles.page} ${msgStyles.msgPage}`}>
-                <Navbar />
                 <div className={msgStyles.wrapper}>
                     <div className={msgStyles.convEmpty} style={{ margin: "auto" }}>
                         私信功能仅对内部成员开放
                     </div>
                 </div>
-                <Footer startYear={2025} />
             </div>
         );
     }
 
     return (
         <div className={`${styles.page} ${msgStyles.msgPage}`}>
-            <Navbar />
             <div className={msgStyles.wrapper}>
                 <div className={`${msgStyles.chatLayout} ${mobileChatOpen ? msgStyles.showChat : ""}`}>
                     <aside className={msgStyles.convList}>
@@ -476,7 +471,6 @@ const Messages: React.FC = () => {
                     </section>
                 </div>
             </div>
-            <Footer startYear={2025} />
 
             {newChatOpen && (
                 <div className={msgStyles.modalMask} onClick={() => setNewChatOpen(false)}>

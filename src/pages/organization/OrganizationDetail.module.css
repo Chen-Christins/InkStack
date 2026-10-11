@@ -59,19 +59,31 @@
     color: var(--text-tertiary);
 }
 
-.container {
-    min-height: 100vh;
-    background-color: transparent;
-    display: flex;
-    flex-direction: column;
-}
-
 .mainContent {
     flex: 1;
     max-width: var(--page-max-width);
     margin: 0 auto;
     width: 100%;
     padding: 1rem 1.5rem;
+    box-sizing: border-box;
+}
+
+/* 胶囊布局：内容用统一的 mainContent 外框卡片 */
+:global([data-layout-mode="appShell"]) .mainContent {
+    min-height: 0;
+    overflow-y: auto;
+    scrollbar-width: none;
+    width: calc(100% - 2rem);
+    margin: 0 auto 0.5rem;
+    padding: 1.5rem;
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-primary);
+    border-radius: 20px;
+    box-shadow: var(--shadow-md);
+}
+
+:global([data-layout-mode="appShell"]) .mainContent::-webkit-scrollbar {
+    display: none;
 }
 
 .backBtn {
@@ -97,7 +109,7 @@
 }
 
 .detailCard {
-    background: var(--card-bg);
+    background: var(--surface-chrome);
     border-radius: 16px;
     box-shadow: var(--shadow-sm);
     padding: 2rem;

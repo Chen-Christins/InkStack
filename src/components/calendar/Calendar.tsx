@@ -38,7 +38,7 @@ const getMonthDays = (year: number, month: number, articleDays: number[]): DayIn
 
 const Calendar: React.FC = () => {
     const [currentDate, setCurrentDate] = useState<Date>(new Date());
-    const [days, setDays] = useState<DayInfo[]>([]);
+    const [articleDays, setArticleDays] = useState<number[]>([]);
     const [loading, setLoading] = useState(false);
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
@@ -48,11 +48,11 @@ const Calendar: React.FC = () => {
     const fetchArticleDays = useCallback(async (y: number, m: number) => {
         setLoading(true);
         try {
-            const articleDays = await ArticleService.getCalendarDays(y, m + 1); // API 月份为 1-based
-            setDays(getMonthDays(y, m, articleDays));
+            const list = await ArticleService.getCalendarDays(y, m + 1); // API 月份为 1-based
+            setArticleDays(list);
         } catch {
             // 请求失败时回退为空列表
-            setDays(getMonthDays(y, m, []));
+            setArticleDays([]);
         } finally {
             setLoading(false);
         }
@@ -60,8 +60,13 @@ const Calendar: React.FC = () => {
 
     // 初始化和月份切换时拉取数据
     useEffect(() => {
+        // 先清空标记，避免显示上个月的文章圆点
+        setArticleDays([]);
         fetchArticleDays(year, month);
     }, [year, month, fetchArticleDays]);
+
+    // 日期网格同步渲染，仅有文章的标记等待接口返回
+    const days = getMonthDays(year, month, articleDays);
 
     // 切换月份
     const changeMonth = (direction: "prev" | "next") => {

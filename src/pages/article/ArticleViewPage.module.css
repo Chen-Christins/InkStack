@@ -1,0 +1,97 @@
+.reader {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    font-family: var(--font-family);
+    color: var(--text-primary);
+}
+
+/* 极简沉浸顶栏 */
+.readerBar {
+    position: sticky;
+    top: 0;
+    z-index: 990;
+    background-color: var(--navbar-bg);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--navbar-border);
+}
+
+.readerBarInner {
+    max-width: var(--page-max-width);
+    margin: 0 auto;
+    height: 56px;
+    padding: 0 20px;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.backBtn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 36px;
+    padding: 0 12px;
+    border: 1px solid var(--border-primary);
+    border-radius: 999px;
+    background: var(--surface-chrome);
+    color: var(--text-secondary);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.backBtn:hover {
+    color: var(--text-primary);
+    border-color: var(--primary);
+}
+
+.actions {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.avatarBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.avatarBtn:hover {
+    background: var(--bg-hover);
+}
+
+.readerMain {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+/* 让 AuthRequired 的包裹层也填满高度，正文卡片才能顶满 */
+.readerMain > div {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+@media (max-width: 640px) {
+    .readerBarInner {
+        padding: 0 0.9rem;
+        gap: 8px;
+    }
+
+    .backBtn span {
+        display: none;
+    }
+}

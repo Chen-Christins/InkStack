@@ -29,6 +29,25 @@
     overflow: hidden;
 }
 
+/* 胶囊布局：内容用统一的卡片并锁定视口内部滚动 */
+:global([data-layout-mode="appShell"]) .editorContainer {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    scrollbar-width: none;
+    box-sizing: border-box;
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-primary);
+    border-radius: 20px;
+    box-shadow: var(--shadow-md);
+    margin: 0 auto 0.5rem;
+    width: calc(100% - 2rem);
+}
+
+:global([data-layout-mode="appShell"]) .editorContainer::-webkit-scrollbar {
+    display: none;
+}
+
 .editorContainer::before {
     content: "";
     position: absolute;
@@ -38,6 +57,10 @@
     height: 3px;
     background: linear-gradient(90deg, var(--primary), #60a5fa, #a78bfa);
     border-radius: 12px 12px 0 0;
+}
+
+:global([data-layout-mode="appShell"]) .editorContainer::before {
+    border-radius: 20px 20px 0 0;
 }
 
 .editorHeader {
@@ -69,6 +92,10 @@
     border-radius: 10px;
     padding: 18px 20px;
     border: 1px solid var(--border-secondary);
+}
+
+.formSection:last-child {
+    margin-bottom: 0;
 }
 
 .formSection:focus-within {
@@ -377,22 +404,6 @@
     color: #ef4444;
 }
 
-.actionButtons {
-    margin-top: 28px;
-    display: flex;
-    justify-content: flex-end;
-    gap: 12px;
-    padding: 16px 0 0;
-    border-top: 1px solid var(--border-secondary);
-}
-
-.actionButtons .btn {
-    padding: 12px 28px;
-    font-size: 15px;
-    border-radius: 10px;
-    font-weight: 600;
-}
-
 /* 响应式调整 */
 @media (max-width: 768px) {
     .editorContainer {
@@ -408,15 +419,6 @@
 
     .formSection {
         padding: 14px 16px;
-    }
-
-    .actionButtons {
-        flex-direction: column;
-    }
-
-    .actionButtons .btn {
-        width: 100%;
-        justify-content: center;
     }
 
     .editorRow {

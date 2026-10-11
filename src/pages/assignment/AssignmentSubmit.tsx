@@ -12,8 +12,6 @@ import {
     FaExclamationCircle,
     FaBookOpen,
 } from "react-icons/fa";
-import Navbar from "@/components/navbar/Navbar";
-import Footer from "@/components/footer/Footer";
 import message from "@/components/message/Message";
 import AuthRequired from "@/components/auth/AuthRequired";
 import AssignmentSubmitSkeleton from "./AssignmentSubmitSkeleton";
@@ -268,13 +266,11 @@ const AssignmentSubmit: React.FC = () => {
     if (loading) {
         return (
             <div className={styles.container}>
-                <Navbar />
                 <div className={styles.mainContent}>
                     <AuthRequired message="您需要登录后才能查看作业详情和提交作业。">
                         <AssignmentSubmitSkeleton />
                     </AuthRequired>
                 </div>
-                <Footer startYear={2025} />
             </div>
         );
     }
@@ -282,7 +278,6 @@ const AssignmentSubmit: React.FC = () => {
     if (error || !assignment) {
         return (
             <div className={styles.container}>
-                <Navbar />
                 <div className={styles.mainContent}>
                     <AuthRequired message="您需要登录后才能查看作业详情和提交作业。">
                         <ErrorState
@@ -294,15 +289,12 @@ const AssignmentSubmit: React.FC = () => {
                         />
                     </AuthRequired>
                 </div>
-                <Footer startYear={2025} />
             </div>
         );
     }
 
     return (
         <div className={styles.container}>
-            <Navbar />
-
             <div className={styles.mainContent}>
                 <AuthRequired message="您需要登录后才能查看作业详情和提交作业。">
                     <div className={styles.card}>
@@ -459,8 +451,6 @@ const AssignmentSubmit: React.FC = () => {
                     </div>
                 </AuthRequired>
             </div>
-
-            <Footer startYear={2025} />
         </div>
     );
 };

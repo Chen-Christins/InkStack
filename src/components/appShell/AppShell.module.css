@@ -1,0 +1,39 @@
+.index {
+    min-height: 100vh;
+    background-color: transparent;
+    font-family: var(--font-family);
+    color: var(--text-primary);
+}
+
+.pageShell {
+    margin-left: 76px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* app-shell（如首页）：铺满内容区，不受版心宽度限制 */
+.fit {
+    --page-max-width: none;
+}
+
+/* 宽屏下主体占满视口、内部滚动 */
+@media (min-width: 1165px) {
+    .fit {
+        height: 100vh;
+        overflow: hidden;
+    }
+}
+
+/* 页脚：透明、与页面融为一体，避免与左侧胶囊产生突兀交界 */
+.index .footer {
+    background-color: transparent;
+    border-top: none;
+    padding: 6px 0 14px;
+}
+
+@media (max-width: 960px) {
+    .pageShell {
+        margin-left: 0;
+    }
+}

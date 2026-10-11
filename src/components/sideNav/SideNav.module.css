@@ -1,0 +1,216 @@
+.sideNav {
+    position: fixed;
+    left: 12px;
+    top: 12px;
+    bottom: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    z-index: 1000;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 44px;
+    padding: 0 14px 0 8px;
+    background-color: var(--surface-chrome);
+    border: 1px solid var(--border-primary);
+    border-radius: 999px;
+    box-shadow: var(--shadow-md);
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: border-color 0.2s ease;
+}
+
+.brand:hover {
+    border-color: var(--primary);
+}
+
+.brandName {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-primary);
+    white-space: nowrap;
+    max-width: 110px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.navList {
+    position: relative;
+    list-style: none;
+    margin: 0;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    background-color: var(--surface-chrome);
+    border: 1px solid var(--border-primary);
+    border-radius: 26px;
+    box-shadow: var(--shadow-md);
+    flex-shrink: 0;
+}
+
+/* 激活指示器：切换时平滑滑动 */
+.indicator {
+    position: absolute;
+    left: 8px;
+    top: 0;
+    width: 48px;
+    pointer-events: none;
+    z-index: 0;
+    transition:
+        transform 0.4s cubic-bezier(0.22, 0.61, 0.36, 1),
+        height 0.3s ease;
+}
+
+.indicatorInner {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border-radius: 16px;
+    background-color: var(--primary);
+    box-shadow: 0 4px 10px color-mix(in srgb, var(--primary) 35%, transparent);
+    transform-origin: center;
+}
+
+/* 移动时横向挤压，产生水流感 */
+.indicator[data-moving="true"] .indicatorInner {
+    animation: liquidSqueeze 0.42s ease;
+}
+
+@keyframes liquidSqueeze {
+    0% {
+        transform: scaleX(1);
+    }
+    45% {
+        transform: scaleX(0.72);
+    }
+    100% {
+        transform: scaleX(1);
+    }
+}
+
+.navItem {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.navLink {
+    position: relative;
+    z-index: 1;
+    width: 48px;
+    padding: 8px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    border-radius: 16px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: color 0.2s ease;
+    user-select: none;
+}
+
+.navLink:hover {
+    color: var(--text-primary);
+}
+
+.navLink[data-active="true"] {
+    color: #ffffff;
+}
+
+.linkIcon {
+    font-size: 19px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+.linkText {
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+.utilities {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 8px;
+    background-color: var(--surface-chrome);
+    border: 1px solid var(--border-primary);
+    border-radius: 26px;
+    box-shadow: var(--shadow-md);
+    flex-shrink: 0;
+    margin-top: auto;
+}
+
+.utilitySlot {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.utilitySlot > :global(button) {
+    width: 44px;
+    height: 44px;
+    margin: 0;
+    padding: 0;
+    border: none;
+    border-radius: 14px;
+    background: transparent;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.utilitySlot > :global(button:hover) {
+    background-color: var(--bg-hover);
+    color: var(--text-primary);
+}
+
+.utilitySlot > :global(button span) {
+    display: none;
+}
+
+.overlay {
+    display: none;
+}
+
+@media (max-width: 960px) {
+    .sideNav {
+        transform: translateX(calc(-100% - 24px));
+        transition: transform 0.25s ease;
+    }
+
+    .sideNav.open {
+        transform: translateX(0);
+    }
+
+    .overlay {
+        display: block;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.45);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.25s ease;
+        z-index: 999;
+    }
+
+    .overlayShow {
+        opacity: 1;
+        pointer-events: auto;
+    }
+}

@@ -1,25 +1,30 @@
 import React, { useState, useEffect } from "react";
 import styles from "./IndexPage.module.css";
+import classicStyles from "./IndexPageClassic.module.css";
 import ArticleList from "@/components/articleList/ArticleList";
-import StatsPanel from "@/components/statsPanel/StatsPanel";
-import SubscribeBox from "@/components/subscribeBox/SubscribeBox";
-import Calendar from "@/components/calendar/Calendar";
 import CategoryPanel from "@/components/categoryPanel/CategoryPanel";
-import Navbar from "@/components/navbar/Navbar";
-import Footer from "@/components/footer/Footer";
 import TagPanel from "@/components/tagPanel/TagPanel";
-import SearchPanel from "@/components/searchArticle/SearchArticle";
-import ThemeStylePanel from "@/components/themeStylePanel/ThemeStylePanel";
+import SearchBox from "@/components/searchBox/SearchBox";
 import DailyQuote from "@/components/dailyQuote/DailyQuote";
+import StatsPanel from "@/components/statsPanel/StatsPanel";
+import Calendar from "@/components/calendar/Calendar";
 import BackToTop from "@/components/backToTop/BackToTop";
 import LabelService from "@/services/LabelService.ts";
 import PageSkeleton from "@/components/pageSkeleton/PageSkeleton";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLayoutMode } from "@/contexts/LayoutModeContext";
+
+interface TagItem {
+    id: string | number;
+    color: string;
+    name: string;
+}
 
 const IndexPage: React.FC = () => {
     const { user, loading: authLoading } = useAuth();
+    const { mode } = useLayoutMode();
 
-    const [tags, setTags] = useState<{ id: string | number; color: string; name: string }[]>([]);
+    const [tags, setTags] = useState<TagItem[]>([]);
     const [tagsLoading, setTagsLoading] = useState(false);
     const [isInitialLoad, setIsInitialLoad] = useState(true);
     const [showContent, setShowContent] = useState(false);
@@ -66,81 +71,157 @@ const IndexPage: React.FC = () => {
         }
     }, [authLoading, tagsLoading]);
 
-    return (
-        <div className={styles.index}>
-            {/* 导航栏：直接渲染，不参与骨架屏加载 */}
-            <Navbar />
+    const handleTagClick = (tag: TagItem) => {
+        if (selectedLabelId === tag.id) {
+            // 再次点击取消选中
+            setSelectedLabelId(undefined);
+            setSelectedLabelName(undefined);
+        } else {
+            setSelectedLabelId(tag.id);
+            setSelectedLabelName(tag.name);
+            // 清除分类和搜索
+            setSelectedCategoryId(undefined);
+            setSelectedCategoryName(undefined);
+            setSearchKeyword("");
+        }
+    };
 
-            {/* 主内容区域 */}
+    const handleCategoryClick = (id: string | number, name?: string) => {
+        if (selectedCategoryId === id) {
+            // 再次点击取消选中
+            setSelectedCategoryId(undefined);
+            setSelectedCategoryName(undefined);
+        } else {
+            setSelectedCategoryId(id);
+            setSelectedCategoryName(name);
+            // 清除标签和搜索
+            setSelectedLabelId(undefined);
+            setSelectedLabelName(undefined);
+            setSearchKeyword("");
+        }
+    };
+
+    // 经典布局：保留旧版首页结构（右侧完整的侧边栏 + 无外层卡片）
+    if (mode === "classic") {
+        return (
+            <>
+                {isInitialLoad ? (
+                    <PageSkeleton />
+                ) : (
+                    <div
+                        className={`${classicStyles.mainContent} ${showContent ? classicStyles.contentVisible : classicStyles.contentHidden}`}
+                    >
+                        <div className={classicStyles.leftColumn}>
+                            <ArticleList
+                                labelId={selectedLabelId}
+                                labelName={selectedLabelName}
+                                categoryId={selectedCategoryId}
+                                categoryName={selectedCategoryName}
+                                searchKeyword={searchKeyword}
+                                headerRight={
+                                    <SearchBox
+                                        placeholder="搜索文章..."
+                                        size="small"
+                                        onSearch={(keyword) => setSearchKeyword(keyword.trim())}
+                                        onChange={(value) => {
+                                            if (!value) {
+                                                setSearchKeyword("");
+                                            }
+                                        }}
+                                    />
+                                }
+                            />
+                        </div>
+
+                        <div className={classicStyles.rightColumn}>
+                            <div className={classicStyles.panelSlot}>
+                                <DailyQuote />
+                            </div>
+                            <div className={classicStyles.panelSlot}>
+                                <TagPanel
+                                    tags={tags}
+                                    loading={tagsLoading}
+                                    selectedTagId={selectedLabelId}
+                                    onTagClick={handleTagClick}
+                                />
+                            </div>
+                            <div className={classicStyles.panelSlot}>
+                                <CategoryPanel selectedCategoryId={selectedCategoryId} onCategoryClick={handleCategoryClick} />
+                            </div>
+                            <div className={classicStyles.panelSlot}>
+                                <StatsPanel />
+                            </div>
+                            <div className={classicStyles.panelSlot}>
+                                <Calendar />
+                            </div>
+                        </div>
+                    </div>
+                )}
+                <BackToTop />
+            </>
+        );
+    }
+
+    return (
+        <>
             {isInitialLoad ? (
                 <PageSkeleton />
             ) : (
-                <div className={`${styles.mainContent} ${showContent ? styles.contentVisible : styles.contentHidden}`}>
-                    {/* 左侧：文章列表 */}
-                    <div className={styles.leftColumn}>
-                        <ArticleList
-                            labelId={selectedLabelId}
-                            labelName={selectedLabelName}
-                            categoryId={selectedCategoryId}
-                            categoryName={selectedCategoryName}
-                            searchKeyword={searchKeyword}
-                        />
-                    </div>
+                <div className={styles.mainCardWrap}>
+                    <div className={`${styles.mainContent} ${showContent ? styles.contentVisible : styles.contentHidden}`}>
+                        <div className={styles.contentRow}>
+                            {/* 左侧：文章列表 */}
+                            <div className={styles.leftColumn}>
+                                <ArticleList
+                                    labelId={selectedLabelId}
+                                    labelName={selectedLabelName}
+                                    categoryId={selectedCategoryId}
+                                    categoryName={selectedCategoryName}
+                                    searchKeyword={searchKeyword}
+                                    headerRight={
+                                        <SearchBox
+                                            placeholder="搜索文章..."
+                                            size="small"
+                                            onSearch={(keyword) => setSearchKeyword(keyword.trim())}
+                                            onChange={(value) => {
+                                                if (!value) {
+                                                    setSearchKeyword("");
+                                                }
+                                            }}
+                                        />
+                                    }
+                                />
+                            </div>
 
-                    {/* 右侧：侧边栏 */}
-                    <div className={styles.rightColumn}>
-                        {/* 每日名言 */}
-                        <DailyQuote />
-                        {/* 主题风格选择 */}
-                        <ThemeStylePanel />
-                        {/* 标签面板可能仍在加载，显示局部加载状态 */}
-                        <SearchPanel onSearch={(keyword) => setSearchKeyword(keyword)} />
-                        <TagPanel
-                            tags={tags}
-                            loading={tagsLoading}
-                            selectedTagId={selectedLabelId}
-                            onTagClick={(tag) => {
-                                if (selectedLabelId === tag.id) {
-                                    // 再次点击取消选中
-                                    setSelectedLabelId(undefined);
-                                    setSelectedLabelName(undefined);
-                                } else {
-                                    setSelectedLabelId(tag.id);
-                                    setSelectedLabelName(tag.name);
-                                    // 清除分类和搜索
-                                    setSelectedCategoryId(undefined);
-                                    setSelectedCategoryName(undefined);
-                                    setSearchKeyword("");
-                                }
-                            }}
-                        />
-                        {import.meta.env.DEV && <SubscribeBox />}
-                        <CategoryPanel
-                            selectedCategoryId={selectedCategoryId}
-                            onCategoryClick={(id, name) => {
-                                if (selectedCategoryId === id) {
-                                    // 再次点击取消选中
-                                    setSelectedCategoryId(undefined);
-                                    setSelectedCategoryName(undefined);
-                                } else {
-                                    setSelectedCategoryId(id);
-                                    setSelectedCategoryName(name);
-                                    // 清除标签和搜索
-                                    setSelectedLabelId(undefined);
-                                    setSelectedLabelName(undefined);
-                                    setSearchKeyword("");
-                                }
-                            }}
-                        />
-                        <StatsPanel />
-                        <Calendar />
+                            {/* 右侧：侧边栏 */}
+                            <div className={styles.rightColumn}>
+                                {/* 每日名言 */}
+                                <div className={`${styles.panelSlot} ${styles.wide}`}>
+                                    <DailyQuote />
+                                </div>
+                                {/* 访问统计 */}
+                                <div className={`${styles.panelSlot} ${styles.wide}`}>
+                                    <StatsPanel />
+                                </div>
+                                {/* 文章标签 */}
+                                <div className={`${styles.panelSlot} ${styles.wide}`}>
+                                    <TagPanel
+                                        tags={tags}
+                                        loading={tagsLoading}
+                                        selectedTagId={selectedLabelId}
+                                        onTagClick={handleTagClick}
+                                    />
+                                </div>
+                                {/* 文章分类 */}
+                                <div className={`${styles.panelSlot} ${styles.wide}`}>
+                                    <CategoryPanel selectedCategoryId={selectedCategoryId} onCategoryClick={handleCategoryClick} />
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             )}
-
-            <Footer startYear={2025} />
-            <BackToTop />
-        </div>
+        </>
     );
 };
 

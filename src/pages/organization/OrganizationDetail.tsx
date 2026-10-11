@@ -1,8 +1,6 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import { decodeId } from "@/utils/HashId.ts";
-import Navbar from "@/components/navbar/Navbar";
-import Footer from "@/components/footer/Footer";
 import OrganizationDetailSkeleton from "@/components/organization/OrganizationDetailSkeleton";
 import AuthRequired from "@/components/auth/AuthRequired";
 import { useAuth } from "@/contexts/AuthContext";
@@ -850,8 +848,7 @@ const OrganizationDetail: React.FC = () => {
     };
 
     return (
-        <div className={styles.container}>
-            <Navbar />
+        <>
             <div className={styles.mainContent}>
                 <AuthRequired message="您需要登录后才能查看组织详情。">
                     {loading || !org ? (
@@ -1076,9 +1073,7 @@ const OrganizationDetail: React.FC = () => {
                     />
                 </div>
             </Modal>
-
-            <Footer startYear={2025} />
-        </div>
+        </>
     );
 };
 

@@ -1,10 +1,16 @@
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
+import { FaArrowLeft } from "react-icons/fa";
+import styles from "./ArticleViewPage.module.css";
 import ArticleView from "./ArticleView";
 import ArticleService from "@/services/ArticleService.ts";
-import Navbar from "@/components/navbar/Navbar";
-import Footer from "@/components/footer/Footer";
 import BackToTop from "@/components/backToTop/BackToTop";
+import ThemeToggle from "@/components/themeToggle/ThemeToggle";
+import LayoutWidthToggle from "@/components/layoutWidthToggle/LayoutWidthToggle";
+import Notification from "@/components/notification/Notification";
+import AuthButtons from "@/components/authButtons/AuthButtons";
+import Avatar from "@/components/avatar/Avatar";
+import Footer from "@/components/footer/Footer";
 import { formatToChinaTime } from "@/utils/Utils.ts";
 import { decodeId } from "@/utils/HashId.ts";
 import { useAuth } from "@/contexts/AuthContext";
@@ -15,7 +21,8 @@ import SkeletonArticleView from "@/components/articleView/SkeletonArticleView";
 const ArticleViewPage: React.FC = () => {
     const { id: encodedId } = useParams<{ id: string }>();
     const id = encodedId ? decodeId(encodedId, "article") : null;
-    const { isAuthenticated, loading: authLoading } = useAuth();
+    const navigate = useNavigate();
+    const { user, isAuthenticated, loading: authLoading } = useAuth();
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
     const [article, setArticle] = useState<any>(null);
@@ -71,9 +78,31 @@ const ArticleViewPage: React.FC = () => {
     }, [id, authLoading, isAuthenticated]);
 
     return (
-        <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
-            <Navbar />
-            <div style={{ flex: 1 }}>
+        <div className={styles.reader}>
+            {/* 沉浸式细顶栏：返回 + 品牌 + 操作 */}
+            <header className={styles.readerBar}>
+                <div className={styles.readerBarInner}>
+                    <button className={styles.backBtn} onClick={() => navigate(-1)} type="button" aria-label="返回">
+                        <FaArrowLeft />
+                        <span>返回</span>
+                    </button>
+
+                    <div className={styles.actions}>
+                        <LayoutWidthToggle />
+                        <ThemeToggle />
+                        {isAuthenticated && <Notification />}
+                        {authLoading ? null : isAuthenticated ? (
+                            <div className={styles.avatarBtn} onClick={() => navigate("/personal")}>
+                                <Avatar src={user?.avatar} name={user?.name || "用户"} size={30} />
+                            </div>
+                        ) : (
+                            <AuthButtons />
+                        )}
+                    </div>
+                </div>
+            </header>
+
+            <main className={styles.readerMain}>
                 <AuthRequired>
                     {authLoading ? (
                         <div style={{ padding: "2rem", textAlign: "center" }}>正在加载认证状态...</div>
@@ -112,7 +141,8 @@ const ArticleViewPage: React.FC = () => {
                         </>
                     )}
                 </AuthRequired>
-            </div>
+            </main>
+
             <Footer startYear={2025} />
             <BackToTop />
         </div>

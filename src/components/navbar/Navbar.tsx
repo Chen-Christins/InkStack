@@ -13,7 +13,7 @@ import {
     FaQuestionCircle,
 } from "react-icons/fa";
 import styles from "./Navbar.module.css";
-import LayoutWidthToggle from "../layoutWidthToggle/LayoutWidthToggle";
+import HomeQuickTools from "../homeQuickTools/HomeQuickTools";
 import ThemeToggle from "../themeToggle/ThemeToggle";
 import AuthButtons from "../authButtons/AuthButtons";
 import Notification from "../notification/Notification";
@@ -22,6 +22,7 @@ import { useSiteSettings } from "@/contexts/SiteSettingsContext";
 import Avatar from "../avatar/Avatar";
 import { useAuth } from "@/contexts/AuthContext";
 import { isNormalUser, PlatformRoleLabel, type PlatformRole as PlatformRoleType } from "@/types/Roles.ts";
+import { encodeId } from "@/utils/HashId.ts";
 
 const Navbar: React.FC = () => {
     const navigate = useNavigate();
@@ -101,6 +102,14 @@ const Navbar: React.FC = () => {
         };
     }, [mobileMenuOpen]);
 
+    // 未登录：直接重定向到登录页
+    useEffect(() => {
+        if (!loading && !isAuthenticated) {
+            const redirect = encodeURIComponent(window.location.pathname + window.location.search);
+            navigate(`/auth?redirect=${redirect}`, { replace: true });
+        }
+    }, [loading, isAuthenticated, navigate]);
+
     const isActive = (path: string) => {
         if (path === "/") {
             return location.pathname === "/" || location.pathname === "/index";
@@ -110,9 +119,6 @@ const Navbar: React.FC = () => {
         }
         if (path === "/organizations/list") {
             return location.pathname.startsWith("/organizations") || location.pathname.startsWith("/organization");
-        }
-        if (path === "/rd") {
-            return location.pathname.startsWith("/rd");
         }
         if (path === "/help") {
             return location.pathname === "/help";
@@ -124,11 +130,7 @@ const Navbar: React.FC = () => {
     };
 
     const getNavLinks = () => {
-        const links = [
-            ...navLinks,
-            { label: "研发", icon: <FaFlask />, path: "/rd" },
-            { label: "帮助", icon: <FaQuestionCircle />, path: "/help" },
-        ];
+        const links = [...navLinks, { label: "帮助", icon: <FaQuestionCircle />, path: "/help" }];
         return links;
     };
 
@@ -227,7 +229,7 @@ const Navbar: React.FC = () => {
                                 <FaFlask className={styles.testButtonIcon} />
                             </button>
                         )}
-                        <LayoutWidthToggle />
+                        <HomeQuickTools tools={["theme", "subscribe"]} utilities={["width", "layoutMode"]} />
                         {/* 主题切换按钮 */}
                         <ThemeToggle />
 
@@ -262,7 +264,20 @@ const Navbar: React.FC = () => {
                                 {userMenuOpen && (
                                     <div className={styles.userDropdown}>
                                         <div className={styles.dropdownHeader}>
-                                            <Avatar src={currentUser.avatar} name={currentUser.name} size={48} />
+                                            <button
+                                                type="button"
+                                                className={styles.dropdownAvatarBtn}
+                                                onClick={() => {
+                                                    setUserMenuOpen(false);
+                                                    if (user) {
+                                                        navigate(`/profile/${encodeId(user.id, "user")}`);
+                                                    }
+                                                }}
+                                                title="查看个人资料"
+                                                aria-label="查看个人资料"
+                                            >
+                                                <Avatar src={currentUser.avatar} name={currentUser.name} size={48} />
+                                            </button>
                                             <div className={styles.dropdownUserInfo}>
                                                 <div className={styles.dropdownUserName}>{currentUser.name}</div>
                                                 <div className={styles.dropdownUserEmail}>{currentUser.email}</div>
