@@ -102,6 +102,14 @@ const Navbar: React.FC = () => {
         };
     }, [mobileMenuOpen]);
 
+    // 未登录：直接重定向到登录页
+    useEffect(() => {
+        if (!loading && !isAuthenticated) {
+            const redirect = encodeURIComponent(window.location.pathname + window.location.search);
+            navigate(`/auth?redirect=${redirect}`, { replace: true });
+        }
+    }, [loading, isAuthenticated, navigate]);
+
     const isActive = (path: string) => {
         if (path === "/") {
             return location.pathname === "/" || location.pathname === "/index";

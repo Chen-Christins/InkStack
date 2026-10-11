@@ -353,7 +353,6 @@
 
 .dropdownDivider {
     height: 1px;
-    margin: 6px 0;
     background-color: var(--border-primary);
 }
 

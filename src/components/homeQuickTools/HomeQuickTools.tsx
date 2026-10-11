@@ -33,7 +33,9 @@ interface HomeQuickToolsProps {
 const HomeQuickTools: React.FC<HomeQuickToolsProps> = ({ tools, utilities }) => {
     const [openKey, setOpenKey] = useState<ToolKey | null>(null);
     const dockRef = useRef<HTMLDivElement>(null);
-    const visibleTools = tools ? TOOLS.filter((tool) => tools.includes(tool.key)) : TOOLS;
+    // 订阅更新尚未实现，仅开发环境展示
+    const availableTools = import.meta.env.DEV ? TOOLS : TOOLS.filter((tool) => tool.key !== "subscribe");
+    const visibleTools = tools ? availableTools.filter((tool) => tools.includes(tool.key)) : availableTools;
 
     const { mode: widthMode, cycleMode: cycleWidth } = useLayoutWidth();
     const { mode: layoutMode, toggleMode } = useLayoutMode();
