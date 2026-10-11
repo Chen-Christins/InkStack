@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Eye, EyeOff, Mail, User, Lock, ArrowLeft, Check, AlertCircle } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import styles from "./AuthPage.module.css"; // 导入 CSS Modules
+import Button from "@/components/button/Button";
 import Footer from "@/components/footer/Footer";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSiteSettings } from "@/contexts/SiteSettingsContext";
@@ -9,6 +10,24 @@ import { AuthService } from "@/services/AuthService.ts";
 
 // 定义表单类型
 type FormType = "login" | "register" | "forgotPassword";
+
+// 规整登录后回跳地址：仅允许站内相对路径，且不把登录页自身当作目标（避免 /auth?redirect=... 嵌套）
+const resolveRedirect = (raw: string | null): string => {
+    if (!raw || !raw.startsWith("/") || raw.startsWith("//")) {
+        return "/index";
+    }
+    if (raw === "/auth" || raw.startsWith("/auth?") || raw.startsWith("/auth/")) {
+        return "/index";
+    }
+    return raw;
+};
+
+// GitHub 图标（lucide-react 已移除品牌图标，使用内联 SVG）
+const GithubIcon: React.FC<{ size?: number }> = ({ size = 18 }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
+        <path d="M12 .5C5.73.5.5 5.73.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.23-1.28-5.23-5.7 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11.1 11.1 0 0 1 2.9-.39c.98 0 1.97.13 2.9.39 2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.43-2.69 5.41-5.25 5.69.41.36.78 1.06.78 2.14 0 1.55-.01 2.8-.01 3.18 0 .31.21.68.8.56A11.51 11.51 0 0 0 23.5 12C23.5 5.73 18.27.5 12 .5Z" />
+    </svg>
+);
 
 // 表单验证规则
 const validateForm = (type: FormType, formData: any) => {
@@ -123,6 +142,18 @@ const AuthPage: React.FC = () => {
         }
     }, [settings.enableRegistration, formType]);
 
+    // 处理 GitHub 授权回调失败（后端重定向带回 oauth_error）
+    useEffect(() => {
+        const params = new URLSearchParams(location.search);
+        if (!params.has("oauth_error")) {
+            return;
+        }
+        setMessage({ text: "GitHub 登录失败或已取消，请重试", type: "error" });
+        params.delete("oauth_error");
+        const query = params.toString();
+        navigate(`${location.pathname}${query ? `?${query}` : ""}`, { replace: true });
+    }, [location.pathname, location.search, navigate]);
+
     // 处理输入变化
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -207,7 +238,7 @@ const AuthPage: React.FC = () => {
                 await login(formData.usernameOrEmail, formData.password);
                 setMessage({ text: "登录成功，正在跳转...", type: "success" });
                 const params = new URLSearchParams(location.search);
-                const redirect = params.get("redirect") || "/index";
+                const redirect = resolveRedirect(params.get("redirect"));
                 setTimeout(() => {
                     navigate(redirect);
                 }, 200);
@@ -236,6 +267,13 @@ const AuthPage: React.FC = () => {
         } finally {
             setIsSubmitting(false);
         }
+    };
+
+    // 跳转到 GitHub 授权页（整页跳转，由后端处理回调）
+    const handleGithubLogin = () => {
+        const params = new URLSearchParams(location.search);
+        const redirect = resolveRedirect(params.get("redirect"));
+        window.location.href = AuthService.githubLoginUrl(redirect);
     };
 
     // 切换表单视图
@@ -671,6 +709,25 @@ const AuthPage: React.FC = () => {
                                     "重置密码"
                                 )}
                             </button>
+
+                            {/* GitHub 第三方登录 */}
+                            {formType === "login" && (
+                                <>
+                                    <div className={styles.divider}>
+                                        <span>或</span>
+                                    </div>
+                                    <Button
+                                        type="button"
+                                        color="secondary"
+                                        variant="outline"
+                                        className={styles.githubBtn}
+                                        onClick={handleGithubLogin}
+                                    >
+                                        <GithubIcon size={18} />
+                                        <span>使用 GitHub 登录</span>
+                                    </Button>
+                                </>
+                            )}
 
                             {/* 表单切换链接 */}
                             <div className={styles.formSwitch}>

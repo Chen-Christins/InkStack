@@ -273,6 +273,31 @@
     background-color: var(--border-primary);
 }
 
+/* 第三方登录 */
+.divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--text-secondary);
+    font-size: 13px;
+}
+
+.divider::before,
+.divider::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background-color: var(--border-primary);
+}
+
+.githubBtn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
 @media (max-width: 480px) {
     .formSwitchRow {
         gap: 10px;

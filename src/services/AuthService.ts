@@ -176,6 +176,21 @@ export class AuthService {
     }
 
     /**
+     * 构建 GitHub OAuth 登录入口地址
+     * 需要浏览器整页跳转（非 XHR），登录成功后由后端设置 Cookie 并回跳
+     * @param redirect 登录成功后的站内回跳路径
+     * @returns 入口地址（经前端同源代理，保证 S_TOKEN Cookie 落在前端域）
+     */
+    static githubLoginUrl(redirect?: string): string {
+        const params = new URLSearchParams();
+        if (redirect && redirect.startsWith("/")) {
+            params.set("redirect", redirect);
+        }
+        const query = params.toString();
+        return `/api/v1/user/oauth/github${query ? `?${query}` : ""}`;
+    }
+
+    /**
      * 发送验证码
      * @param email 邮箱地址
      * @param type 操作类型
