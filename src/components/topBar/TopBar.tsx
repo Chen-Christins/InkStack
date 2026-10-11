@@ -2,10 +2,10 @@ import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaPen, FaSave, FaFly, FaBars, FaSignOutAlt, FaUserCircle, FaRegComments, FaFlask } from "react-icons/fa";
 import styles from "./TopBar.module.css";
-import AuthButtons from "../authButtons/AuthButtons";
 import Notification from "../notification/Notification";
 import BroadcastMarquee from "../broadcastMarquee/BroadcastMarquee";
 import Avatar from "../avatar/Avatar";
+import { encodeId } from "@/utils/HashId.ts";
 import { useSiteSettings } from "@/contexts/SiteSettingsContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEditorToolbar } from "@/contexts/EditorToolbarContext";
@@ -56,6 +56,14 @@ const TopBar: React.FC<TopBarProps> = ({ onMenuClick, tools }) => {
         document.addEventListener("mousedown", handleClickOutside);
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
+
+    // 未登录：直接重定向到登录页
+    useEffect(() => {
+        if (!loading && !isAuthenticated) {
+            const redirect = encodeURIComponent(window.location.pathname + window.location.search);
+            navigate(`/auth?redirect=${redirect}`, { replace: true });
+        }
+    }, [loading, isAuthenticated, navigate]);
 
     return (
         <header className={`${styles.topBar} ${isScrolled ? styles.topBarScrolled : ""}`}>
@@ -132,7 +140,20 @@ const TopBar: React.FC<TopBarProps> = ({ onMenuClick, tools }) => {
                             {userMenuOpen && (
                                 <div className={styles.userDropdown}>
                                     <div className={styles.dropdownHeader}>
-                                        <Avatar src={currentUser.avatar} name={currentUser.name} size={48} />
+                                        <button
+                                            type="button"
+                                            className={styles.dropdownAvatarBtn}
+                                            onClick={() => {
+                                                setUserMenuOpen(false);
+                                                if (user) {
+                                                    navigate(`/profile/${encodeId(user.id, "user")}`);
+                                                }
+                                            }}
+                                            title="查看个人资料"
+                                            aria-label="查看个人资料"
+                                        >
+                                            <Avatar src={currentUser.avatar} name={currentUser.name} size={48} />
+                                        </button>
                                         <div className={styles.dropdownUserInfo}>
                                             <div className={styles.dropdownUserName}>{currentUser.name}</div>
                                             <div className={styles.dropdownUserEmail}>{currentUser.email}</div>
@@ -180,9 +201,7 @@ const TopBar: React.FC<TopBarProps> = ({ onMenuClick, tools }) => {
                                 </div>
                             )}
                         </>
-                    ) : (
-                        <AuthButtons />
-                    )}
+                    ) : null}
                 </div>
             </div>
         </header>

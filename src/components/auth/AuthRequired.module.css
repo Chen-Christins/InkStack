@@ -2,6 +2,14 @@
     position: relative;
 }
 
+/* 作为布局直接子级、需要撑满高度时使用 */
+.fill {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
 /* ========== Loading state ========== */
 .loadingContainer {
     display: flex;

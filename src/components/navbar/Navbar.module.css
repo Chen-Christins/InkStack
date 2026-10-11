@@ -299,6 +299,28 @@
     padding: 8px 16px;
 }
 
+.dropdownAvatarBtn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: none;
+    background: transparent;
+    border-radius: 50%;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: transform 0.15s ease;
+}
+
+.dropdownAvatarBtn:hover {
+    transform: scale(1.05);
+}
+
+.dropdownAvatarBtn:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
 .dropdownAvatar {
     width: 48px;
     height: 48px;
@@ -331,6 +353,7 @@
 
 .dropdownDivider {
     height: 1px;
+    margin: 6px 0;
     background-color: var(--border-primary);
 }
 

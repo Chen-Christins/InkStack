@@ -1,11 +1,15 @@
 import React, { useEffect, useRef, useState } from "react";
 import { FaPalette, FaCalendarAlt, FaRss } from "react-icons/fa";
+import { StretchHorizontal, LayoutPanelLeft, PanelTop } from "lucide-react";
 import styles from "./HomeQuickTools.module.css";
 import ThemeStylePanel from "../themeStylePanel/ThemeStylePanel";
 import Calendar from "../calendar/Calendar";
 import SubscribeBox from "../subscribeBox/SubscribeBox";
+import { useLayoutWidth, type LayoutWidthMode } from "@/contexts/LayoutWidthContext";
+import { useLayoutMode } from "@/contexts/LayoutModeContext";
 
 type ToolKey = "theme" | "calendar" | "subscribe";
+type UtilityKey = "width" | "layoutMode";
 
 const TOOLS: { key: ToolKey; label: string; icon: React.ReactNode }[] = [
     { key: "theme", label: "主题风格", icon: <FaPalette /> },
@@ -13,9 +17,26 @@ const TOOLS: { key: ToolKey; label: string; icon: React.ReactNode }[] = [
     { key: "subscribe", label: "订阅更新", icon: <FaRss /> },
 ];
 
-const HomeQuickTools: React.FC = () => {
+const WIDTH_LABEL: Record<LayoutWidthMode, string> = {
+    default: "默认",
+    wide: "较宽",
+    full: "全宽",
+};
+
+interface HomeQuickToolsProps {
+    /** 仅展示指定的弹框工具；不传则展示全部 */
+    tools?: ToolKey[];
+    /** 以图标按钮形式收纳的工具（点击即切换） */
+    utilities?: UtilityKey[];
+}
+
+const HomeQuickTools: React.FC<HomeQuickToolsProps> = ({ tools, utilities }) => {
     const [openKey, setOpenKey] = useState<ToolKey | null>(null);
     const dockRef = useRef<HTMLDivElement>(null);
+    const visibleTools = tools ? TOOLS.filter((tool) => tools.includes(tool.key)) : TOOLS;
+
+    const { mode: widthMode, cycleMode: cycleWidth } = useLayoutWidth();
+    const { mode: layoutMode, toggleMode } = useLayoutMode();
 
     useEffect(() => {
         if (!openKey) {
@@ -42,11 +63,12 @@ const HomeQuickTools: React.FC = () => {
     }, [openKey]);
 
     const activeTool = TOOLS.find((tool) => tool.key === openKey);
+    const showUtility = (key: UtilityKey) => utilities?.includes(key) ?? false;
 
     return (
         <div className={styles.dock} ref={dockRef}>
             <div className={styles.group}>
-                {TOOLS.map((tool) => (
+                {visibleTools.map((tool) => (
                     <button
                         key={tool.key}
                         type="button"
@@ -59,6 +81,30 @@ const HomeQuickTools: React.FC = () => {
                         {tool.icon}
                     </button>
                 ))}
+
+                {showUtility("width") && (
+                    <button
+                        type="button"
+                        className={styles.toolBtn}
+                        title={`布局宽度：${WIDTH_LABEL[widthMode]}，点击切换`}
+                        aria-label={`布局宽度：${WIDTH_LABEL[widthMode]}，点击切换`}
+                        onClick={cycleWidth}
+                    >
+                        <StretchHorizontal size={16} />
+                    </button>
+                )}
+
+                {showUtility("layoutMode") && (
+                    <button
+                        type="button"
+                        className={styles.toolBtn}
+                        title={`界面布局：${layoutMode === "appShell" ? "侧栏布局" : "顶部布局"}，点击切换`}
+                        aria-label={`界面布局：${layoutMode === "appShell" ? "侧栏布局" : "顶部布局"}，点击切换`}
+                        onClick={toggleMode}
+                    >
+                        {layoutMode === "appShell" ? <LayoutPanelLeft size={16} /> : <PanelTop size={16} />}
+                    </button>
+                )}
             </div>
 
             {openKey && activeTool && (

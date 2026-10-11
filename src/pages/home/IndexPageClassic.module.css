@@ -1,0 +1,80 @@
+.mainContent {
+    display: flex;
+    flex: 1;
+    gap: 1.5rem;
+    width: 100%;
+    max-width: var(--page-max-width);
+    margin: 1rem auto;
+    padding: 0 1.8rem;
+    box-sizing: border-box;
+}
+
+.leftColumn {
+    flex: 2;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 0.5rem;
+}
+
+.rightColumn {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    max-width: 460px;
+    min-width: 0;
+    gap: 1rem;
+}
+
+/* 右侧面板外壳：与文章卡片统一为 --surface-chrome，内部面板透明化避免双重卡片 */
+.panelSlot {
+    background-color: var(--surface-chrome);
+    border: 1px solid var(--border-primary);
+    border-radius: 16px;
+    min-width: 0;
+}
+
+.panelSlot > div {
+    background-color: transparent;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    margin-bottom: 0;
+    min-width: 0;
+}
+
+.contentHidden {
+    opacity: 0;
+    transform: translateY(20px);
+}
+
+.contentVisible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+@media (max-width: 1164px) {
+    .mainContent {
+        flex-direction: column;
+        align-items: center;
+        padding: 0 1.2rem;
+    }
+
+    .leftColumn {
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .rightColumn {
+        width: 100%;
+        max-width: 100%;
+    }
+}
+
+@media (max-width: 768px) {
+    .mainContent {
+        padding: 0 0.8rem;
+        margin: 1rem auto;
+        gap: 1rem;
+    }
+}

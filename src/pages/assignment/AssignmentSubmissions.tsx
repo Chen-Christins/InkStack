@@ -17,8 +17,6 @@ import {
     FaChevronDown,
     FaChevronUp,
 } from "react-icons/fa";
-import Navbar from "@/components/navbar/Navbar";
-import Footer from "@/components/footer/Footer";
 import AuthRequired from "@/components/auth/AuthRequired";
 import Skeleton from "@/components/skeleton/Skeleton";
 import AssignmentService from "@/services/AssignmentService.ts";
@@ -260,7 +258,6 @@ const AssignmentSubmissions: React.FC = () => {
     if (loading) {
         return (
             <div className={styles.container}>
-                <Navbar />
                 <div className={styles.mainContent}>
                     <AuthRequired message="您需要登录后才能查看作业提交详情。">
                         <div className={styles.loadingContainer}>
@@ -339,7 +336,6 @@ const AssignmentSubmissions: React.FC = () => {
                         </div>
                     </AuthRequired>
                 </div>
-                <Footer startYear={2025} />
             </div>
         );
     }
@@ -347,7 +343,6 @@ const AssignmentSubmissions: React.FC = () => {
     if (error || !assignment) {
         return (
             <div className={styles.container}>
-                <Navbar />
                 <div className={styles.mainContent}>
                     <AuthRequired message="您需要登录后才能查看作业提交详情。">
                         <ErrorState
@@ -359,14 +354,12 @@ const AssignmentSubmissions: React.FC = () => {
                         />
                     </AuthRequired>
                 </div>
-                <Footer startYear={2025} />
             </div>
         );
     }
 
     return (
         <div className={styles.container}>
-            <Navbar />
             <div className={styles.mainContent}>
                 <AuthRequired message="您需要登录后才能查看作业提交详情。">
                     <div className={styles.card}>
@@ -624,7 +617,6 @@ const AssignmentSubmissions: React.FC = () => {
                     </div>
                 </AuthRequired>
             </div>
-            <Footer startYear={2025} />
         </div>
     );
 };

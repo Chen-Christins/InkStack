@@ -2,8 +2,6 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { encodeId } from "@/utils/HashId.ts";
 import { FaCheckCircle, FaExclamationCircle, FaArrowRight, FaCalendarAlt, FaClipboardList, FaTasks, FaEye } from "react-icons/fa";
-import Navbar from "@/components/navbar/Navbar";
-import Footer from "@/components/footer/Footer";
 import Skeleton from "@/components/skeleton/Skeleton";
 import AuthRequired from "@/components/auth/AuthRequired";
 import AssignmentService from "@/services/AssignmentService.ts";
@@ -94,7 +92,6 @@ const AssignmentList: React.FC = () => {
 
     return (
         <div className={styles.container}>
-            <Navbar />
             <div className={styles.mainContent}>
                 <AuthRequired message="您需要登录后才能查看和管理您的作业列表。">
                     <>
@@ -206,8 +203,6 @@ const AssignmentList: React.FC = () => {
                     </>
                 </AuthRequired>
             </div>
-
-            <Footer startYear={2025} />
         </div>
     );
 };

@@ -6,6 +6,7 @@ import Skeleton from "@/components/skeleton/Skeleton";
 import ApplyCreateOrg from "@/components/orgApply/ApplyCreateOrg";
 import styles from "./OrganizationList.module.css";
 import OrganizationService from "@/services/OrganizationService.ts";
+import RdPlatformService from "@/services/RdPlatformService.ts";
 import message from "@/components/message/Message";
 import AuthRequired from "@/components/auth/AuthRequired";
 import { useAuth } from "@/contexts/AuthContext";
@@ -26,6 +27,30 @@ const OrganizationList: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [organizations, setOrganizations] = useState<Organization[]>([]);
     const [applyVisible, setApplyVisible] = useState(false);
+    // 用户拥有研发平台访问权限的组织 ID，用于按组织展示「研发」入口
+    const [rdOrgIds, setRdOrgIds] = useState<Set<string>>(new Set());
+
+    useEffect(() => {
+        let cancelled = false;
+        if (!currentUser) {
+            setRdOrgIds(new Set());
+            return;
+        }
+        RdPlatformService.getMyOrganizations()
+            .then((list) => {
+                if (!cancelled) {
+                    setRdOrgIds(new Set(list.map((item) => item.orgId)));
+                }
+            })
+            .catch(() => {
+                if (!cancelled) {
+                    setRdOrgIds(new Set());
+                }
+            });
+        return () => {
+            cancelled = true;
+        };
+    }, [currentUser]);
 
     useEffect(() => {
         const fetchOrgs = async () => {
@@ -164,13 +189,15 @@ const OrganizationList: React.FC = () => {
                                                 {org.memberCount} 成员
                                             </div>
                                             <div className={styles.cardActions}>
-                                                <button
-                                                    className={`${styles.actionBtn} ${styles.btnSecondary}`}
-                                                    onClick={() => navigate(`/rd?org=${encodeId(org.id, "organization")}`)}
-                                                >
-                                                    <FaFlask />
-                                                    研发
-                                                </button>
+                                                {rdOrgIds.has(org.id) && (
+                                                    <button
+                                                        className={`${styles.actionBtn} ${styles.btnSecondary}`}
+                                                        onClick={() => navigate(`/rd?org=${encodeId(org.id, "organization")}`)}
+                                                    >
+                                                        <FaFlask />
+                                                        研发
+                                                    </button>
+                                                )}
                                                 <button
                                                     className={`${styles.actionBtn} ${styles.btnPrimary}`}
                                                     onClick={() =>

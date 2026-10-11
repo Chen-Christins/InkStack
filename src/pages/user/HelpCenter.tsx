@@ -23,6 +23,7 @@ import CustomSelect from "@/components/customSelect/CustomSelect";
 import message from "@/components/message/Message";
 import Loading from "@/components/loading/Loading";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLayoutMode } from "@/contexts/LayoutModeContext";
 import type { SelectOption } from "../../types";
 import { HelpService, type HelpFaq } from "../../services/HelpService.ts";
 
@@ -42,6 +43,7 @@ const feedbackTypes: SelectOption[] = [
 const HelpCenter: React.FC = () => {
     const navigate = useNavigate();
     const { isAuthenticated, loading: authLoading } = useAuth();
+    const { mode } = useLayoutMode();
     const [search, setSearch] = useState("");
     const [faqs, setFaqs] = useState<HelpFaq[]>([]);
     const [faqLoading, setFaqLoading] = useState(true);
@@ -226,6 +228,11 @@ const HelpCenter: React.FC = () => {
             </div>
         );
     };
+
+    // 经典布局：沿用旧版容器，无外层卡片
+    if (mode === "classic") {
+        return <div className={styles.page}>{renderContent()}</div>;
+    }
 
     return <div className={helpStyles.pageCard}>{renderContent()}</div>;
 };

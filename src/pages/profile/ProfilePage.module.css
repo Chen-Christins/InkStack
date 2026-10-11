@@ -1,7 +1,8 @@
 .profile {
     display: flex;
     flex-direction: column;
-    min-height: 100vh;
+    flex: 1;
+    min-height: 0;
     background-color: transparent;
     font-family: var(--font-family);
     color: var(--text-primary, #1f2328);
@@ -16,6 +17,26 @@
     margin: 0 auto;
     padding: 24px 32px;
     gap: 24px;
+}
+
+/* 胶囊布局：与其它页面一致，用统一的 mainContent 外框卡片 */
+:global([data-layout-mode="appShell"]) .mainContent {
+    width: calc(100% - 2rem);
+    max-width: none;
+    margin: 0 auto 0.5rem;
+    padding: 1.5rem;
+    box-sizing: border-box;
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-primary);
+    border-radius: 20px;
+    box-shadow: var(--shadow-md);
+    min-height: 0;
+    overflow: hidden auto;
+    scrollbar-width: none;
+}
+
+:global([data-layout-mode="appShell"]) .mainContent::-webkit-scrollbar {
+    display: none;
 }
 
 /* ========== Content Tabs ========== */
@@ -78,6 +99,11 @@
 .sidebarInner {
     position: sticky;
     top: 80px;
+}
+
+/* 胶囊布局：mainContent 自身即滚动容器，sticky 偏移归零避免顶部大留白 */
+:global([data-layout-mode="appShell"]) .sidebarInner {
+    top: 0;
 }
 
 .avatar {

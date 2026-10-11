@@ -86,6 +86,31 @@ const RouterConfig: React.FC = () => {
 
                     {/* 用户系统：帮助中心 */}
                     <Route path="/help" element={<HelpCenter />} />
+
+                    {/* 个人主页 */}
+                    <Route
+                        path="/profile/:id"
+                        element={
+                            <AuthRequired fill>
+                                <Profile />
+                            </AuthRequired>
+                        }
+                    />
+
+                    {/* 作业提交页 */}
+                    <Route path="/assignment/submit/:id" element={<AssignmentSubmit />} />
+                    {/* 作业提交详情页 */}
+                    <Route path="/assignment/submissions/:id" element={<AssignmentSubmissions />} />
+
+                    {/* 私信会话：页面正式开放，但必须登录后访问 */}
+                    <Route
+                        path="/messages"
+                        element={
+                            <AuthRequired fill title="登录后查看私信" message="私信会话仅对已登录用户开放。">
+                                <Messages />
+                            </AuthRequired>
+                        }
+                    />
                 </Route>
 
                 {/* 文章详情页（独立沉浸式阅读界面，不使用前台外壳） */}
@@ -93,36 +118,13 @@ const RouterConfig: React.FC = () => {
 
                 {/* 作业列表页 */}
                 <Route path="/assignments" element={<Navigate to="/personal?tab=assignments" replace />} />
-                {/* 作业提交页 */}
-                <Route path="/assignment/submit/:id" element={<AssignmentSubmit />} />
-                {/* 作业提交详情页 */}
-                <Route path="/assignment/submissions/:id" element={<AssignmentSubmissions />} />
 
                 {/* 测试页面（仅开发环境可见） */}
                 {import.meta.env.DEV && <Route path="/test/chunk-upload" element={<ChunkUploadTest />} />}
                 {import.meta.env.DEV && <Route path="/test/theme-style-panel" element={<SampleThemeStylePanel />} />}
 
-                <Route
-                    path="/profile/:id"
-                    element={
-                        <AuthRequired>
-                            <Profile />
-                        </AuthRequired>
-                    }
-                />
-
                 {/* 个人管理中心 */}
                 <Route path="/personal" element={<PersonalCenter />} />
-
-                {/* 私信会话：页面正式开放，但必须登录后访问 */}
-                <Route
-                    path="/messages"
-                    element={
-                        <AuthRequired title="登录后查看私信" message="私信会话仅对已登录用户开放。">
-                            <Messages />
-                        </AuthRequired>
-                    }
-                />
 
                 {import.meta.env.VITE_AGENT_ENABLED === "true" && import.meta.env.DEV && (
                     <Route path="/test/agent-session-panel" element={<SampleAgentSessionPanel />} />

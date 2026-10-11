@@ -12,6 +12,8 @@ interface AuthRequiredProps {
     buttonText?: string;
     showBackButton?: boolean;
     backUrl?: string;
+    /** 作为布局的直接子级时，撑满可用高度（供胶囊布局锁定视口） */
+    fill?: boolean;
 }
 
 const AuthRequired: React.FC<AuthRequiredProps> = ({
@@ -21,9 +23,11 @@ const AuthRequired: React.FC<AuthRequiredProps> = ({
     buttonText = "立即登录",
     showBackButton = true,
     backUrl,
+    fill = false,
 }) => {
     const navigate = useNavigate();
     const { isAuthenticated, loading: authLoading } = useAuth();
+    const wrapperClass = `${styles.wrapper} ${fill ? styles.fill : ""}`;
 
     // 认证状态加载中
     if (authLoading) {
@@ -36,7 +40,7 @@ const AuthRequired: React.FC<AuthRequiredProps> = ({
 
     // 已认证 — 透传子内容
     if (isAuthenticated) {
-        return <div className={styles.wrapper}>{children}</div>;
+        return <div className={wrapperClass}>{children}</div>;
     }
 
     // 未认证 — 显示登录引导
@@ -49,7 +53,7 @@ const AuthRequired: React.FC<AuthRequiredProps> = ({
     };
 
     return (
-        <div className={styles.wrapper}>
+        <div className={wrapperClass}>
             <div className={styles.emptyState}>
                 <div className={styles.iconCircle}>
                     <FaLock />

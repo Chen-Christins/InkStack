@@ -8,6 +8,7 @@ import { ConfirmProvider } from "./components/confirm/Confirm";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { AuthProvider } from "./contexts/AuthContext";
 import { LayoutWidthProvider } from "./contexts/LayoutWidthContext";
+import { LayoutModeProvider } from "./contexts/LayoutModeContext";
 import { SiteSettingsProvider, useSiteSettings } from "./contexts/SiteSettingsContext";
 import IdleTimeoutHandler from "./components/sessionTimeout/IdleTimeoutHandler";
 import RouterConfig from "./router/RouterConfig";
@@ -65,9 +66,11 @@ function App() {
             <ThemeProvider>
                 <AuthProvider>
                     <LayoutWidthProvider>
-                        <SiteSettingsProvider>
-                            <AppContent />
-                        </SiteSettingsProvider>
+                        <LayoutModeProvider>
+                            <SiteSettingsProvider>
+                                <AppContent />
+                            </SiteSettingsProvider>
+                        </LayoutModeProvider>
                     </LayoutWidthProvider>
                 </AuthProvider>
             </ThemeProvider>

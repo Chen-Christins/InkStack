@@ -1,19 +1,30 @@
 import React, { useState, useEffect } from "react";
 import styles from "./IndexPage.module.css";
+import classicStyles from "./IndexPageClassic.module.css";
 import ArticleList from "@/components/articleList/ArticleList";
 import CategoryPanel from "@/components/categoryPanel/CategoryPanel";
 import TagPanel from "@/components/tagPanel/TagPanel";
 import SearchBox from "@/components/searchBox/SearchBox";
 import DailyQuote from "@/components/dailyQuote/DailyQuote";
 import StatsPanel from "@/components/statsPanel/StatsPanel";
+import Calendar from "@/components/calendar/Calendar";
+import BackToTop from "@/components/backToTop/BackToTop";
 import LabelService from "@/services/LabelService.ts";
 import PageSkeleton from "@/components/pageSkeleton/PageSkeleton";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLayoutMode } from "@/contexts/LayoutModeContext";
+
+interface TagItem {
+    id: string | number;
+    color: string;
+    name: string;
+}
 
 const IndexPage: React.FC = () => {
     const { user, loading: authLoading } = useAuth();
+    const { mode } = useLayoutMode();
 
-    const [tags, setTags] = useState<{ id: string | number; color: string; name: string }[]>([]);
+    const [tags, setTags] = useState<TagItem[]>([]);
     const [tagsLoading, setTagsLoading] = useState(false);
     const [isInitialLoad, setIsInitialLoad] = useState(true);
     const [showContent, setShowContent] = useState(false);
@@ -59,6 +70,97 @@ const IndexPage: React.FC = () => {
             setIsInitialLoad(false);
         }
     }, [authLoading, tagsLoading]);
+
+    const handleTagClick = (tag: TagItem) => {
+        if (selectedLabelId === tag.id) {
+            // 再次点击取消选中
+            setSelectedLabelId(undefined);
+            setSelectedLabelName(undefined);
+        } else {
+            setSelectedLabelId(tag.id);
+            setSelectedLabelName(tag.name);
+            // 清除分类和搜索
+            setSelectedCategoryId(undefined);
+            setSelectedCategoryName(undefined);
+            setSearchKeyword("");
+        }
+    };
+
+    const handleCategoryClick = (id: string | number, name?: string) => {
+        if (selectedCategoryId === id) {
+            // 再次点击取消选中
+            setSelectedCategoryId(undefined);
+            setSelectedCategoryName(undefined);
+        } else {
+            setSelectedCategoryId(id);
+            setSelectedCategoryName(name);
+            // 清除标签和搜索
+            setSelectedLabelId(undefined);
+            setSelectedLabelName(undefined);
+            setSearchKeyword("");
+        }
+    };
+
+    // 经典布局：保留旧版首页结构（右侧完整的侧边栏 + 无外层卡片）
+    if (mode === "classic") {
+        return (
+            <>
+                {isInitialLoad ? (
+                    <PageSkeleton />
+                ) : (
+                    <div
+                        className={`${classicStyles.mainContent} ${showContent ? classicStyles.contentVisible : classicStyles.contentHidden}`}
+                    >
+                        <div className={classicStyles.leftColumn}>
+                            <ArticleList
+                                labelId={selectedLabelId}
+                                labelName={selectedLabelName}
+                                categoryId={selectedCategoryId}
+                                categoryName={selectedCategoryName}
+                                searchKeyword={searchKeyword}
+                                headerRight={
+                                    <SearchBox
+                                        placeholder="搜索文章..."
+                                        size="small"
+                                        onSearch={(keyword) => setSearchKeyword(keyword.trim())}
+                                        onChange={(value) => {
+                                            if (!value) {
+                                                setSearchKeyword("");
+                                            }
+                                        }}
+                                    />
+                                }
+                            />
+                        </div>
+
+                        <div className={classicStyles.rightColumn}>
+                            <div className={classicStyles.panelSlot}>
+                                <DailyQuote />
+                            </div>
+                            <div className={classicStyles.panelSlot}>
+                                <TagPanel
+                                    tags={tags}
+                                    loading={tagsLoading}
+                                    selectedTagId={selectedLabelId}
+                                    onTagClick={handleTagClick}
+                                />
+                            </div>
+                            <div className={classicStyles.panelSlot}>
+                                <CategoryPanel selectedCategoryId={selectedCategoryId} onCategoryClick={handleCategoryClick} />
+                            </div>
+                            <div className={classicStyles.panelSlot}>
+                                <StatsPanel />
+                            </div>
+                            <div className={classicStyles.panelSlot}>
+                                <Calendar />
+                            </div>
+                        </div>
+                    </div>
+                )}
+                <BackToTop />
+            </>
+        );
+    }
 
     return (
         <>
@@ -107,41 +209,12 @@ const IndexPage: React.FC = () => {
                                         tags={tags}
                                         loading={tagsLoading}
                                         selectedTagId={selectedLabelId}
-                                        onTagClick={(tag) => {
-                                            if (selectedLabelId === tag.id) {
-                                                // 再次点击取消选中
-                                                setSelectedLabelId(undefined);
-                                                setSelectedLabelName(undefined);
-                                            } else {
-                                                setSelectedLabelId(tag.id);
-                                                setSelectedLabelName(tag.name);
-                                                // 清除分类和搜索
-                                                setSelectedCategoryId(undefined);
-                                                setSelectedCategoryName(undefined);
-                                                setSearchKeyword("");
-                                            }
-                                        }}
+                                        onTagClick={handleTagClick}
                                     />
                                 </div>
                                 {/* 文章分类 */}
                                 <div className={`${styles.panelSlot} ${styles.wide}`}>
-                                    <CategoryPanel
-                                        selectedCategoryId={selectedCategoryId}
-                                        onCategoryClick={(id, name) => {
-                                            if (selectedCategoryId === id) {
-                                                // 再次点击取消选中
-                                                setSelectedCategoryId(undefined);
-                                                setSelectedCategoryName(undefined);
-                                            } else {
-                                                setSelectedCategoryId(id);
-                                                setSelectedCategoryName(name);
-                                                // 清除标签和搜索
-                                                setSelectedLabelId(undefined);
-                                                setSelectedLabelName(undefined);
-                                                setSearchKeyword("");
-                                            }
-                                        }}
-                                    />
+                                    <CategoryPanel selectedCategoryId={selectedCategoryId} onCategoryClick={handleCategoryClick} />
                                 </div>
                             </div>
                         </div>

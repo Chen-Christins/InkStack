@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { encodeId } from "@/utils/HashId.ts";
-import { FaUserCircle, FaCog, FaSignOutAlt, FaHome } from "react-icons/fa";
+import { FaCog, FaSignOutAlt, FaHome } from "react-icons/fa";
 import Avatar from "../avatar/Avatar";
 import styles from "./UserDropdown.module.css";
 import { PlatformRoleLabel, type PlatformRole } from "@/types/Roles.ts";
@@ -94,7 +94,18 @@ const UserDropdown: React.FC<UserDropdownProps> = ({
             {isOpen && (
                 <div className={styles.dropdown}>
                     <div className={styles.dropdownHeader}>
-                        <Avatar src={user.avatar} name={user.name} size={48} className={styles.dropdownAvatar} />
+                        <button
+                            type="button"
+                            className={styles.dropdownAvatarBtn}
+                            onClick={() => {
+                                closeDropdown();
+                                navigate(`/profile/${encodeId(user.id, "user")}`);
+                            }}
+                            title="查看个人资料"
+                            aria-label="查看个人资料"
+                        >
+                            <Avatar src={user.avatar} name={user.name} size={48} className={styles.dropdownAvatar} />
+                        </button>
                         <div className={styles.dropdownUserInfo}>
                             <div className={styles.dropdownUserName}>{user.name}</div>
                             <div className={styles.dropdownUserEmail}>{user.email}</div>
@@ -102,16 +113,6 @@ const UserDropdown: React.FC<UserDropdownProps> = ({
                     </div>
                     <div className={styles.dropdownDivider}></div>
                     <div className={styles.dropdownMenu}>
-                        <div
-                            className={styles.dropdownItem}
-                            onClick={() => {
-                                closeDropdown();
-                                navigate(`/profile/${encodeId(user.id, "user")}`);
-                            }}
-                        >
-                            <FaUserCircle />
-                            个人资料
-                        </div>
                         <div
                             className={styles.dropdownItem}
                             onClick={() => {

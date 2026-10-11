@@ -1,7 +1,7 @@
 .subscribeBox {
     background-color: var(--card-bg);
     border-radius: 8px;
-    padding: 1.2rem;
+    padding: 0.7rem;
     box-shadow: var(--shadow-sm);
     border: 1px solid var(--border-primary);
     margin-bottom: 0.5rem;

@@ -10,7 +10,7 @@
     margin: 0 auto 0.5rem;
     padding: 1.5rem;
     box-sizing: border-box;
-    background-color: var(--bg-canvas);
+    background-color: var(--card-bg);
     border: 1px solid var(--border-primary);
     border-radius: 20px;
     box-shadow: var(--shadow-md);

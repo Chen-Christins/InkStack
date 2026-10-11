@@ -13,7 +13,7 @@ import {
     FaQuestionCircle,
 } from "react-icons/fa";
 import styles from "./Navbar.module.css";
-import LayoutWidthToggle from "../layoutWidthToggle/LayoutWidthToggle";
+import HomeQuickTools from "../homeQuickTools/HomeQuickTools";
 import ThemeToggle from "../themeToggle/ThemeToggle";
 import AuthButtons from "../authButtons/AuthButtons";
 import Notification from "../notification/Notification";
@@ -22,6 +22,7 @@ import { useSiteSettings } from "@/contexts/SiteSettingsContext";
 import Avatar from "../avatar/Avatar";
 import { useAuth } from "@/contexts/AuthContext";
 import { isNormalUser, PlatformRoleLabel, type PlatformRole as PlatformRoleType } from "@/types/Roles.ts";
+import { encodeId } from "@/utils/HashId.ts";
 
 const Navbar: React.FC = () => {
     const navigate = useNavigate();
@@ -220,7 +221,7 @@ const Navbar: React.FC = () => {
                                 <FaFlask className={styles.testButtonIcon} />
                             </button>
                         )}
-                        <LayoutWidthToggle />
+                        <HomeQuickTools tools={["theme", "subscribe"]} utilities={["width", "layoutMode"]} />
                         {/* 主题切换按钮 */}
                         <ThemeToggle />
 
@@ -255,7 +256,20 @@ const Navbar: React.FC = () => {
                                 {userMenuOpen && (
                                     <div className={styles.userDropdown}>
                                         <div className={styles.dropdownHeader}>
-                                            <Avatar src={currentUser.avatar} name={currentUser.name} size={48} />
+                                            <button
+                                                type="button"
+                                                className={styles.dropdownAvatarBtn}
+                                                onClick={() => {
+                                                    setUserMenuOpen(false);
+                                                    if (user) {
+                                                        navigate(`/profile/${encodeId(user.id, "user")}`);
+                                                    }
+                                                }}
+                                                title="查看个人资料"
+                                                aria-label="查看个人资料"
+                                            >
+                                                <Avatar src={currentUser.avatar} name={currentUser.name} size={48} />
+                                            </button>
                                             <div className={styles.dropdownUserInfo}>
                                                 <div className={styles.dropdownUserName}>{currentUser.name}</div>
                                                 <div className={styles.dropdownUserEmail}>{currentUser.email}</div>

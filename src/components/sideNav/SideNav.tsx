@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { FaHome, FaBuilding, FaQuestionCircle } from "react-icons/fa";
 import styles from "./SideNav.module.css";
 import ThemeToggle from "../themeToggle/ThemeToggle";
+import LayoutModeToggle from "../layoutModeToggle/LayoutModeToggle";
 import Avatar from "../avatar/Avatar";
 import { useSiteSettings } from "@/contexts/SiteSettingsContext";
 
@@ -160,6 +161,9 @@ const SideNav: React.FC<SideNavProps> = ({ open = false, onClose }) => {
                 <div className={styles.utilities}>
                     <div className={styles.utilitySlot}>
                         <ThemeToggle />
+                    </div>
+                    <div className={styles.utilitySlot}>
+                        <LayoutModeToggle />
                     </div>
                 </div>
             </aside>
