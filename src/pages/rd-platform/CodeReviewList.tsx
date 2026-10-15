@@ -94,6 +94,9 @@ const CodeReviewList: React.FC = () => {
     const [repos, setRepos] = useState<RepoItem[]>([]);
     const [syncingRepos, setSyncingRepos] = useState<Set<string>>(new Set());
 
+    // 正在同步的单条 PR
+    const [syncingPrs, setSyncingPrs] = useState<Set<string>>(new Set());
+
     // 当前选中的仓库（与 URL search param 同步，ID 经 hashid 编码）
     const [searchParams, setSearchParams] = useSearchParams();
     const repoHash = searchParams.get("repo");
@@ -259,6 +262,27 @@ const CodeReviewList: React.FC = () => {
         }
     };
 
+    // ---- 同步单条 PR ----
+    const handleSyncPr = async (pr: PR) => {
+        if (syncingPrs.has(pr.id)) {
+            return;
+        }
+        setSyncingPrs((prev) => new Set(prev).add(pr.id));
+        try {
+            await OrganizationService.syncPr({ id: pr.id });
+            message.success("PR 同步成功");
+            fetchPrs();
+        } catch (err: any) {
+            message.error(err?.message || "同步失败");
+        } finally {
+            setSyncingPrs((prev) => {
+                const next = new Set(prev);
+                next.delete(pr.id);
+                return next;
+            });
+        }
+    };
+
     // ---- 删除 PR ----
     const handleDeletePr = async (pr: PR) => {
         await confirm({
@@ -359,6 +383,17 @@ const CodeReviewList: React.FC = () => {
         <>
             <button className={`${styles.actionBtn} ${styles.view}`} title="查看详情" onClick={() => openView(pr)}>
                 <FaEye />
+            </button>
+            <button
+                className={`${styles.actionBtn} ${styles.sync}`}
+                title="同步此 PR"
+                disabled={syncingPrs.has(pr.id)}
+                onClick={(e) => {
+                    e.stopPropagation();
+                    handleSyncPr(pr);
+                }}
+            >
+                <FaSync className={syncingPrs.has(pr.id) ? styles.repoSpin : ""} />
             </button>
             {getPrUrl(pr) && (
                 <button
@@ -737,6 +772,16 @@ const CodeReviewList: React.FC = () => {
                                     <FaExternalLinkAlt size={10} />
                                 </a>
                             )}
+                            <button
+                                className={crStyles.syncLink}
+                                type="button"
+                                title="同步此 PR"
+                                disabled={syncingPrs.has(selectedPR.id)}
+                                onClick={() => handleSyncPr(selectedPR)}
+                            >
+                                <FaSync className={syncingPrs.has(selectedPR.id) ? styles.repoSpin : ""} size={12} />
+                                <span>同步此 PR</span>
+                            </button>
                         </div>
                         <div className={crStyles.detailGrid}>
                             {renderField("仓库", getRepoName(selectedPR.repoId))}

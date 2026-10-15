@@ -606,6 +606,15 @@ export class OrganizationService {
     }
 
     /**
+     * 触发单条 PR 同步（复用 PR 同步接口，传本地 PR id）
+     */
+    static async syncPr(params: { id: string }): Promise<void> {
+        const formData = new URLSearchParams();
+        formData.append("id", params.id);
+        await http.postForm("/organization/repos/prs/sync", formData);
+    }
+
+    /**
      * 删除 PR（仅删除本地记录，不影响 GitHub）
      */
     static async deletePr(params: { id: string }): Promise<void> {
