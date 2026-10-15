@@ -218,6 +218,14 @@
     border-color: #0969da;
     background: #f0f6fc;
 }
+.actionBtn.sync:hover {
+    color: var(--primary);
+    border-color: var(--primary);
+}
+.actionBtn:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
 
 /* Badges */
 .badge {
