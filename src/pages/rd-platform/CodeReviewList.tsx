@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import { encodeId, decodeId } from "@/utils/HashId.ts";
 import { formatDateTime, formatRelativeTime } from "@/utils/Utils.ts";
@@ -101,6 +101,14 @@ const CodeReviewList: React.FC = () => {
     const [searchParams, setSearchParams] = useSearchParams();
     const repoHash = searchParams.get("repo");
     const selectedRepoId = repoHash ? String(decodeId(repoHash, "repo") ?? "") : null;
+    const selectedRepoIdRef = useRef<string | null>(selectedRepoId);
+    const prRequestIdRef = useRef(0);
+    const prevRepoIdRef = useRef<string | null>(selectedRepoId);
+
+    useEffect(() => {
+        selectedRepoIdRef.current = selectedRepoId;
+    }, [selectedRepoId]);
+
     const setSelectedRepoId = useCallback(
         (repoId: string | null) => {
             setSearchParams(
@@ -144,11 +152,13 @@ const CodeReviewList: React.FC = () => {
     // ---- 获取 PR 列表 ----
     const fetchPrs = async (repoId = selectedRepoId) => {
         if (!repoId) {
+            prRequestIdRef.current += 1;
             setPrs([]);
             setTotal(0);
             return;
         }
 
+        const requestId = ++prRequestIdRef.current;
         const params: any = { page: currentPage, page_size: PAGE_SIZE };
         if (selectedOrgId) {
             params.org_id = selectedOrgId;
@@ -158,6 +168,9 @@ const CodeReviewList: React.FC = () => {
             params.state = filters.state;
         }
         const res = await OrganizationService.getPrs(params);
+        if (requestId !== prRequestIdRef.current) {
+            return;
+        }
         setPrs(
             (res.list || []).map((item: any) => ({
                 id: String(item.id),
@@ -183,43 +196,79 @@ const CodeReviewList: React.FC = () => {
         setTotal(res.total ?? 0);
     };
 
-    // ---- 合并加载 ----
-    const fetchAll = async () => {
-        try {
-            const repoList = selectedOrgId ? await fetchRepos() : [];
+    // ---- 组织变化时加载仓库列表（避免切换仓库时重复拉取仓库） ----
+    useEffect(() => {
+        let cancelled = false;
+        const loadRepos = async () => {
+            if (!selectedOrgId) {
+                setRepos([]);
+                setPrs([]);
+                setTotal(0);
+                setInitialLoading(false);
+                return;
+            }
+            const repoList = await fetchRepos();
+            if (cancelled) {
+                return;
+            }
             setRepos(repoList);
-
-            // 无仓库列表时不修改 selectedRepoId，避免在组织尚未加载时误清空 URL repo 参数
             if (repoList.length === 0) {
                 setPrs([]);
                 setTotal(0);
+                setInitialLoading(false);
                 return;
             }
-
-            const nextRepoId = repoList.some((repo) => repo.id === selectedRepoId) ? selectedRepoId : (repoList[0]?.id ?? null);
-            if (nextRepoId !== selectedRepoId) {
-                setSelectedRepoId(nextRepoId);
+            const currentRepoId = selectedRepoIdRef.current;
+            const hasSelected = currentRepoId != null && repoList.some((repo) => repo.id === currentRepoId);
+            if (!hasSelected) {
+                setSelectedRepoId(repoList[0].id);
                 setCurrentPage(1);
-                setPrs([]);
-                setTotal(0);
+            }
+        };
+        loadRepos();
+        return () => {
+            cancelled = true;
+        };
+    }, [selectedOrgId]);
+
+    // ---- 加载 PR 列表（切换仓库 / 翻页 / 筛选时立即触发） ----
+    useEffect(() => {
+        if (!selectedOrgId || !selectedRepoId) {
+            prevRepoIdRef.current = selectedRepoId;
+            setPrs([]);
+            setTotal(0);
+            setInitialLoading(false);
+            return;
+        }
+        // 切换仓库时重置到第 1 页，避免带着上一个仓库的页码请求
+        if (prevRepoIdRef.current !== selectedRepoId) {
+            prevRepoIdRef.current = selectedRepoId;
+            if (currentPage !== 1) {
+                setTableLoading(true);
+                setCurrentPage(1);
                 return;
             }
-
-            if (!initialLoading) {
-                setTableLoading(true);
-            }
-            await fetchPrs(selectedRepoId);
-        } catch {
-            message.error("获取数据失败");
-        } finally {
-            setInitialLoading(false);
-            setTableLoading(false);
         }
-    };
-
-    useEffect(() => {
-        fetchAll();
-    }, [currentPage, filters, selectedOrgId, selectedRepoId]);
+        let cancelled = false;
+        setTableLoading(true);
+        (async () => {
+            try {
+                await fetchPrs(selectedRepoId);
+            } catch {
+                if (!cancelled) {
+                    message.error("获取数据失败");
+                }
+            } finally {
+                if (!cancelled) {
+                    setTableLoading(false);
+                    setInitialLoading(false);
+                }
+            }
+        })();
+        return () => {
+            cancelled = true;
+        };
+    }, [selectedRepoId, currentPage, filters, selectedOrgId]);
 
     const handleFilterChange = (field: string, value: string) => {
         setFilters((prev) => ({ ...prev, [field]: value }));
@@ -459,7 +508,12 @@ const CodeReviewList: React.FC = () => {
                             <div
                                 key={repo.id}
                                 className={`${styles.repoBarItem} ${styles.repoBarClickable} ${selectedRepoId === repo.id ? styles.repoBarActive : ""}`}
-                                onClick={() => setSelectedRepoId(repo.id)}
+                                onClick={() => {
+                                    if (repo.id !== selectedRepoId) {
+                                        setSelectedRepoId(repo.id);
+                                        setCurrentPage(1);
+                                    }
+                                }}
                             >
                                 <FaGithub size={14} className={crStyles.iconNoShrink} />
                                 <span className={styles.repoBarName}>{repo.name}</span>

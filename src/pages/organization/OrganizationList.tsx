@@ -29,11 +29,14 @@ const OrganizationList: React.FC = () => {
     const [applyVisible, setApplyVisible] = useState(false);
     // 用户拥有研发平台访问权限的组织 ID，用于按组织展示「研发」入口
     const [rdOrgIds, setRdOrgIds] = useState<Set<string>>(new Set());
+    const [rdReady, setRdReady] = useState(false);
 
     useEffect(() => {
         let cancelled = false;
+        setRdReady(false);
         if (!currentUser) {
             setRdOrgIds(new Set());
+            setRdReady(true);
             return;
         }
         RdPlatformService.getMyOrganizations()
@@ -45,6 +48,11 @@ const OrganizationList: React.FC = () => {
             .catch(() => {
                 if (!cancelled) {
                     setRdOrgIds(new Set());
+                }
+            })
+            .finally(() => {
+                if (!cancelled) {
+                    setRdReady(true);
                 }
             });
         return () => {
@@ -80,7 +88,7 @@ const OrganizationList: React.FC = () => {
             } catch (e) {
                 message.error("获取组织列表失败");
             } finally {
-                setTimeout(() => setLoading(false), 100);
+                setLoading(false);
             }
         };
         fetchOrgs();
@@ -148,7 +156,7 @@ const OrganizationList: React.FC = () => {
                             </div>
                         </div>
 
-                        {loading ? (
+                        {loading || !rdReady ? (
                             <div className={styles.grid}>
                                 {/* 骨架屏加载状态 */}
                                 {Array.from({ length: 6 }).map((_, index) => (
