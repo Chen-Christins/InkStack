@@ -1,4 +1,4 @@
-import http from "../infra/Http.ts";
+import http, { type HttpRequestConfig } from "../infra/Http.ts";
 
 /**
  * 文章分页查询请求参数类型
@@ -205,7 +205,7 @@ export class ArticleService {
     /**
      * 分页获取文章列表
      */
-    static async listArticlesByUserIdPages(params: ListArticlesParams): Promise<ListArticlesResponse> {
+    static async listArticlesByUserIdPages(params: ListArticlesParams, config?: HttpRequestConfig): Promise<ListArticlesResponse> {
         let url = `/article/query?page_from=${params.page_from}`;
         if (params.page_size) {
             url += `&page_size=${params.page_size}`;
@@ -217,7 +217,7 @@ export class ArticleService {
             url += `&user_id=${params.user_id}`;
         }
 
-        const response = await http.get<ListArticlesResponse>(url);
+        const response = await http.get<ListArticlesResponse>(url, config);
         return response.data;
     }
 
@@ -258,17 +258,20 @@ export class ArticleService {
     /**
      * 搜索文章（多条件 AND）
      */
-    static async searchArticles(params: {
-        keyword?: string;
-        state?: number;
-        category_id?: number;
-        label_id?: number;
-        channel?: number;
-        user_id?: number;
-        year_month?: string;
-        page?: number;
-        page_size?: number;
-    }): Promise<ListArticlesResponse> {
+    static async searchArticles(
+        params: {
+            keyword?: string;
+            state?: number;
+            category_id?: number;
+            label_id?: number;
+            channel?: number;
+            user_id?: number;
+            year_month?: string;
+            page?: number;
+            page_size?: number;
+        },
+        config?: HttpRequestConfig,
+    ): Promise<ListArticlesResponse> {
         const q: string[] = [];
         if (params.keyword) {
             q.push(`keyword=${encodeURIComponent(params.keyword)}`);
@@ -298,7 +301,7 @@ export class ArticleService {
             q.push(`page_size=${params.page_size}`);
         }
         const url = `/article/search${q.length > 0 ? "?" + q.join("&") : ""}`;
-        const response = await http.get<ListArticlesResponse>(url);
+        const response = await http.get<ListArticlesResponse>(url, config);
         return response.data;
     }
 

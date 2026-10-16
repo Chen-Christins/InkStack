@@ -56,12 +56,13 @@ const ArticleList: React.FC<ArticleListProps> = ({ labelId, labelName, categoryI
             prevCategoryId.current = categoryId;
             prevSearchKeyword.current = searchKeyword;
             if (currentPage !== 1) {
+                setLoading(true);
                 setSearchParams({ page: "1" });
                 return;
             }
         }
 
-        let cancelled = false;
+        const controller = new AbortController();
 
         const fetchArticles = async () => {
             setLoading(true);
@@ -84,23 +85,29 @@ const ArticleList: React.FC<ArticleListProps> = ({ labelId, labelName, categoryI
                 };
 
                 if (searchKeyword || labelId || categoryId) {
-                    res = await ArticleService.searchArticles({
-                        keyword: searchKeyword || undefined,
-                        label_id: labelId ? Number(labelId) : undefined,
-                        category_id: categoryId ? Number(categoryId) : undefined,
-                        state: 2,
-                        page: currentPage,
-                        page_size: itemsPerPage,
-                    });
+                    res = await ArticleService.searchArticles(
+                        {
+                            keyword: searchKeyword || undefined,
+                            label_id: labelId ? Number(labelId) : undefined,
+                            category_id: categoryId ? Number(categoryId) : undefined,
+                            state: 2,
+                            page: currentPage,
+                            page_size: itemsPerPage,
+                        },
+                        { signal: controller.signal },
+                    );
                 } else {
-                    res = await ArticleService.listArticlesByUserIdPages({
-                        page_from: currentPage,
-                        page_size: itemsPerPage,
-                        state: 2,
-                    });
+                    res = await ArticleService.listArticlesByUserIdPages(
+                        {
+                            page_from: currentPage,
+                            page_size: itemsPerPage,
+                            state: 2,
+                        },
+                        { signal: controller.signal },
+                    );
                 }
 
-                if (cancelled) {
+                if (controller.signal.aborted) {
                     return;
                 }
 
@@ -127,13 +134,13 @@ const ArticleList: React.FC<ArticleListProps> = ({ labelId, labelName, categoryI
                     ),
                 );
             } catch (err) {
-                if (cancelled) {
+                if (controller.signal.aborted) {
                     return;
                 }
                 console.error("获取文章列表失败:", err);
                 setArticles([]);
             } finally {
-                if (!cancelled) {
+                if (!controller.signal.aborted) {
                     setLoading(false);
                 }
             }
@@ -142,7 +149,7 @@ const ArticleList: React.FC<ArticleListProps> = ({ labelId, labelName, categoryI
         fetchArticles();
 
         return () => {
-            cancelled = true;
+            controller.abort();
         };
     }, [currentPage, labelId, categoryId, searchKeyword]);
 

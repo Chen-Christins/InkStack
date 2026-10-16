@@ -141,6 +141,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         const handleSessionInvalidated = () => {
             authGenerationRef.current++;
             clearAuthRuntimeState();
+            setLoading(false);
             if (!window.location.pathname.startsWith("/auth")) {
                 navigate("/auth");
             }

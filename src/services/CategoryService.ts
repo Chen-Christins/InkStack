@@ -1,4 +1,4 @@
-import http from "../infra/Http.ts";
+import http, { type HttpRequestConfig } from "../infra/Http.ts";
 
 /**
  * 查询分类响应类型
@@ -71,10 +71,10 @@ export class CategoryService {
      * 查询分类详情
      * @returns 分类详情列表
      */
-    static async queryCategory(): Promise<CategoryInfo> {
+    static async queryCategory(config?: HttpRequestConfig): Promise<CategoryInfo> {
         const url = "/category/admin/query";
 
-        const response = await http.get<CategoryInfo>(url);
+        const response = await http.get<CategoryInfo>(url, config);
         return response.data;
     }
 

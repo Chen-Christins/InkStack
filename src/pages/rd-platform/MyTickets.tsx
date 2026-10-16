@@ -127,19 +127,26 @@ const MyTickets: React.FC = () => {
 
     const fetchData = useCallback(async () => {
         setLoading(true);
-        const res = await RdAPI.getMyTickets({
-            type: typeParam,
-            page,
-            pageSize: PAGE_SIZE,
-            search: search || undefined,
-            status: status || undefined,
-            orgId: selectedOrgId || undefined,
-        });
-        setData(res.data);
-        setTotal(res.total);
-        setTotalMap((prev) => ({ ...prev, [activeTab]: res.total }));
-        setLoading(false);
-    }, [typeParam, page, search, status, selectedOrgId]);
+        try {
+            const res = await RdAPI.getMyTickets({
+                type: typeParam,
+                page,
+                pageSize: PAGE_SIZE,
+                search: search || undefined,
+                status: status || undefined,
+                orgId: selectedOrgId || undefined,
+            });
+            setData(res.data);
+            setTotal(res.total);
+            setTotalMap((prev) => ({ ...prev, [activeTab]: res.total }));
+        } catch (err) {
+            message.error(err instanceof Error ? err.message : "获取工单列表失败");
+            setData([]);
+            setTotal(0);
+        } finally {
+            setLoading(false);
+        }
+    }, [typeParam, page, search, status, selectedOrgId, activeTab]);
 
     useEffect(() => {
         fetchData();

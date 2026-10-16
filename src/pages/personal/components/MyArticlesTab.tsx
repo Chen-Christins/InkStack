@@ -63,6 +63,7 @@ const MyArticlesTab: React.FC = () => {
     useEffect(() => {
         const fetchArticleIds = async () => {
             if (!user?.id) {
+                setLoading(false);
                 return;
             }
             setLoading(true);

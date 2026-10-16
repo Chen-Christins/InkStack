@@ -1,64 +1,62 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import type { Category } from "@/types";
 import { FaChevronDown, FaChevronRight, FaFileAlt, FaEye, FaFolderOpen } from "react-icons/fa";
 import styles from "./CategoryPanel.module.css";
 import CategoryService from "@/services/CategoryService.ts";
 import Skeleton from "../skeleton/Skeleton";
+import { useAsyncResource } from "@/hooks/UseAsyncResource";
 
 interface CategoryPanelProps {
     selectedCategoryId?: string | number;
     onCategoryClick?: (id: string | number, name: string) => void;
 }
 
+interface RawCategory {
+    id: string | number;
+    name: string;
+    color?: string;
+    article_count?: number;
+    view_count?: number;
+    parent_id?: string | number;
+}
+
+const SKELETON_WIDTHS = [96, 132, 78, 110];
+
+const buildCategoryTree = (list: RawCategory[]): Category[] => {
+    const categoryMap = new Map<string | number, Category>();
+    const rootCategories: Category[] = [];
+
+    list.forEach((item) => {
+        categoryMap.set(item.id, {
+            id: item.id,
+            name: item.name,
+            count: item.article_count || 0,
+            view_count: item.view_count || 0,
+            color: item.color || "",
+            children: [],
+        });
+    });
+
+    list.forEach((item) => {
+        const category = categoryMap.get(item.id);
+        if (!category) {
+            return;
+        }
+        if (item.parent_id && categoryMap.has(item.parent_id)) {
+            categoryMap.get(item.parent_id)?.children?.push(category);
+        } else {
+            rootCategories.push(category);
+        }
+    });
+
+    return rootCategories;
+};
+
 const CategoryPanel: React.FC<CategoryPanelProps> = ({ selectedCategoryId, onCategoryClick }) => {
-    const [categories, setCategories] = useState<Category[]>([]);
-    const [loading, setLoading] = useState(true);
     const [expanded, setExpanded] = useState<Record<string, boolean>>({});
-
-    useEffect(() => {
-        const fetchCategories = async () => {
-            try {
-                const response = await CategoryService.queryCategory();
-                console.log("Fetched categories:", response); // 调试输出
-                // @ts-ignore
-                const list = response.list || [];
-
-                // 构建分类树
-                const categoryMap = new Map();
-                const rootCategories: Category[] = [];
-
-                // 第一遍遍历：创建所有分类对象
-                list.forEach((item: any) => {
-                    categoryMap.set(item.id, {
-                        id: item.id,
-                        name: item.name,
-                        count: item.article_count || 0,
-                        view_count: item.view_count || 0,
-                        color: item.color,
-                        children: [],
-                    });
-                });
-
-                // 第二遍遍历：构建树形结构
-                list.forEach((item: any) => {
-                    const category = categoryMap.get(item.id);
-                    if (item.parent_id && categoryMap.has(item.parent_id)) {
-                        const parent = categoryMap.get(item.parent_id);
-                        parent.children.push(category);
-                    } else {
-                        rootCategories.push(category);
-                    }
-                });
-
-                setCategories(rootCategories);
-            } catch {
-                // 未登录等场景下 /category/admin/query 不可用，静默展示空列表
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchCategories();
+    const { data: categories = [], loading } = useAsyncResource<Category[]>(async (signal) => {
+        const response = await CategoryService.queryCategory({ signal });
+        return buildCategoryTree(response?.list || []);
     }, []);
 
     const toggleExpand = (categoryId: string | number) => {
@@ -84,7 +82,7 @@ const CategoryPanel: React.FC<CategoryPanelProps> = ({ selectedCategoryId, onCat
                     {Array.from({ length: 4 }, (_, i) => (
                         <div key={i} className={styles.skeletonRow}>
                             <Skeleton variant="circular" width={8} height={8} />
-                            <Skeleton variant="text" width={60 + Math.random() * 60} height={15} />
+                            <Skeleton variant="text" width={SKELETON_WIDTHS[i]} height={15} />
                             <Skeleton variant="rectangular" width={28} height={18} className={styles.skeletonBadge} />
                         </div>
                     ))}

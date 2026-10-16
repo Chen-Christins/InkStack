@@ -162,7 +162,8 @@ const ArticleView: React.FC<ArticleViewProps> = ({
                 });
                 setCommentLoading(false);
             })
-            .catch(() => {});
+            .catch(() => {})
+            .finally(() => setCommentLoading(false));
     }, [articleId]);
 
     useEffect(() => {

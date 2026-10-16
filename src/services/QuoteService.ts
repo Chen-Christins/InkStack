@@ -14,9 +14,10 @@ interface HitokotoResponse {
  * 获取每日名言（一言 API，免鉴权、支持 CORS）
  * 文档：https://developer.hitokoto.cn/
  */
-export const getDailyQuote = async (): Promise<DailyQuote> => {
+export const getDailyQuote = async (signal?: AbortSignal): Promise<DailyQuote> => {
     const response = await fetch("https://v1.hitokoto.cn/", {
         headers: { Accept: "application/json" },
+        signal: signal ?? AbortSignal.timeout(8000),
     });
 
     if (!response.ok) {

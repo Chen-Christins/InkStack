@@ -61,6 +61,7 @@ const OrganizationDetail: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [org, setOrg] = useState<OrganizationDetailType | null>(null);
     const [page, setPage] = useState(1);
+    const [members, setMembers] = useState<Member[]>([]);
     const [membersTotal, setMembersTotal] = useState(0);
     const [stats, setStats] = useState<MemberStats>({
         totalMembers: 0,
@@ -148,6 +149,7 @@ const OrganizationDetail: React.FC = () => {
     useEffect(() => {
         const fetchDetail = async () => {
             if (!currentUser) {
+                setLoading(false);
                 return;
             }
             setLoading(true);
@@ -224,8 +226,8 @@ const OrganizationDetail: React.FC = () => {
                     page_size: PAGE_SIZE,
                     status: 1, // status 1 means approved/active members
                 });
-                if (res && res.list) {
-                    const members: Member[] = res.list.map((item) => ({
+                if (res && Array.isArray(res.list)) {
+                    const mappedMembers: Member[] = res.list.map((item) => ({
                         id: String(item.id),
                         user_id: String(item.user_id),
                         name: item.name,
@@ -236,14 +238,11 @@ const OrganizationDetail: React.FC = () => {
                         joinTime: new Date(item.join_time * 1000).toISOString().split("T")[0],
                     }));
 
+                    // 成员数据独立于组织详情存储，避免组织详情尚未返回时被丢弃
+                    setMembers(mappedMembers);
                     setMembersTotal(res.total || 0);
 
-                    setOrg((prevOrg) => (prevOrg ? { ...prevOrg, members, memberCount: res.total || 0 } : prevOrg));
-                } else if (res && res.list && res.list.length === 0) {
-                    // 如果有响应但列表为空，更新为空状态
-                    setMembersTotal(0);
-
-                    setOrg((prevOrg) => (prevOrg ? { ...prevOrg, members: [], memberCount: 0 } : prevOrg));
+                    setOrg((prevOrg) => (prevOrg ? { ...prevOrg, memberCount: res.total || 0 } : prevOrg));
                 }
                 // 如果没有响应数据，保持当前状态不变，避免清空已有数据
             } catch (error) {
@@ -268,7 +267,7 @@ const OrganizationDetail: React.FC = () => {
         if (!showPendingRequests && !showTasks && !showRepos) {
             fetchMembersList(page);
         }
-    }, [id, currentUser, org?.id, page, refreshTrigger, showPendingRequests, showTasks, showRepos, fetchMembersList]);
+    }, [id, currentUser, page, refreshTrigger, showPendingRequests, showTasks, showRepos, fetchMembersList]);
 
     // 待处理请求
     useEffect(() => {
@@ -395,14 +394,9 @@ const OrganizationDetail: React.FC = () => {
             });
 
             // Remove member from local state
+            setMembers((prevMembers) => prevMembers.filter((m: Member) => m.id !== member.id));
             setOrg((prevOrg: OrganizationDetailType | null) =>
-                prevOrg
-                    ? {
-                          ...prevOrg,
-                          members: prevOrg.members.filter((m: Member) => m.id !== member.id),
-                          memberCount: Math.max(0, prevOrg.memberCount - 1),
-                      }
-                    : prevOrg,
+                prevOrg ? { ...prevOrg, memberCount: Math.max(0, prevOrg.memberCount - 1) } : prevOrg,
             );
 
             // Update stats
@@ -455,15 +449,8 @@ const OrganizationDetail: React.FC = () => {
             });
 
             // Update member role in local state
-            setOrg((prevOrg: OrganizationDetailType | null) =>
-                prevOrg
-                    ? {
-                          ...prevOrg,
-                          members: prevOrg.members.map((m: Member) =>
-                              m.id === selectedMember.id ? { ...m, role: selectedRole as OrgRole } : m,
-                          ),
-                      }
-                    : prevOrg,
+            setMembers((prevMembers) =>
+                prevMembers.map((m: Member) => (m.id === selectedMember.id ? { ...m, role: selectedRole as OrgRole } : m)),
             );
 
             // Update stats
@@ -866,7 +853,7 @@ const OrganizationDetail: React.FC = () => {
                                         showPendingRequests={showPendingRequests}
                                         showTasks={showTasks}
                                         showRepos={showRepos}
-                                        members={org?.members || []}
+                                        members={members}
                                         membersTotal={membersTotal}
                                         page={page}
                                         isRefreshing={isRefreshing}

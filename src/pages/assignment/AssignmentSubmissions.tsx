@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { decodeId } from "@/utils/HashId.ts";
+import { useAsyncResource } from "@/hooks/UseAsyncResource";
 import {
     FaArrowLeft,
     FaBookOpen,
@@ -62,58 +63,36 @@ const AssignmentSubmissions: React.FC = () => {
     const { id: encodedId } = useParams();
     const id = encodedId ? decodeId(encodedId, "assignment") : null;
     const navigate = useNavigate();
-    const [assignment, setAssignment] = useState<Assignment | null>(null);
-    const [submissions, setSubmissions] = useState<AssignmentSubmissionItem[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize] = useState(10); // 每页显示10条记录
     const [expandedSubmissions, setExpandedSubmissions] = useState<Set<string | number>>(new Set());
     const [downloadingFiles, setDownloadingFiles] = useState<Set<string | number>>(new Set());
     const [downloadingAll, setDownloadingAll] = useState<Set<string | number>>(new Set());
 
-    useEffect(() => {
-        const fetchData = async () => {
-            if (!id) {
-                setError("作业ID不能为空");
-                setLoading(false);
-                return;
-            }
+    const { data, loading, error } = useAsyncResource<{
+        assignment: Assignment;
+        submissions: AssignmentSubmissionItem[];
+    } | null>(async () => {
+        if (!id) {
+            return null;
+        }
 
-            try {
-                setLoading(true);
-                setError(null);
+        const assignmentResponse = await AssignmentService.getAssignmentDetail({ id });
+        const submissionsResponse = await AssignmentService.getAssignmentSubmissions({ id });
 
-                // 获取作业详情
-                const assignmentResponse = await AssignmentService.getAssignmentDetail({ id });
-                setAssignment(assignmentResponse);
+        let submissionsData: AssignmentSubmissionItem[] = [];
 
-                // 获取提交列表
-                const submissionsResponse = await AssignmentService.getAssignmentSubmissions({ id });
+        if (Array.isArray(submissionsResponse)) {
+            submissionsData = submissionsResponse;
+        } else if (submissionsResponse && typeof submissionsResponse === "object") {
+            submissionsData = [submissionsResponse];
+        }
 
-                // 新API可能返回的数据结构：
-                // 1. 单个用户提交对象（当前用户查看自己的提交）
-                // 2. 用户提交数组（教师查看所有用户的提交）
-                let submissionsData: AssignmentSubmissionItem[] = [];
-
-                if (Array.isArray(submissionsResponse)) {
-                    // 返回的是用户提交数组
-                    submissionsData = submissionsResponse;
-                } else if (submissionsResponse && typeof submissionsResponse === "object") {
-                    // 单个用户提交对象，包装成数组
-                    submissionsData = [submissionsResponse];
-                }
-
-                setSubmissions(submissionsData);
-            } catch (err: any) {
-                setError(err.message || "获取数据失败");
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchData();
+        return { assignment: assignmentResponse, submissions: submissionsData };
     }, [id]);
+    const assignment = data?.assignment ?? null;
+    const submissions = data?.submissions ?? [];
+    const errorText = !id ? "作业ID不能为空" : error instanceof Error ? error.message : error ? "获取数据失败" : null;
 
     // 分页计算
     const totalPages = Math.ceil(submissions.length / pageSize);
@@ -340,14 +319,14 @@ const AssignmentSubmissions: React.FC = () => {
         );
     }
 
-    if (error || !assignment) {
+    if (errorText || !assignment) {
         return (
             <div className={styles.container}>
                 <div className={styles.mainContent}>
                     <AuthRequired message="您需要登录后才能查看作业提交详情。">
                         <ErrorState
                             title="加载失败"
-                            message={error || "未找到该作业"}
+                            message={errorText || "未找到该作业"}
                             icon={<FaExclamationCircle />}
                             actionText="返回作业列表"
                             onAction={() => navigate("/assignments")}

@@ -105,6 +105,7 @@ const Profile: React.FC = () => {
 
     useEffect(() => {
         if (!id) {
+            setLoading(false);
             return;
         }
 

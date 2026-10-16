@@ -1,10 +1,11 @@
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { encodeId } from "@/utils/HashId.ts";
 import { FaUserSlash } from "react-icons/fa";
 import FollowService from "@/services/FollowService.ts";
 import type { FollowUser } from "@/types/Follow.ts";
 import Avatar from "@/components/avatar/Avatar";
+import { useAsyncResource } from "@/hooks/UseAsyncResource";
 import styles from "../PersonalCenter.module.css";
 
 const PAGE_SIZE = 20;
@@ -43,28 +44,13 @@ function getPageNumbers(current: number, total: number): (number | string)[] {
 
 const FollowerTab: React.FC = () => {
     const navigate = useNavigate();
-    const [list, setList] = useState<FollowUser[]>([]);
-    const [total, setTotal] = useState(0);
-    const [loading, setLoading] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
-
-    const fetchList = useCallback(async () => {
-        setLoading(true);
-        try {
-            const offset = (currentPage - 1) * PAGE_SIZE;
-            const data = await FollowService.getFollowerList({ offset, size: PAGE_SIZE });
-            setList(data.list);
-            setTotal(data.total);
-        } catch {
-            // 静默处理
-        } finally {
-            setLoading(false);
-        }
-    }, [currentPage]);
-
-    useEffect(() => {
-        fetchList();
-    }, [fetchList]);
+    const { data, loading } = useAsyncResource<{ list: FollowUser[]; total: number }>(
+        () => FollowService.getFollowerList({ offset: (currentPage - 1) * PAGE_SIZE, size: PAGE_SIZE }),
+        [currentPage],
+    );
+    const list = data?.list ?? [];
+    const total = data?.total ?? 0;
 
     const totalPages = Math.ceil(total / PAGE_SIZE);
     const startIndex = (currentPage - 1) * PAGE_SIZE;

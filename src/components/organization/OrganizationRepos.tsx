@@ -112,6 +112,7 @@ const OrganizationRepos: React.FC<Props> = ({ orgId, canManage, onChange }) => {
 
     useEffect(() => {
         if (!orgId) {
+            setLoading(false);
             return;
         }
         setLoading(true);

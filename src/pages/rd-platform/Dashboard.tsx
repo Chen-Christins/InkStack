@@ -23,19 +23,22 @@ const Dashboard: React.FC = () => {
     useEffect(() => {
         const fetchData = async () => {
             setLoading(true);
-            const orgIds = selectedOrgId ? [selectedOrgId] : undefined;
-            const [s, reqs, bugs, tasks] = await Promise.all([
-                RdAPI.getStats(orgIds),
-                RdAPI.getRequirements({ page: 1, pageSize: 5, organizationIds: orgIds }),
-                RdAPI.getBugs({ page: 1, pageSize: 5, organizationIds: orgIds }),
-                RdAPI.getTasks({ page: 1, pageSize: 5, organizationIds: orgIds }),
-            ]);
-            setStats(s);
-            setRecentRequirements(reqs.data);
-            setRecentBugs(bugs.data);
-            setRecentTasks(tasks.data);
-            setReviewStats({ totalReviews: s.totalReviews ?? 0, pendingReviews: s.pendingReviews ?? 0 });
-            setLoading(false);
+            try {
+                const orgIds = selectedOrgId ? [selectedOrgId] : undefined;
+                const [s, reqs, bugs, tasks] = await Promise.all([
+                    RdAPI.getStats(orgIds),
+                    RdAPI.getRequirements({ page: 1, pageSize: 5, organizationIds: orgIds }),
+                    RdAPI.getBugs({ page: 1, pageSize: 5, organizationIds: orgIds }),
+                    RdAPI.getTasks({ page: 1, pageSize: 5, organizationIds: orgIds }),
+                ]);
+                setStats(s);
+                setRecentRequirements(reqs.data);
+                setRecentBugs(bugs.data);
+                setRecentTasks(tasks.data);
+                setReviewStats({ totalReviews: s.totalReviews ?? 0, pendingReviews: s.pendingReviews ?? 0 });
+            } finally {
+                setLoading(false);
+            }
         };
         fetchData();
     }, [selectedOrgId]);

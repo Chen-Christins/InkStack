@@ -152,6 +152,7 @@ const TicketDetail: React.FC = () => {
 
     useEffect(() => {
         if (!id) {
+            setLoading(false);
             return;
         }
         setLoading(true);
