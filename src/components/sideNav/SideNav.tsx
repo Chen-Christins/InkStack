@@ -1,5 +1,6 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { FaHome, FaBuilding, FaQuestionCircle } from "react-icons/fa";
 import styles from "./SideNav.module.css";
 import ThemeToggle from "../themeToggle/ThemeToggle";
@@ -24,11 +25,12 @@ const SideNav: React.FC<SideNavProps> = ({ open = false, onClose }) => {
     const navigate = useNavigate();
     const location = useLocation();
     const { settings: siteSettings } = useSiteSettings();
+    const { t } = useTranslation("nav");
 
     const navItems = [
-        { label: "首页", icon: <FaHome />, path: "/index" },
-        { label: "组织", icon: <FaBuilding />, path: "/organizations/list" },
-        { label: "帮助", icon: <FaQuestionCircle />, path: "/help" },
+        { label: t("home"), icon: <FaHome />, path: "/index" },
+        { label: t("organizationsShort"), icon: <FaBuilding />, path: "/organizations/list" },
+        { label: t("help"), icon: <FaQuestionCircle />, path: "/help" },
     ];
 
     const isActive = (path: string) => {
@@ -125,7 +127,13 @@ const SideNav: React.FC<SideNavProps> = ({ open = false, onClose }) => {
         <>
             <aside className={`${styles.sideNav} ${open ? styles.open : ""}`}>
                 {/* 站点品牌：左上角 */}
-                <div className={styles.brand} onClick={() => handleNav("/index")} role="button" tabIndex={0} aria-label="返回首页">
+                <div
+                    className={styles.brand}
+                    onClick={() => handleNav("/index")}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={t("backToHome")}
+                >
                     <Avatar name={siteSettings.siteName} size={28} />
                     <span className={styles.brandName}>{siteSettings.siteName}</span>
                 </div>

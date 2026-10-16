@@ -4,6 +4,7 @@ import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import "katex/dist/katex.min.css";
+import i18n from "@/i18n";
 import MermaidComponent from "../mermaid/MermaidComponent";
 
 export const articleMarkdownPlugins = { remarkPlugins: [remarkGfm, remarkMath], rehypePlugins: [rehypeKatex] };
@@ -27,11 +28,12 @@ export function articleMarkdownComponents({
     heading,
     onCopy,
     renderCode,
-    mermaidCopyLabel = "复制",
+    mermaidCopyLabel,
     trimMermaidCopy = true,
     trimCode = false,
     unwrapPre = false,
 }: RenderOptions): Components {
+    const copyLabel = mermaidCopyLabel ?? i18n.t("article:code.copy");
     return {
         ...(paragraph ? { p: paragraph } : {}),
         h1: heading(1),
@@ -52,14 +54,17 @@ export function articleMarkdownComponents({
             return (
                 <div className={mermaid ? styles.mermaidWrapper : styles.codeBlockWrapper}>
                     <div className={styles.codeHeader}>
-                        <span className={styles.languageTag}>{mermaid ? "Mermaid 图表" : language}</span>
+                        <span className={styles.languageTag}>{mermaid ? i18n.t("article:code.mermaidChart") : language}</span>
                         <button
                             className={styles.copyButton}
                             onClick={() =>
-                                onCopy(mermaid && trimMermaidCopy ? code.trim() : code, mermaid ? "Mermaid代码" : `${language}代码`)
+                                onCopy(
+                                    mermaid && trimMermaidCopy ? code.trim() : code,
+                                    mermaid ? i18n.t("article:code.copyMermaid") : i18n.t("article:code.copyLanguage", { language }),
+                                )
                             }
                         >
-                            {mermaid ? mermaidCopyLabel : "复制"}
+                            {mermaid ? copyLabel : i18n.t("article:code.copy")}
                         </button>
                     </div>
                     {mermaid ? (

@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { FaTags } from "react-icons/fa";
 import styles from "./TagPanel.module.css";
 import type { Tag } from "@/types";
@@ -27,6 +28,7 @@ const TagPanel: React.FC<TagPanelProps> = ({
     selectedTagId,
     onTagClick,
 }) => {
+    const { t } = useTranslation("components");
     const handleTagClick = (tag: Tag) => {
         if (onTagClick) {
             onTagClick(tag);
@@ -49,7 +51,7 @@ const TagPanel: React.FC<TagPanelProps> = ({
     return (
         <div className={panelClasses} style={panelStyle}>
             <h3 className={styles.panelTitle}>
-                <FaTags className={styles.titleIcon} /> 文章标签
+                <FaTags className={styles.titleIcon} /> {t("tagPanel.title")}
             </h3>
             <div className={styles.content}>
                 {loading ? (
@@ -80,7 +82,7 @@ const TagPanel: React.FC<TagPanelProps> = ({
                 ) : (
                     <div className={styles.emptyPlaceholder}>
                         <FaTags className={styles.emptyIcon} />
-                        <span>暂无标签</span>
+                        <span>{t("tagPanel.empty")}</span>
                     </div>
                 )}
 
@@ -88,7 +90,7 @@ const TagPanel: React.FC<TagPanelProps> = ({
                     <span
                         className={`${styles.tag} ${styles[`tag${tagSize.charAt(0).toUpperCase() + tagSize.slice(1)}`]}`}
                         style={{ backgroundColor: "#6b7280" }}
-                        title={`还有 ${hiddenCount} 个标签`}
+                        title={t("tagPanel.moreTags", { value: hiddenCount })}
                     >
                         +{hiddenCount}
                     </span>

@@ -1,5 +1,6 @@
 import React from "react";
 import { FaPlus } from "react-icons/fa";
+import { useTranslation } from "react-i18next";
 import { confirm } from "../confirm/Confirm";
 import type { SelectOption } from "@/types";
 import styles from "./AddButton.module.css";
@@ -11,6 +12,8 @@ interface AddButtonProps {
 }
 
 const AddButton: React.FC<AddButtonProps> = ({ name, onAdd, className = "" }) => {
+    const { t } = useTranslation("components");
+
     const handleClick = async () => {
         // 弹窗内容需要有状态
         const inputRef = React.createRef<HTMLInputElement>();
@@ -29,7 +32,7 @@ const AddButton: React.FC<AddButtonProps> = ({ name, onAdd, className = "" }) =>
                                 color: "var(--text-primary)",
                             }}
                         >
-                            {name}名称
+                            {t("addButton.nameLabel", { name })}
                         </label>
                         <input
                             ref={inputRef}
@@ -43,7 +46,7 @@ const AddButton: React.FC<AddButtonProps> = ({ name, onAdd, className = "" }) =>
                                 backgroundColor: "var(--input-bg)",
                                 color: "var(--text-primary)",
                             }}
-                            placeholder={`请输入${name}名称...`}
+                            placeholder={t("addButton.namePlaceholder", { name })}
                             defaultValue=""
                             autoFocus
                         />
@@ -57,7 +60,7 @@ const AddButton: React.FC<AddButtonProps> = ({ name, onAdd, className = "" }) =>
                                 color: "var(--text-primary)",
                             }}
                         >
-                            颜色
+                            {t("addButton.colorLabel")}
                         </label>
                         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
                             <input
@@ -90,10 +93,10 @@ const AddButton: React.FC<AddButtonProps> = ({ name, onAdd, className = "" }) =>
         }
         // 显示确认框
         await confirm({
-            title: `添加新${name}`,
+            title: t("addButton.addTitle", { name }),
             content: <ColorContent />,
-            confirmText: "添加",
-            cancelText: "取消",
+            confirmText: t("addButton.add"),
+            cancelText: t("addButton.cancel"),
             onConfirm: () => {
                 const itemName = inputRef.current?.value || "";
                 // 直接取 colorInputRef.current?.value
@@ -106,14 +109,14 @@ const AddButton: React.FC<AddButtonProps> = ({ name, onAdd, className = "" }) =>
                     };
                     onAdd(newItem);
                 } else {
-                    throw new Error("请输入名称");
+                    throw new Error(t("addButton.nameRequired"));
                 }
             },
         });
     };
 
     return (
-        <button className={`${styles.addButton} ${className}`} onClick={handleClick} title={`添加新${name}`}>
+        <button className={`${styles.addButton} ${className}`} onClick={handleClick} title={t("addButton.addTitle", { name })}>
             <FaPlus className={styles.addIcon} />
         </button>
     );

@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { flushSync } from "react-dom";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import type { TFunction } from "i18next";
 import {
     FaBell,
     FaBellSlash,
@@ -80,7 +82,7 @@ const TYPE_ICON_MAP: Record<string, { icon: React.ReactNode; className: string }
     assignment_deleted: { icon: <FaUserMinus />, className: styles.iconOrgMemberKicked },
 };
 
-function formatTime(timestamp: number): string {
+function formatTime(t: TFunction<"components">, timestamp: number): string {
     const now = Date.now();
     const diff = now - timestamp * 1000;
     const minutes = Math.floor(diff / 60000);
@@ -88,22 +90,23 @@ function formatTime(timestamp: number): string {
     const days = Math.floor(diff / 86400000);
 
     if (minutes < 1) {
-        return "刚刚";
+        return t("notification.time.justNow");
     }
     if (minutes < 60) {
-        return `${minutes}分钟前`;
+        return t("notification.time.minutesAgo", { minutes });
     }
     if (hours < 24) {
-        return `${hours}小时前`;
+        return t("notification.time.hoursAgo", { hours });
     }
     if (days < 30) {
-        return `${days}天前`;
+        return t("notification.time.daysAgo", { days });
     }
     return new Date(timestamp * 1000).toLocaleDateString("zh-CN");
 }
 
 const Notification: React.FC = () => {
     const navigate = useNavigate();
+    const { t } = useTranslation("components");
     const { isAuthenticated } = useAuth();
     const [open, setOpen] = useState(false);
     const [notifications, setNotifications] = useState<NotificationItem[]>([]);
@@ -362,45 +365,45 @@ const Notification: React.FC = () => {
     };
 
     const settingTypes: { key: NotifType; label: string }[] = [
-        { key: "system", label: "系统通知" },
-        { key: "comment", label: "评论通知" },
-        { key: "reply", label: "评论回复通知" },
-        { key: "praise", label: "文章点赞通知" },
-        { key: "follow", label: "关注通知" },
-        { key: "article", label: "文章通知" },
-        { key: "article_state_changed", label: "文章状态变更通知" },
-        { key: "article_review_request", label: "文章待审核通知" },
-        { key: "article_review_approved", label: "文章审核通过通知" },
-        { key: "article_review_rejected", label: "文章审核拒绝通知" },
-        { key: "comment_approved", label: "评论审核通过通知" },
-        { key: "comment_rejected", label: "评论未通过通知" },
-        { key: "comment_spam", label: "评论垃圾标记通知" },
-        { key: "comment_admin_deleted", label: "评论被删通知" },
-        { key: "org_role_change", label: "角色变更通知" },
-        { key: "org_join_request", label: "加入申请通知" },
-        { key: "org_join_approved", label: "申请通过通知" },
-        { key: "org_join_rejected", label: "申请拒绝通知" },
-        { key: "org_member_kicked", label: "成员移出通知" },
-        { key: "org_apply_request", label: "组织创建申请通知" },
-        { key: "org_apply_approved", label: "组织创建通过通知" },
-        { key: "org_apply_rejected", label: "组织创建拒绝通知" },
-        { key: "org_deleted", label: "组织删除通知" },
-        { key: "requirement_assigned", label: "需求分配通知" },
-        { key: "bug_assigned", label: "缺陷分配通知" },
-        { key: "task_assigned", label: "任务分配通知" },
-        { key: "assignment_created", label: "新作业发布通知" },
-        { key: "assignment_submitted", label: "作业提交通知" },
-        { key: "assignment_deleted", label: "作业删除通知" },
-        { key: "account_deleted", label: "账户禁用通知" },
-        { key: "account_recovered", label: "账户恢复通知" },
-        { key: "password_reset", label: "密码重置通知" },
+        { key: "system", label: t("notification.settingTypes.system") },
+        { key: "comment", label: t("notification.settingTypes.comment") },
+        { key: "reply", label: t("notification.settingTypes.reply") },
+        { key: "praise", label: t("notification.settingTypes.praise") },
+        { key: "follow", label: t("notification.settingTypes.follow") },
+        { key: "article", label: t("notification.settingTypes.article") },
+        { key: "article_state_changed", label: t("notification.settingTypes.articleStateChanged") },
+        { key: "article_review_request", label: t("notification.settingTypes.articleReviewRequest") },
+        { key: "article_review_approved", label: t("notification.settingTypes.articleReviewApproved") },
+        { key: "article_review_rejected", label: t("notification.settingTypes.articleReviewRejected") },
+        { key: "comment_approved", label: t("notification.settingTypes.commentApproved") },
+        { key: "comment_rejected", label: t("notification.settingTypes.commentRejected") },
+        { key: "comment_spam", label: t("notification.settingTypes.commentSpam") },
+        { key: "comment_admin_deleted", label: t("notification.settingTypes.commentAdminDeleted") },
+        { key: "org_role_change", label: t("notification.settingTypes.orgRoleChange") },
+        { key: "org_join_request", label: t("notification.settingTypes.orgJoinRequest") },
+        { key: "org_join_approved", label: t("notification.settingTypes.orgJoinApproved") },
+        { key: "org_join_rejected", label: t("notification.settingTypes.orgJoinRejected") },
+        { key: "org_member_kicked", label: t("notification.settingTypes.orgMemberKicked") },
+        { key: "org_apply_request", label: t("notification.settingTypes.orgApplyRequest") },
+        { key: "org_apply_approved", label: t("notification.settingTypes.orgApplyApproved") },
+        { key: "org_apply_rejected", label: t("notification.settingTypes.orgApplyRejected") },
+        { key: "org_deleted", label: t("notification.settingTypes.orgDeleted") },
+        { key: "requirement_assigned", label: t("notification.settingTypes.requirementAssigned") },
+        { key: "bug_assigned", label: t("notification.settingTypes.bugAssigned") },
+        { key: "task_assigned", label: t("notification.settingTypes.taskAssigned") },
+        { key: "assignment_created", label: t("notification.settingTypes.assignmentCreated") },
+        { key: "assignment_submitted", label: t("notification.settingTypes.assignmentSubmitted") },
+        { key: "assignment_deleted", label: t("notification.settingTypes.assignmentDeleted") },
+        { key: "account_deleted", label: t("notification.settingTypes.accountDeleted") },
+        { key: "account_recovered", label: t("notification.settingTypes.accountRecovered") },
+        { key: "password_reset", label: t("notification.settingTypes.passwordReset") },
     ];
 
     const typeMeta = (type: string) => TYPE_ICON_MAP[type] || TYPE_ICON_MAP.system;
 
     return (
         <div className={styles.wrapper} ref={wrapperRef}>
-            <button className={styles.bellButton} onClick={handleToggle} title="通知">
+            <button className={styles.bellButton} onClick={handleToggle} title={t("notification.title")}>
                 <FaBell className={styles.bellIcon} />
                 {unreadCount > 0 && <span className={styles.badge}>{unreadCount > 99 ? "99+" : unreadCount}</span>}
             </button>
@@ -409,7 +412,7 @@ const Notification: React.FC = () => {
                 <div className={styles.dropdown}>
                     <div className={styles.header}>
                         <span className={styles.title}>
-                            通知
+                            {t("notification.title")}
                             {import.meta.env.DEV && (
                                 <span
                                     style={{
@@ -424,24 +427,24 @@ const Notification: React.FC = () => {
                                         boxShadow: wsConnected ? "0 0 5px rgba(34, 197, 94, 0.6)" : "0 0 5px rgba(239, 68, 68, 0.6)",
                                         flexShrink: 0,
                                     }}
-                                    title={wsConnected ? "WS 已连接" : "WS 未连接"}
+                                    title={wsConnected ? t("notification.wsConnected") : t("notification.wsDisconnected")}
                                 />
                             )}
                         </span>
                         {unreadCount > 0 && (
                             <button className={styles.markAllRead} onClick={handleMarkAllRead}>
-                                全部已读
+                                {t("notification.markAllRead")}
                             </button>
                         )}
                     </div>
 
                     <div className={styles.list}>
                         {loading ? (
-                            <div className={styles.loading}>加载中...</div>
+                            <div className={styles.loading}>{t("notification.loading")}</div>
                         ) : notifications.filter((n) => !n.is_read).length === 0 ? (
                             <div className={styles.empty}>
                                 <FaBellSlash className={styles.emptyIcon} />
-                                <span className={styles.emptyText}>暂无未读通知</span>
+                                <span className={styles.emptyText}>{t("notification.empty")}</span>
                             </div>
                         ) : (
                             notifications
@@ -458,7 +461,7 @@ const Notification: React.FC = () => {
                                             <div className={styles.itemBody}>
                                                 <div className={styles.itemTitle}>{item.title}</div>
                                                 <div className={styles.itemContent}>{item.content}</div>
-                                                <div className={styles.itemTime}>{formatTime(item.create_time)}</div>
+                                                <div className={styles.itemTime}>{formatTime(t, item.create_time)}</div>
                                             </div>
                                             {!item.is_read && <span className={styles.unreadDot} />}
                                         </div>
@@ -470,11 +473,11 @@ const Notification: React.FC = () => {
                     {notifications.length > 0 && (
                         <div className={styles.footer}>
                             <button className={styles.viewAll} onClick={handleViewAll}>
-                                查看全部
+                                {t("notification.viewAll")}
                             </button>
                             <button className={styles.viewAll} onClick={() => setShowSettings(true)}>
                                 <FaCog />
-                                通知设置
+                                {t("notification.settings")}
                             </button>
                         </div>
                     )}
@@ -484,7 +487,7 @@ const Notification: React.FC = () => {
             {/* Settings Modal */}
             <Modal
                 visible={showSettings}
-                title="通知设置"
+                title={t("notification.settings")}
                 onClose={() => setShowSettings(false)}
                 size="small"
                 footer={
@@ -501,7 +504,7 @@ const Notification: React.FC = () => {
                             fontSize: 14,
                         }}
                     >
-                        关闭
+                        {t("notification.close")}
                     </button>
                 }
             >

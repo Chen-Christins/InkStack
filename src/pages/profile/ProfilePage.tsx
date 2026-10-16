@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import styles from "./ProfilePage.module.css";
 import { encodeId, decodeId } from "@/utils/HashId.ts";
@@ -30,6 +31,7 @@ import type { UserStats } from "@/services/AuthService.ts";
 import FollowService from "@/services/FollowService.ts";
 import message from "@/components/message/Message";
 import AchievementsTab from "@/pages/user/AchievementsTab";
+import i18n from "@/i18n";
 
 function formatDate(timestamp: number | string): string {
     if (!timestamp) {
@@ -40,7 +42,7 @@ function formatDate(timestamp: number | string): string {
         return "";
     }
     const date = new Date(ts * 1000);
-    return `${date.getFullYear()}年${date.getMonth() + 1}月`;
+    return i18n.t("profile:yearMonth", { year: date.getFullYear(), month: date.getMonth() + 1 });
 }
 
 function toGithubHref(value: string): string {
@@ -67,10 +69,10 @@ function formatPublishTime(timestamp: number | string): string {
 }
 
 const TABS = [
-    { key: "overview", label: "概览" },
-    { key: "articles", label: "文章" },
-    { key: "achievements", label: "成就" },
-    { key: "tags", label: "标签" },
+    { key: "overview", labelKey: "tabs.overview" },
+    { key: "articles", labelKey: "tabs.articles" },
+    { key: "achievements", labelKey: "tabs.achievements" },
+    { key: "tags", labelKey: "tabs.tags" },
 ] as const;
 
 const PAGE_SIZE = 15;
@@ -79,6 +81,7 @@ type TabKey = (typeof TABS)[number]["key"];
 
 const Profile: React.FC = () => {
     const navigate = useNavigate();
+    const { t } = useTranslation("profile");
     const { id: encodedId } = useParams<{ id: string }>();
     const id = encodedId ? decodeId(encodedId, "user") : null;
     const { user: currentUser, isAuthenticated } = useAuth();
@@ -102,7 +105,7 @@ const Profile: React.FC = () => {
 
     const [activeTab, setActiveTab] = useState<TabKey>(() => {
         const tab = searchParams.get("tab") as TabKey | null;
-        if (tab && visibleTabs.some((t) => t.key === tab)) {
+        if (tab && visibleTabs.some((tabItem) => tabItem.key === tab)) {
             return tab;
         }
         return "overview";
@@ -140,7 +143,7 @@ const Profile: React.FC = () => {
                 const userData = userResponse?.data ?? (userResponse as any);
                 const mappedProfile: UserProfile = {
                     id: Number(id),
-                    name: userData?.name || "未知用户",
+                    name: userData?.name || t("unknownUser"),
                     avatar: userData?.avatar || `https://picsum.photos/id/${(Number(id) % 100) + 1}/150`,
                     bio: userData?.bio || userData?.signature || "",
                     account: userData?.account || "",
@@ -185,7 +188,7 @@ const Profile: React.FC = () => {
                 if (Array.isArray(labelsData) && labelsData.length > 0) {
                     const tagColors = ["#61DAFB", "#3178C6", "#339933", "#4FC08D", "#7B68EE", "#FF6B6B"];
                     const mappedTags = labelsData.slice(0, 12).map((label: any, i: number) => ({
-                        name: label.name || `标签${i + 1}`,
+                        name: label.name || t("tagFallback", { value: i + 1 }),
                         count: label.article_count ?? 0,
                         color: label.color || tagColors[i % tagColors.length],
                     }));
@@ -196,14 +199,14 @@ const Profile: React.FC = () => {
                     setUserStats(statsData);
                 }
             } catch (err: any) {
-                setError(err.message || "加载失败");
+                setError(err.message || t("loadFailed"));
             } finally {
                 setLoading(false);
             }
         };
 
         fetchProfileData();
-    }, [id]);
+    }, [id, t]);
 
     // 独立检查关注状态（等 auth 就绪后再查）
     useEffect(() => {
@@ -251,7 +254,7 @@ const Profile: React.FC = () => {
                 setArticlePage(nextPage);
             }
         } catch (err: any) {
-            message.error(err?.message || "加载失败");
+            message.error(err?.message || t("loadFailed"));
         } finally {
             setLoadingMore(false);
         }
@@ -259,7 +262,7 @@ const Profile: React.FC = () => {
 
     const handleFollowToggle = async () => {
         if (!isAuthenticated) {
-            message.info("请先登录");
+            message.info(t("pleaseLogin"));
             navigate("/auth?redirect=" + encodeURIComponent(window.location.pathname + window.location.search));
             return;
         }
@@ -272,15 +275,15 @@ const Profile: React.FC = () => {
                 await FollowService.unfollow(id);
                 setIsFollowing(false);
                 setFollowersCount((c) => Math.max(0, c - 1));
-                message.success("已取消关注");
+                message.success(t("unfollowed"));
             } else {
                 await FollowService.follow(id);
                 setIsFollowing(true);
                 setFollowersCount((c) => c + 1);
-                message.success("关注成功");
+                message.success(t("followSuccess"));
             }
         } catch (err: any) {
-            message.error(err?.response?.data?.msg || err?.message || "操作失败");
+            message.error(err?.response?.data?.msg || err?.message || t("operationFailed"));
         } finally {
             setFollowLoading(false);
         }
@@ -291,7 +294,7 @@ const Profile: React.FC = () => {
             <div className={styles.profile}>
                 <div className={styles.loadingContainer}>
                     <div className={styles.spinner} />
-                    <span>加载中...</span>
+                    <span>{t("loading")}</span>
                 </div>
             </div>
         );
@@ -301,7 +304,7 @@ const Profile: React.FC = () => {
         return (
             <div className={styles.profile}>
                 <div className={styles.loadingContainer}>
-                    <span>{error || "用户不存在"}</span>
+                    <span>{error || t("userNotExist")}</span>
                 </div>
             </div>
         );
@@ -314,22 +317,22 @@ const Profile: React.FC = () => {
                     <div className={styles.statsCard}>
                         <BookOpen size={20} />
                         <span className={styles.statsCardNumber}>{userStats.published_articles}</span>
-                        <span className={styles.statsCardLabel}>已发布文章</span>
+                        <span className={styles.statsCardLabel}>{t("stats.publishedArticles")}</span>
                     </div>
                     <div className={styles.statsCard}>
                         <Eye size={20} />
                         <span className={styles.statsCardNumber}>{userStats.total_views}</span>
-                        <span className={styles.statsCardLabel}>总浏览量</span>
+                        <span className={styles.statsCardLabel}>{t("stats.totalViews")}</span>
                     </div>
                     <div className={styles.statsCard}>
                         <Heart size={20} />
                         <span className={styles.statsCardNumber}>{userStats.total_likes}</span>
-                        <span className={styles.statsCardLabel}>总点赞</span>
+                        <span className={styles.statsCardLabel}>{t("stats.totalLikes")}</span>
                     </div>
                     <div className={styles.statsCard}>
                         <MessageSquare size={20} />
                         <span className={styles.statsCardNumber}>{userStats.total_comments}</span>
-                        <span className={styles.statsCardLabel}>总评论</span>
+                        <span className={styles.statsCardLabel}>{t("stats.totalComments")}</span>
                     </div>
                 </div>
             )}
@@ -337,7 +340,7 @@ const Profile: React.FC = () => {
             {articles.length > 0 && (
                 <div className={styles.section}>
                     <div className={styles.sectionHeader}>
-                        <h2 className={styles.sectionTitle}>精选文章</h2>
+                        <h2 className={styles.sectionTitle}>{t("featuredArticles")}</h2>
                     </div>
                     <div className={styles.featuredGrid}>
                         {(() => {
@@ -356,7 +359,7 @@ const Profile: React.FC = () => {
                                                         ? typeof article.categorys[0] === "object"
                                                             ? (article.categorys[0] as any).name
                                                             : article.categorys[0]
-                                                        : "未分类"}
+                                                        : t("uncategorized")}
                                                 </span>
                                             </div>
                                             <h3 className={styles.featuredCardTitle}>{article.title}</h3>
@@ -391,8 +394,8 @@ const Profile: React.FC = () => {
             {articles.length === 0 && (
                 <div className={styles.emptyState}>
                     <BookOpen size={48} className={styles.emptyIcon} />
-                    <h3>暂无文章</h3>
-                    <p>该用户还没有发布文章。</p>
+                    <h3>{t("noArticles")}</h3>
+                    <p>{t("noArticlesDesc")}</p>
                 </div>
             )}
         </div>
@@ -401,19 +404,19 @@ const Profile: React.FC = () => {
     const renderArticles = () => (
         <div className={styles.articlesContent}>
             <div className={styles.articlesToolbar}>
-                <span className={styles.articlesCount}>{articleTotal} 篇文章</span>
+                <span className={styles.articlesCount}>{t("articlesCount", { total: articleTotal })}</span>
                 <div className={styles.viewToggle}>
                     <button
                         className={viewMode === "list" ? styles.activeView : styles.inactiveView}
                         onClick={() => setViewMode("list")}
                     >
-                        列表
+                        {t("listView")}
                     </button>
                     <button
                         className={viewMode === "grid" ? styles.activeView : styles.inactiveView}
                         onClick={() => setViewMode("grid")}
                     >
-                        网格
+                        {t("gridView")}
                     </button>
                 </div>
             </div>
@@ -421,8 +424,8 @@ const Profile: React.FC = () => {
             {articles.length === 0 ? (
                 <div className={styles.emptyState}>
                     <BookOpen size={48} className={styles.emptyIcon} />
-                    <h3>暂无文章</h3>
-                    <p>暂无文章可显示。</p>
+                    <h3>{t("noArticles")}</h3>
+                    <p>{t("noArticlesDisplay")}</p>
                 </div>
             ) : (
                 <div className={`${styles.articlesList} ${viewMode === "grid" ? styles.gridView : styles.listView}`}>
@@ -438,7 +441,7 @@ const Profile: React.FC = () => {
                                         ? typeof article.categorys[0] === "object"
                                             ? (article.categorys[0] as any).name
                                             : article.categorys[0]
-                                        : "未分类"}
+                                        : t("uncategorized")}
                                 </span>
                                 <span className={styles.articleDate}>{article.publish_time}</span>
                             </div>
@@ -470,7 +473,7 @@ const Profile: React.FC = () => {
                                         <MessageSquare size={14} /> {article.comments}
                                     </span>
                                     <span>
-                                        <Clock size={14} /> 5分钟
+                                        <Clock size={14} /> {t("readTime")}
                                     </span>
                                 </div>
                             </div>
@@ -484,10 +487,10 @@ const Profile: React.FC = () => {
                     {loadingMore ? (
                         <>
                             <Loader2 size={14} className={styles.loadingSpin} />
-                            加载中...
+                            {t("loading")}
                         </>
                     ) : (
-                        "加载更多文章"
+                        t("loadMoreArticles")
                     )}
                 </button>
             )}
@@ -499,8 +502,8 @@ const Profile: React.FC = () => {
             {tags.length === 0 ? (
                 <div className={styles.emptyState}>
                     <Hash size={48} className={styles.emptyIcon} />
-                    <h3>暂无标签</h3>
-                    <p>该用户还没有创建标签。</p>
+                    <h3>{t("noTags")}</h3>
+                    <p>{t("noTagsDesc")}</p>
                 </div>
             ) : (
                 <div className={styles.tagsGrid}>
@@ -511,7 +514,7 @@ const Profile: React.FC = () => {
                                     <Hash size={14} />
                                     {tag.name}
                                 </span>
-                                <span className={styles.tagCardCount}>{tag.count} 篇文章</span>
+                                <span className={styles.tagCardCount}>{t("articlesCount", { total: tag.count })}</span>
                             </div>
                         </div>
                     ))}
@@ -557,7 +560,7 @@ const Profile: React.FC = () => {
                             {isOwnProfile ? (
                                 <button className={styles.editButton} onClick={() => navigate("/personal?tab=edit")}>
                                     <Edit size={14} />
-                                    编辑资料
+                                    {t("editProfile")}
                                 </button>
                             ) : (
                                 <button
@@ -570,12 +573,12 @@ const Profile: React.FC = () => {
                                     ) : isFollowing ? (
                                         <>
                                             <UserCheck size={14} />
-                                            已关注
+                                            {t("followingButton")}
                                         </>
                                     ) : (
                                         <>
                                             <UserPlus size={14} />
-                                            关注
+                                            {t("followButton")}
                                         </>
                                     )}
                                 </button>
@@ -589,7 +592,7 @@ const Profile: React.FC = () => {
                                 disabled={!isOwnProfile}
                             >
                                 <Users size={14} />
-                                <strong>{followersCount}</strong> 粉丝
+                                <strong>{followersCount}</strong> {t("followers")}
                             </button>
                             <button
                                 className={styles.sidebarStat}
@@ -597,7 +600,7 @@ const Profile: React.FC = () => {
                                 disabled={!isOwnProfile}
                             >
                                 <Heart size={14} />
-                                <strong>{profile.stats.following}</strong> 关注
+                                <strong>{profile.stats.following}</strong> {t("following")}
                             </button>
                         </div>
 
@@ -638,26 +641,26 @@ const Profile: React.FC = () => {
                             {profile.joinDate && (
                                 <div className={styles.sidebarMetaItem}>
                                     <Clock size={14} />
-                                    <span>加入于 {profile.joinDate}</span>
+                                    <span>{t("joinedAt", { value: profile.joinDate })}</span>
                                 </div>
                             )}
                         </div>
 
                         {userStats && (
                             <div className={styles.sidebarAchievements}>
-                                <h3 className={styles.achievementsTitle}>成就</h3>
+                                <h3 className={styles.achievementsTitle}>{t("achievements")}</h3>
                                 <div className={styles.achievementsGrid}>
                                     <div className={styles.achievement}>
                                         <BookOpen size={16} />
-                                        <span>{userStats.published_articles} 篇文章</span>
+                                        <span>{t("articlesCount", { total: userStats.published_articles })}</span>
                                     </div>
                                     <div className={styles.achievement}>
                                         <Eye size={16} />
-                                        <span>{userStats.total_views} 次浏览</span>
+                                        <span>{t("viewsCount", { total: userStats.total_views })}</span>
                                     </div>
                                     <div className={styles.achievement}>
                                         <Star size={16} />
-                                        <span>{userStats.total_likes} 次点赞</span>
+                                        <span>{t("likesCount", { total: userStats.total_likes })}</span>
                                     </div>
                                 </div>
                             </div>
@@ -677,7 +680,7 @@ const Profile: React.FC = () => {
                                     setSearchParams({ tab: tab.key }, { replace: true });
                                 }}
                             >
-                                {tab.label}
+                                {t(tab.labelKey)}
                                 {tab.key === "articles" && articleTotal > 0 && (
                                     <span className={styles.contentTabCount}>{articleTotal}</span>
                                 )}

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { FaArrowLeft } from "react-icons/fa";
 import styles from "./ArticleViewPage.module.css";
 import ArticleView from "./ArticleView";
@@ -22,6 +23,8 @@ const ArticleViewPage: React.FC = () => {
     const { id: encodedId } = useParams<{ id: string }>();
     const id = encodedId ? decodeId(encodedId, "article") : null;
     const navigate = useNavigate();
+    const { t } = useTranslation("article");
+    const { t: tCommon } = useTranslation("common");
     const { user, isAuthenticated, loading: authLoading } = useAuth();
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
@@ -32,7 +35,7 @@ const ArticleViewPage: React.FC = () => {
         // 只有在认证加载完成且用户已认证时才加载文章
         if (!authLoading && isAuthenticated) {
             if (!id) {
-                setError("文章ID缺失");
+                setError(t("page.missingId"));
                 return;
             }
 
@@ -61,7 +64,7 @@ const ArticleViewPage: React.FC = () => {
                     // 让渲染逻辑处理从骨架屏到内容的过渡
                 } catch (err: any) {
                     console.error("获取文章失败", err);
-                    setError(err?.message || "获取文章失败");
+                    setError(err?.message || t("page.fetchFailed"));
                     hasError = true;
                 } finally {
                     clearTimeout(skeletonTimer); // 清除定时器
@@ -75,16 +78,16 @@ const ArticleViewPage: React.FC = () => {
 
             fetch();
         }
-    }, [id, authLoading, isAuthenticated]);
+    }, [id, authLoading, isAuthenticated, t]);
 
     return (
         <div className={styles.reader}>
             {/* 沉浸式细顶栏：返回 + 品牌 + 操作 */}
             <header className={styles.readerBar}>
                 <div className={styles.readerBarInner}>
-                    <button className={styles.backBtn} onClick={() => navigate(-1)} type="button" aria-label="返回">
+                    <button className={styles.backBtn} onClick={() => navigate(-1)} type="button" aria-label={t("back")}>
                         <FaArrowLeft />
-                        <span>返回</span>
+                        <span>{t("back")}</span>
                     </button>
 
                     <div className={styles.actions}>
@@ -93,7 +96,7 @@ const ArticleViewPage: React.FC = () => {
                         {isAuthenticated && <Notification />}
                         {authLoading ? null : isAuthenticated ? (
                             <div className={styles.avatarBtn} onClick={() => navigate("/personal")}>
-                                <Avatar src={user?.avatar} name={user?.name || "用户"} size={30} />
+                                <Avatar src={user?.avatar} name={user?.name || tCommon("user.fallbackName")} size={30} />
                             </div>
                         ) : (
                             <AuthButtons />
@@ -105,7 +108,7 @@ const ArticleViewPage: React.FC = () => {
             <main className={styles.readerMain}>
                 <AuthRequired>
                     {authLoading ? (
-                        <div style={{ padding: "2rem", textAlign: "center" }}>正在加载认证状态...</div>
+                        <div style={{ padding: "2rem", textAlign: "center" }}>{t("page.loadingAuth")}</div>
                     ) : (
                         <>
                             {showSkeleton &&
@@ -132,7 +135,9 @@ const ArticleViewPage: React.FC = () => {
                                     views={article.views ?? 0}
                                     praises={article.praise ?? article.praises ?? 0}
                                     update_time={formatToChinaTime(Number(article.update_time))}
-                                    pushlish_time={article.publish_time ? formatToChinaTime(Number(article.publish_time)) : "暂未发布"}
+                                    pushlish_time={
+                                        article.publish_time ? formatToChinaTime(Number(article.publish_time)) : t("unpublished")
+                                    }
                                     categories={article.categorys}
                                     labels={article.labels}
                                     readingTime={article.content ? Math.max(1, Math.ceil(article.content.length / 500)) : undefined}

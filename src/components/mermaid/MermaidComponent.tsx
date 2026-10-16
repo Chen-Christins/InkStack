@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import styles from "./MermaidComponent.module.css";
 import { MERMAID_INIT_CONFIG } from "./MermaidConfig";
 
@@ -22,6 +23,7 @@ interface MermaidComponentProps {
 }
 
 const MermaidComponent: React.FC<MermaidComponentProps> = ({ code }) => {
+    const { t } = useTranslation("components");
     const elementRef = useRef<HTMLDivElement>(null);
     const [error, setError] = useState<string>("");
 
@@ -43,7 +45,7 @@ const MermaidComponent: React.FC<MermaidComponentProps> = ({ code }) => {
                 })
                 .catch((err: any) => {
                     if (!cancelled) {
-                        setError(`Mermaid 渲染错误: ${err.message}`);
+                        setError(err.message);
                     }
                 });
         }
@@ -56,7 +58,7 @@ const MermaidComponent: React.FC<MermaidComponentProps> = ({ code }) => {
     if (error) {
         return (
             <div className={styles.error}>
-                <div className={styles.errorMessage}>{error}</div>
+                <div className={styles.errorMessage}>{t("mermaid.renderError", { message: error })}</div>
                 <pre className={styles.errorCode}>{code}</pre>
             </div>
         );

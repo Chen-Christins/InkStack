@@ -34,8 +34,10 @@ export interface OrganizationDetail {
     description?: string;
     memberCount: number;
     members: Member[];
-    user_in_org?: string;
-    user_role?: string;
+    /** 当前用户在该组织的成员状态（原始枚举值，显示时用 useEnumLabels().orgMembershipStatus 本地化） */
+    user_in_org?: number;
+    /** 当前用户在该组织的角色（原始枚举值，显示时用 useEnumLabels().orgRole 本地化） */
+    user_role?: number;
 }
 
 // 成员统计

@@ -3,6 +3,7 @@
 // ============================================================
 
 import http from "../infra/Http.ts";
+import i18n from "@/i18n";
 import type {
     Requirement,
     Bug,
@@ -142,9 +143,18 @@ function mapTrendResponse(raw: any): RdTrendAnalysisData {
         raw.insights && raw.insights.length > 0
             ? raw.insights
             : [
-                  { title: "交付节奏", content: "完成项保持增长，任务吞吐高于新增缺陷，短期积压风险可控。" },
-                  { title: "质量风险", content: "返工数处于低位，审查通过率持续提升，建议继续保留当前代码审查标准。" },
-                  { title: "资源关注", content: "任务总量仍在上升，如下个周期新增继续增加，需要提前拆分高优先级任务。" },
+                  {
+                      title: i18n.t("rd:trend.defaultInsightDeliveryTitle"),
+                      content: i18n.t("rd:trend.defaultInsightDeliveryContent"),
+                  },
+                  {
+                      title: i18n.t("rd:trend.defaultInsightQualityTitle"),
+                      content: i18n.t("rd:trend.defaultInsightQualityContent"),
+                  },
+                  {
+                      title: i18n.t("rd:trend.defaultInsightResourceTitle"),
+                      content: i18n.t("rd:trend.defaultInsightResourceContent"),
+                  },
               ];
 
     return {

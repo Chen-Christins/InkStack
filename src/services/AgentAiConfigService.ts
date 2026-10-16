@@ -1,5 +1,6 @@
 import { AuthService, type AiConfig, type AiConfigParams } from "./AuthService.ts";
 import { agentRequest } from "./AgentRequest.ts";
+import i18n from "@/i18n";
 
 interface Asset extends AiConfig {
     id: number;
@@ -22,10 +23,10 @@ export class AgentAiConfigService {
         });
         const data = await response.json().catch(() => null);
         if (!response.ok) {
-            throw new Error(data?.error || `AI 配置请求失败 (${response.status})`);
+            throw new Error(data?.error || i18n.t("services:aiConfig.requestFailed", { status: response.status }));
         }
         if (data === null) {
-            throw new Error("Agent 配置服务返回了无效响应，请稍后重试");
+            throw new Error(i18n.t("services:aiConfig.invalidResponse"));
         }
         return data as T;
     }
@@ -33,7 +34,7 @@ export class AgentAiConfigService {
     private async isLegacy(): Promise<boolean> {
         const mode = await this.request<{ storage: string }>("/mode");
         if (mode.storage !== "assets" && mode.storage !== "legacy") {
-            throw new Error("无法确认 AI 配置存储，请刷新重试");
+            throw new Error(i18n.t("services:aiConfig.storageUncertain"));
         }
         return mode.storage === "legacy";
     }
@@ -71,9 +72,13 @@ export class AgentAiConfigService {
             id = asset.id;
         } else {
             if (!input.api_key) {
-                throw new Error("请重新输入完整 API 密钥以创建 Agent 配置");
+                throw new Error(i18n.t("services:aiConfig.reenterKey"));
             }
-            const created = await this.request<Asset>("", "POST", { ...input, name: "个人默认配置", is_default: true });
+            const created = await this.request<Asset>("", "POST", {
+                ...input,
+                name: i18n.t("services:aiConfig.defaultName"),
+                is_default: true,
+            });
             id = created.id;
         }
         await this.request("/preference", "PUT", { config_id: id, org_id: null });

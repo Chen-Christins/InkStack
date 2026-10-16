@@ -1,0 +1,75 @@
+.panel {
+    background-color: var(--card-bg);
+    border-radius: 8px;
+    padding: 0.7rem;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-primary);
+    margin-bottom: 0.5rem;
+}
+
+.panelHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border-primary);
+    padding-bottom: 0.4rem;
+}
+
+.panelTitle {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.titleIcon {
+    font-size: 0.75rem;
+    color: var(--primary);
+    opacity: 0.75;
+}
+
+.optionList {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.optionItem {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 0.5rem 0.65rem;
+    background-color: var(--bg-secondary);
+    border: 2px solid transparent;
+    border-radius: 7px;
+    cursor: pointer;
+    font-family: inherit;
+    color: var(--text-primary);
+    transition: background-color 0.15s ease;
+}
+
+.optionItem:hover {
+    background-color: var(--bg-tertiary);
+}
+
+.optionActive {
+    border-color: var(--primary);
+    background-color: var(--bg-tertiary);
+}
+
+.optionName {
+    display: flex;
+    align-items: center;
+    font-size: 0.8rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.checkIcon {
+    font-size: 0.7rem;
+    color: var(--primary);
+}

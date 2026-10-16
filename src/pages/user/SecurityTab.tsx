@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { FaShieldAlt, FaDesktop, FaMobileAlt, FaSignOutAlt } from "react-icons/fa";
 import styles from "./UserPage.module.css";
 import secStyles from "./AccountSecurity.module.css";
@@ -13,6 +14,7 @@ import { formatRelativeTime } from "@/utils/Utils.ts";
 const isMobilePlatform = (platform: string): boolean => /ios|android|mobile/i.test(platform || "");
 
 const SecurityTab: React.FC = () => {
+    const { t } = useTranslation("user");
     const [twoFactor, setTwoFactor] = useState(false);
     const [loginAlert, setLoginAlert] = useState(true);
     const [devices, setDevices] = useState<LoginDevice[]>([]);
@@ -28,14 +30,14 @@ const SecurityTab: React.FC = () => {
             if (res.errno === 0 && Array.isArray(res.data?.list)) {
                 setDevices(res.data.list);
             } else {
-                setDevicesError("设备列表获取失败");
+                setDevicesError(t("security.messages.devicesFetchFailed"));
             }
         } catch (error: any) {
-            setDevicesError(error.msg || error.message || "设备列表获取失败");
+            setDevicesError(error.msg || error.message || t("security.messages.devicesFetchFailed"));
         } finally {
             setDevicesLoading(false);
         }
-    }, []);
+    }, [t]);
 
     useEffect(() => {
         loadDevices();
@@ -43,22 +45,24 @@ const SecurityTab: React.FC = () => {
 
     const revoke = (d: LoginDevice) => {
         confirm({
-            title: "下线设备",
+            title: t("security.revoke.title"),
             content: (
                 <div>
-                    确定要将 "<strong>{d.device_name || d.platform || "未知设备"}</strong>" 强制下线吗？
+                    {t("security.revoke.contentPrefix")}
+                    <strong>{d.device_name || d.platform || t("security.unknownDevice")}</strong>
+                    {t("security.revoke.contentSuffix")}
                 </div>
             ),
-            confirmText: "下线",
-            cancelText: "取消",
+            confirmText: t("security.revoke.confirm"),
+            cancelText: t("security.revoke.cancel"),
             onConfirm: async () => {
                 setKickingId(d.device_id);
                 try {
                     await DeviceService.kickDevice(d.device_id);
-                    message.success("设备已下线");
+                    message.success(t("security.messages.revokeSuccess"));
                     await loadDevices();
                 } catch (error: any) {
-                    message.error(error.msg || error.message || "设备下线失败");
+                    message.error(error.msg || error.message || t("security.messages.revokeFailed"));
                     await loadDevices();
                 } finally {
                     setKickingId(null);
@@ -72,25 +76,25 @@ const SecurityTab: React.FC = () => {
             {import.meta.env.DEV && (
                 <div className={styles.card}>
                     <h2 className={styles.cardTitle}>
-                        <FaShieldAlt /> 安全选项
+                        <FaShieldAlt /> {t("security.options.title")}
                     </h2>
                     <div className={styles.settingRow}>
                         <div className={styles.settingInfo}>
-                            <p className={styles.settingName}>两步验证（2FA）</p>
-                            <p className={styles.settingHint}>登录时需额外输入动态验证码，大幅提升账户安全</p>
+                            <p className={styles.settingName}>{t("security.options.twoFactor.name")}</p>
+                            <p className={styles.settingHint}>{t("security.options.twoFactor.hint")}</p>
                         </div>
                         <Switch
                             checked={twoFactor}
                             onChange={(c) => {
                                 setTwoFactor(c);
-                                message.info(c ? "已开启两步验证（演示）" : "已关闭两步验证");
+                                message.info(c ? t("security.options.twoFactor.enabled") : t("security.options.twoFactor.disabled"));
                             }}
                         />
                     </div>
                     <div className={styles.settingRow}>
                         <div className={styles.settingInfo}>
-                            <p className={styles.settingName}>异地登录提醒</p>
-                            <p className={styles.settingHint}>检测到新设备或异地登录时通过站内信提醒</p>
+                            <p className={styles.settingName}>{t("security.options.loginAlert.name")}</p>
+                            <p className={styles.settingHint}>{t("security.options.loginAlert.hint")}</p>
                         </div>
                         <Switch checked={loginAlert} onChange={(c) => setLoginAlert(c)} />
                     </div>
@@ -99,15 +103,20 @@ const SecurityTab: React.FC = () => {
 
             <div className={styles.card}>
                 <h2 className={styles.cardTitle}>
-                    <FaDesktop /> 登录设备
+                    <FaDesktop /> {t("security.devices.title")}
                 </h2>
-                <p className={styles.cardDesc}>当前共有 {devices.length} 台设备登录</p>
+                <p className={styles.cardDesc}>{t("security.devices.count", { total: devices.length })}</p>
                 {devicesLoading ? (
-                    <Loading size="medium" text="正在加载设备列表..." />
+                    <Loading size="medium" text={t("security.devices.loading")} />
                 ) : devicesError ? (
-                    <ErrorState title="设备列表加载失败" message={devicesError} actionText="重新加载" onAction={loadDevices} />
+                    <ErrorState
+                        title={t("security.devices.errorTitle")}
+                        message={devicesError}
+                        actionText={t("security.devices.reload")}
+                        onAction={loadDevices}
+                    />
                 ) : devices.length === 0 ? (
-                    <p className={styles.cardDesc}>暂无其他设备登录</p>
+                    <p className={styles.cardDesc}>{t("security.devices.empty")}</p>
                 ) : (
                     <div className={secStyles.deviceList}>
                         {devices.map((d) => {
@@ -120,20 +129,25 @@ const SecurityTab: React.FC = () => {
                                     </div>
                                     <div className={secStyles.deviceInfo}>
                                         <p className={secStyles.deviceName}>
-                                            {d.device_name || d.platform || "未知设备"}
-                                            {isCurrent && <span className={secStyles.currentTag}>当前设备</span>}
+                                            {d.device_name || d.platform || t("security.unknownDevice")}
+                                            {isCurrent && (
+                                                <span className={secStyles.currentTag}>{t("security.devices.current")}</span>
+                                            )}
                                         </p>
                                         <p className={secStyles.deviceMeta}>
                                             {[d.platform, d.ip ? `IP ${d.ip}` : ""].filter(Boolean).join(" · ")}
                                         </p>
                                         <p className={secStyles.deviceMeta}>
-                                            登录于 {formatRelativeTime(d.login_time)} · 最近活跃{" "}
-                                            {formatRelativeTime(d.last_active_time)}
+                                            {t("security.devices.loginAt", {
+                                                loginTime: formatRelativeTime(d.login_time),
+                                                activeTime: formatRelativeTime(d.last_active_time),
+                                            })}
                                         </p>
                                     </div>
                                     {!isCurrent && (
                                         <button className={secStyles.revokeBtn} disabled={isKicking} onClick={() => revoke(d)}>
-                                            <FaSignOutAlt /> {isKicking ? "下线中..." : "下线"}
+                                            <FaSignOutAlt />{" "}
+                                            {isKicking ? t("security.devices.revoking") : t("security.devices.revoke")}
                                         </button>
                                     )}
                                 </div>

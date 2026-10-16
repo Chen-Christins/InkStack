@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { FaFire, FaPenNib, FaComments, FaStar, FaMedal, FaCode, FaHeart, FaRocket, FaTrophy } from "react-icons/fa";
 import styles from "./UserPage.module.css";
 import acStyles from "./Achievements.module.css";
@@ -18,15 +19,14 @@ const ICON_MAP: Record<string, React.ReactNode> = {
 };
 
 const LEVEL_COLORS = ["var(--bg-tertiary)", "#9be9a8", "#40c463", "#30a14e", "#216e39"];
-const WEEKDAYS = ["", "一", "", "三", "", "五", ""];
-const MONTHS = ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"];
 
 const AchievementsTab: React.FC = () => {
+    const { t } = useTranslation("user");
     const { data, loading } = useAsyncResource<AchievementData | null>(async () => {
         try {
             return await AuthService.getAchievements();
         } catch (err: any) {
-            message.error(err?.message || "加载成就数据失败");
+            message.error(err?.message || t("achievements.messages.loadFailed"));
             throw err;
         }
     }, []);
@@ -36,10 +36,26 @@ const AchievementsTab: React.FC = () => {
     const heatmap: number[][] = data?.heatmap ?? [];
     const totalContributions = stats?.total_contributions ?? 0;
 
+    const months = [
+        t("achievements.months.jan"),
+        t("achievements.months.feb"),
+        t("achievements.months.mar"),
+        t("achievements.months.apr"),
+        t("achievements.months.may"),
+        t("achievements.months.jun"),
+        t("achievements.months.jul"),
+        t("achievements.months.aug"),
+        t("achievements.months.sep"),
+        t("achievements.months.oct"),
+        t("achievements.months.nov"),
+        t("achievements.months.dec"),
+    ];
+    const weekdays = ["", t("achievements.weekdays.mon"), "", t("achievements.weekdays.wed"), "", t("achievements.weekdays.fri"), ""];
+
     if (loading) {
         return (
             <div className={styles.tabWrap} style={{ textAlign: "center", padding: 60, color: "var(--text-tertiary)" }}>
-                加载中...
+                {t("achievements.loading")}
             </div>
         );
     }
@@ -48,11 +64,26 @@ const AchievementsTab: React.FC = () => {
         <div className={styles.tabWrap}>
             <div className={acStyles.statsRow}>
                 {[
-                    { label: "总贡献", value: totalContributions, icon: <FaFire />, color: "#f97316" },
-                    { label: "已发布文章", value: stats?.published_articles ?? 0, icon: <FaPenNib />, color: "#3b82f6" },
-                    { label: "获得点赞", value: stats?.total_likes ?? 0, icon: <FaHeart />, color: "#ef4444" },
                     {
-                        label: "解锁徽章",
+                        label: t("achievements.stats.totalContributions"),
+                        value: totalContributions,
+                        icon: <FaFire />,
+                        color: "#f97316",
+                    },
+                    {
+                        label: t("achievements.stats.publishedArticles"),
+                        value: stats?.published_articles ?? 0,
+                        icon: <FaPenNib />,
+                        color: "#3b82f6",
+                    },
+                    {
+                        label: t("achievements.stats.totalLikes"),
+                        value: stats?.total_likes ?? 0,
+                        icon: <FaHeart />,
+                        color: "#ef4444",
+                    },
+                    {
+                        label: t("achievements.stats.unlockedBadges"),
                         value: `${stats?.unlocked_badges ?? 0}/${stats?.total_badges ?? 0}`,
                         icon: <FaMedal />,
                         color: "#eab308",
@@ -72,21 +103,21 @@ const AchievementsTab: React.FC = () => {
 
             <div className={styles.card}>
                 <h2 className={styles.cardTitle}>
-                    <FaFire /> 贡献热力图
+                    <FaFire /> {t("achievements.heatmap.title")}
                 </h2>
-                <p className={styles.cardDesc}>过去一年共 {totalContributions} 次贡献</p>
+                <p className={styles.cardDesc}>{t("achievements.heatmap.desc", { total: totalContributions })}</p>
                 <div className={acStyles.heatmapScroll}>
                     <div className={acStyles.heatmap}>
                         <div className={acStyles.months}>
-                            {MONTHS.map((m) => (
-                                <span key={m} className={acStyles.monthLabel}>
+                            {months.map((m, i) => (
+                                <span key={i} className={acStyles.monthLabel}>
                                     {m}
                                 </span>
                             ))}
                         </div>
                         <div className={acStyles.gridWrap}>
                             <div className={acStyles.weekdays}>
-                                {WEEKDAYS.map((d, i) => (
+                                {weekdays.map((d, i) => (
                                     <span key={i} className={acStyles.weekdayLabel}>
                                         {d}
                                     </span>
@@ -100,7 +131,7 @@ const AchievementsTab: React.FC = () => {
                                                 key={di}
                                                 className={acStyles.cell}
                                                 style={{ background: LEVEL_COLORS[level] ?? LEVEL_COLORS[0] }}
-                                                title={`贡献等级 ${level}`}
+                                                title={t("achievements.heatmap.level", { level })}
                                             />
                                         ))}
                                     </div>
@@ -108,11 +139,11 @@ const AchievementsTab: React.FC = () => {
                             </div>
                         </div>
                         <div className={acStyles.legend}>
-                            <span>少</span>
+                            <span>{t("achievements.heatmap.less")}</span>
                             {LEVEL_COLORS.map((c, i) => (
                                 <span key={i} className={acStyles.cell} style={{ background: c }} />
                             ))}
-                            <span>多</span>
+                            <span>{t("achievements.heatmap.more")}</span>
                         </div>
                     </div>
                 </div>
@@ -120,7 +151,7 @@ const AchievementsTab: React.FC = () => {
 
             <div className={styles.card}>
                 <h2 className={styles.cardTitle}>
-                    <FaMedal /> 荣誉徽章
+                    <FaMedal /> {t("achievements.badges.title")}
                 </h2>
                 <div className={acStyles.badgeGrid}>
                     {badges.map((b) => (
@@ -131,7 +162,7 @@ const AchievementsTab: React.FC = () => {
                             <div className={acStyles.badgeName}>{b.name}</div>
                             <div className={acStyles.badgeDesc}>{b.desc}</div>
                             {b.unlocked ? (
-                                <span className={acStyles.badgeUnlocked}>已解锁</span>
+                                <span className={acStyles.badgeUnlocked}>{t("achievements.badges.unlocked")}</span>
                             ) : (
                                 <span className={acStyles.badgeProgress}>{b.progress}</span>
                             )}

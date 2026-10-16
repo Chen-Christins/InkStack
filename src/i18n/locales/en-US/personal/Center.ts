@@ -1,0 +1,35 @@
+const section = {
+    title: "Personal Center",
+    defaultUserName: "User",
+    nav: {
+        articles: "My Articles",
+        assignments: "My Tasks",
+        edit: "Edit Profile",
+        tags: "My Tags",
+        stats: "Statistics",
+        organizations: "My Organizations",
+        following: "My Following",
+        followers: "My Followers",
+        notifications: "Notifications",
+        security: "Account Security",
+        bookmarks: "My Bookmarks",
+    },
+    expandSidebar: "Expand sidebar",
+    collapseSidebar: "Collapse sidebar",
+    openMenu: "Open menu",
+    loginRequiredTitle: "Please log in first",
+    loginRequiredDesc: "You need to log in to access the personal center and view or manage your articles, tags, and statistics.",
+    loginNow: "Log In Now",
+    backHome: "Back to Home",
+    loadingData: "Loading personal data...",
+    editProfile: "Edit Profile",
+    profileStats: {
+        articles: "Articles",
+        following: "Following",
+        followers: "Followers",
+        tags: "Tags",
+        organizations: "Organizations",
+    },
+} as const;
+
+export default section;

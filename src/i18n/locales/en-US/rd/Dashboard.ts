@@ -1,0 +1,65 @@
+const section = {
+    title: "R&D Dashboard",
+    description: "Project overview and recent activity",
+    stats: {
+        totalRequirements: "Total Requirements",
+        openRequirements: "{{value}} Open",
+        totalBugs: "Total Bugs",
+        unresolvedBugs: "{{value}} Unresolved",
+        totalTasks: "Total Tasks",
+        overdueTasks: "{{value}} Overdue",
+        totalReviews: "Total Reviews",
+        pendingReviews: "{{value}} Pending Review",
+        pendingWorkItems: "Pending Work Items",
+        requirementsAndBugs: "Requirements + Bugs",
+    },
+    table: {
+        title: "Title",
+        priority: "Priority",
+        status: "Status",
+        severity: "Severity",
+        assignee: "Assignee",
+        createdAt: "Created At",
+        deadline: "Deadline",
+    },
+    viewAll: "View All →",
+    requirements: {
+        title: "Recent Requirements",
+        empty: "No requirements",
+    },
+    bugs: {
+        title: "Recent Bugs",
+        empty: "No bugs",
+    },
+    tasks: {
+        title: "Recent Tasks",
+        empty: "No tasks",
+    },
+    status: {
+        new: "New",
+        developing: "Developing",
+        testing: "Testing",
+        done: "Done",
+        closed: "Closed",
+        accepted: "Accepted",
+        processing: "Processing",
+        verified: "Verified",
+        reopened: "Reopened",
+        todo: "To Do",
+        doing: "In Progress",
+    },
+    priority: {
+        urgent: "Urgent",
+        high: "High",
+        medium: "Medium",
+        low: "Low",
+    },
+    severity: {
+        fatal: "Fatal",
+        serious: "Serious",
+        normal: "Normal",
+        minor: "Minor",
+    },
+} as const;
+
+export default section;

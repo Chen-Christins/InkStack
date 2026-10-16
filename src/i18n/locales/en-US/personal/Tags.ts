@@ -1,0 +1,30 @@
+const section = {
+    title: "My Tags",
+    createLabel: "New Tag",
+    loading: "Loading tags...",
+    emptyTitle: "No tags yet",
+    emptyHint: 'Click the "New Tag" button to create your first tag',
+    unknownDescription: "N/A",
+    unknownTime: "Unknown time",
+    articleCount: "{{value}} articles",
+    createdOn: "Created on {{value}}",
+    editLabel: "Edit Tag",
+    nameLabel: "Tag Name",
+    namePlaceholder: "Enter tag name",
+    descLabel: "Tag Description",
+    descPlaceholder: "Enter tag description",
+    colorLabel: "Tag Color",
+    cancel: "Cancel",
+    saving: "Saving...",
+    update: "Update",
+    create: "Create",
+    deleteConfirmTitle: "Confirm Deletion",
+    deleteConfirmContent: 'Are you sure you want to delete the tag "{{name}}"? Articles associated with it will lose this tag.',
+    delete: "Delete",
+    message: {
+        saveFailed: "Failed to save the tag, please try again",
+        deleteFailed: "Failed to delete the tag, please try again",
+    },
+} as const;
+
+export default section;

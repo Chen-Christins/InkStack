@@ -1,0 +1,42 @@
+const nav = {
+    home: "Home",
+    goHome: "Back to Home",
+    organizations: "Organizations",
+    organizationsShort: "Orgs",
+    help: "Help",
+    navMenu: "Menu",
+    openMenu: "Open menu",
+    closeMenu: "Close menu",
+    openNavMenu: "Open navigation menu",
+    backToHome: "Back to home",
+    personalCenter: "Account",
+    writeArticle: "Write Article",
+    messages: "Messages",
+    logout: "Log Out",
+    viewProfile: "View Profile",
+    admin: "Admin",
+    testPage: "Open test page",
+    saveDraft: "Save Draft",
+    saveChanges: "Save Changes",
+    publishArticle: "Publish",
+    updateArticle: "Update Article",
+    tools: {
+        theme: "Theme",
+        calendar: "Calendar",
+        subscribe: "Subscribe",
+        language: "Language",
+    },
+    width: {
+        default: "Default",
+        wide: "Wide",
+        full: "Full",
+        tooltip: "Layout width: {{current}}. Click to switch.",
+    },
+    layoutMode: {
+        appShell: "Sidebar layout",
+        classic: "Top layout",
+        tooltip: "Layout: {{current}}. Click to switch.",
+    },
+} as const;
+
+export default nav;

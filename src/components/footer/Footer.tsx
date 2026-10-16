@@ -1,5 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import styles from "./Footer.module.css";
 import { useSiteSettings } from "@/contexts/SiteSettingsContext";
 
@@ -57,6 +58,7 @@ const Footer: React.FC<FooterProps> = ({
     className = "",
 }) => {
     const { settings } = useSiteSettings();
+    const { t } = useTranslation("common");
     const companyName = companyNameProp || settings.siteName || "Blog";
     const currentYear = new Date().getFullYear();
     const yearText = startYear === currentYear ? currentYear.toString() : `${startYear}-${currentYear}`;
@@ -72,7 +74,7 @@ const Footer: React.FC<FooterProps> = ({
                                 <Link to="/" className={styles.companyLink}>
                                     {companyName}
                                 </Link>{" "}
-                                Inc. All rights reversed.
+                                {t("footer.rights")}
                             </>
                         )}
                     </div>

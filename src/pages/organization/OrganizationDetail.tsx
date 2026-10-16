@@ -18,8 +18,10 @@ import DatePicker from "@/components/datePicker/DatePicker";
 import CustomSelect from "@/components/customSelect/CustomSelect";
 import Modal from "@/components/modal/Modal";
 import AssignmentService from "@/services/AssignmentService.ts";
-import { OrgRole, OrgRoleLabel, canManageOrgTask, canRemoveMember, canSetMemberRole, getAvailableRoles } from "@/types/Roles.ts";
-import { OrgMembershipStatusLabel, AssignmentStatus, AssignmentPriority } from "@/types/Enums.ts";
+import { OrgRole, canManageOrgTask, canRemoveMember, canSetMemberRole, getAvailableRoles } from "@/types/Roles.ts";
+import { AssignmentStatus, AssignmentPriority } from "@/types/Enums.ts";
+import { useEnumLabels } from "@/i18n/UseEnumLabels";
+import { useTranslation } from "react-i18next";
 // import type { Assignment } from '../../types';
 
 const STATE_STR_MAP_NUMBER: Record<string, number> = {
@@ -58,6 +60,8 @@ const OrganizationDetail: React.FC = () => {
     const [searchParams, setSearchParams] = useSearchParams();
     const activeTab = searchParams.get("tab") || "members";
     const { user: currentUser } = useAuth();
+    const enums = useEnumLabels();
+    const { t } = useTranslation("organization");
     const [loading, setLoading] = useState(true);
     const [org, setOrg] = useState<OrganizationDetailType | null>(null);
     const [page, setPage] = useState(1);
@@ -167,18 +171,14 @@ const OrganizationDetail: React.FC = () => {
                     description: res.description,
                     memberCount: 0,
                     members: [],
-                    user_in_org:
-                        typeof res.user_in_org !== "undefined" && res.user_in_org >= 0
-                            ? OrgMembershipStatusLabel[res.user_in_org]
-                            : undefined,
-                    user_role:
-                        typeof res.user_role !== "undefined" && res.user_role > 0 ? OrgRoleLabel[res.user_role as OrgRole] : undefined,
+                    user_in_org: typeof res.user_in_org !== "undefined" && res.user_in_org >= 0 ? res.user_in_org : undefined,
+                    user_role: typeof res.user_role !== "undefined" && res.user_role > 0 ? res.user_role : undefined,
                 };
                 setOrg(orgDetail);
                 const role = checkUserRole(res.user_role);
                 setUserRole(role);
             } catch (e) {
-                message.error("获取组织详情失败");
+                message.error(t("detail.message.fetchDetailFailed"));
             } finally {
                 setLoading(false);
             }
@@ -247,7 +247,7 @@ const OrganizationDetail: React.FC = () => {
                 // 如果没有响应数据，保持当前状态不变，避免清空已有数据
             } catch (error) {
                 console.error("获取组织成员列表失败:", error);
-                message.error("获取成员列表失败");
+                message.error(t("detail.message.fetchMembersFailed"));
 
                 // 在错误情况下，不清空已有数据，保持当前状态
                 // 这样可以避免网络错误导致成员列表突然消失
@@ -307,7 +307,7 @@ const OrganizationDetail: React.FC = () => {
             setPendingRequests(pendingRequests);
         } catch (err) {
             console.error("获取待处理请求失败:", err);
-            message.error("获取待处理请求失败");
+            message.error(t("detail.message.fetchPendingFailed"));
         } finally {
             setPendingRequestsLoading(false);
         }
@@ -316,10 +316,10 @@ const OrganizationDetail: React.FC = () => {
     // Function to handle accept/reject a pending request
     const handleActionPendingRequest = async (requestId: string, action: "accept" | "reject") => {
         const ok = await confirm({
-            title: action === "accept" ? "确认接受" : "确认拒绝",
-            content: action === "accept" ? "确定要接受该用户加入组织吗？" : "确定要拒绝该用户加入组织吗？",
-            confirmText: action === "accept" ? "接受" : "拒绝",
-            cancelText: "取消",
+            title: action === "accept" ? t("detail.confirm.acceptTitle") : t("detail.confirm.rejectTitle"),
+            content: action === "accept" ? t("detail.confirm.acceptContent") : t("detail.confirm.rejectContent"),
+            confirmText: action === "accept" ? t("detail.confirm.accept") : t("detail.confirm.reject"),
+            cancelText: t("detail.confirm.cancel"),
         });
         if (!ok) {
             return;
@@ -343,9 +343,9 @@ const OrganizationDetail: React.FC = () => {
             setPendingRequests((prev) => prev.filter((req) => req.id !== requestId));
 
             if (action === "accept") {
-                message.success("已接受用户加入组织");
+                message.success(t("detail.message.acceptSuccess"));
             } else {
-                message.success("已拒绝用户加入组织");
+                message.success(t("detail.message.rejectSuccess"));
             }
             // 审核后刷新待处理请求列表
             setPendingRequestsRefreshTrigger((prev) => prev + 1);
@@ -357,30 +357,25 @@ const OrganizationDetail: React.FC = () => {
                         ? {
                               ...prevOrg,
                               user_in_org:
-                                  typeof res.user_in_org !== "undefined" && res.user_in_org >= 0
-                                      ? OrgMembershipStatusLabel[res.user_in_org]
-                                      : undefined,
-                              user_role:
-                                  typeof res.user_role !== "undefined" && res.user_role > 0
-                                      ? OrgRoleLabel[res.user_role as OrgRole]
-                                      : undefined,
+                                  typeof res.user_in_org !== "undefined" && res.user_in_org >= 0 ? res.user_in_org : undefined,
+                              user_role: typeof res.user_role !== "undefined" && res.user_role > 0 ? res.user_role : undefined,
                           }
                         : prevOrg,
                 );
             }
         } catch (err) {
             console.error(action === "accept" ? "接受请求失败" : "拒绝请求失败:", err);
-            message.error(action === "accept" ? "接受请求失败" : "拒绝请求失败");
+            message.error(action === "accept" ? t("detail.message.acceptFailed") : t("detail.message.rejectFailed"));
         }
     };
 
     // Function to handle kicking a member
     const handleKickMember = async (member: Member) => {
         const ok = await confirm({
-            title: "确认踢出",
-            content: `确定要将 ${member.name} 踢出组织吗？`,
-            confirmText: "踢出",
-            cancelText: "取消",
+            title: t("detail.confirm.kickTitle"),
+            content: t("detail.confirm.kickContent", { name: member.name }),
+            confirmText: t("detail.confirm.kick"),
+            cancelText: t("detail.confirm.cancel"),
         });
         if (!ok) {
             return;
@@ -411,9 +406,9 @@ const OrganizationDetail: React.FC = () => {
                 regularMembers: member.role === OrgRole.MEMBER ? Math.max(0, prevStats.regularMembers - 1) : prevStats.regularMembers,
             }));
 
-            message.success(`已将 ${member.name} 踢出组织`);
+            message.success(t("detail.message.kickSuccess", { name: member.name }));
         } catch (err) {
-            message.error("踢出成员失败");
+            message.error(t("detail.message.kickFailed"));
         }
     };
 
@@ -435,7 +430,7 @@ const OrganizationDetail: React.FC = () => {
         const currentRole = selectedMember.role || OrgRole.MEMBER;
 
         if (selectedRole === currentRole) {
-            message.warn("该用户已经是这个角色");
+            message.warn(t("detail.message.sameRole"));
             setRoleModalVisible(false);
             return;
         }
@@ -454,34 +449,33 @@ const OrganizationDetail: React.FC = () => {
             );
 
             // Update stats
-            const oldRoleLabel = selectedMember.role ? OrgRoleLabel[selectedMember.role as OrgRole] : "普通成员";
-            const newRoleLabel = selectedRole ? OrgRoleLabel[selectedRole as OrgRole] : "普通成员";
+            const oldRole = (selectedMember.role as OrgRole) || OrgRole.MEMBER;
+            const newRole = (selectedRole as OrgRole) || OrgRole.MEMBER;
 
             setStats((prevStats) => {
                 const newStats = { ...prevStats };
 
-                // Decrease old role count
-                if (oldRoleLabel === OrgRoleLabel[OrgRole.ORG_ADMIN]) {
-                    newStats.orgAdminMembers = Math.max(0, newStats.orgAdminMembers - 1);
-                } else if (oldRoleLabel === OrgRoleLabel[OrgRole.DEV_LEAD])
-                    newStats.devLeadMembers = Math.max(0, newStats.devLeadMembers - 1);
-                else if (oldRoleLabel === OrgRoleLabel[OrgRole.MEMBER])
-                    newStats.regularMembers = Math.max(0, newStats.regularMembers - 1);
+                const adjust = (role: OrgRole, delta: number) => {
+                    if (role === OrgRole.ORG_ADMIN) {
+                        newStats.orgAdminMembers = Math.max(0, newStats.orgAdminMembers + delta);
+                    } else if (role === OrgRole.DEV_LEAD) {
+                        newStats.devLeadMembers = Math.max(0, newStats.devLeadMembers + delta);
+                    } else if (role === OrgRole.MEMBER) {
+                        newStats.regularMembers = Math.max(0, newStats.regularMembers + delta);
+                    }
+                };
 
-                // Increase new role count
-                if (newRoleLabel === OrgRoleLabel[OrgRole.ORG_ADMIN]) {
-                    newStats.orgAdminMembers += 1;
-                } else if (newRoleLabel === OrgRoleLabel[OrgRole.DEV_LEAD]) newStats.devLeadMembers += 1;
-                else if (newRoleLabel === OrgRoleLabel[OrgRole.MEMBER]) newStats.regularMembers += 1;
+                adjust(oldRole, -1);
+                adjust(newRole, 1);
 
                 return newStats;
             });
 
-            message.success(`已将 ${selectedMember.name} 的角色设置为 ${newRoleLabel}`);
+            message.success(t("detail.message.setRoleSuccess", { name: selectedMember.name, role: enums.orgRole[newRole] }));
             setRoleModalVisible(false);
         } catch (err) {
             console.error("设置角色失败:", err);
-            message.error("设置角色失败");
+            message.error(t("detail.message.setRoleFailed"));
         }
     };
 
@@ -505,13 +499,13 @@ const OrganizationDetail: React.FC = () => {
             [OrgRole.ORG_ADMIN]: <FaCrown />,
         };
         const descriptionMap: Record<number, string> = {
-            [OrgRole.MEMBER]: "基础成员权限",
-            [OrgRole.REPORTER]: "可创建需求和缺陷",
-            [OrgRole.DEVELOPER]: "可参与开发工作",
-            [OrgRole.DEV_LEAD]: "可管理所有工单",
-            [OrgRole.ORG_ADMIN]: "组织最高权限",
+            [OrgRole.MEMBER]: t("detail.roleOptions.basicMember"),
+            [OrgRole.REPORTER]: t("detail.roleOptions.reporter"),
+            [OrgRole.DEVELOPER]: t("detail.roleOptions.developer"),
+            [OrgRole.DEV_LEAD]: t("detail.roleOptions.devLead"),
+            [OrgRole.ORG_ADMIN]: t("detail.roleOptions.orgAdmin"),
         };
-        return getAvailableRoles(userRole).map((r) => ({
+        return getAvailableRoles(userRole, enums.orgRole).map((r) => ({
             ...r,
             icon: iconMap[r.value],
             description: descriptionMap[r.value],
@@ -547,7 +541,7 @@ const OrganizationDetail: React.FC = () => {
                         assignee_name: item.assigned_by || undefined,
                         status: STATE_NUMBER_MAP_STR[item.status] as "draft" | "active" | "closed",
                         creator: "", // 接口中没有creator信息，暂时留空
-                        creator_name: item.assigned_by || "未知",
+                        creator_name: item.assigned_by || t("detail.value.unknown"),
                         created_at: new Date(item.end_time * 1000).toISOString(),
                         updated_at: new Date(item.end_time * 1000).toISOString(),
                         due_date: new Date(item.end_time * 1000).toISOString(),
@@ -566,7 +560,7 @@ const OrganizationDetail: React.FC = () => {
                 setTasksPage(pageNum);
             } catch (error) {
                 console.error("获取任务列表失败:", error);
-                message.error("获取任务列表失败");
+                message.error(t("detail.message.fetchTasksFailed"));
             } finally {
                 setTasksLoading(false);
             }
@@ -639,19 +633,19 @@ const OrganizationDetail: React.FC = () => {
     const handleTaskSubmit = async () => {
         // 验证表单
         if (!taskFormData.title.trim()) {
-            message.error("请输入任务标题");
+            message.error(t("detail.message.titleRequired"));
             return;
         }
         if (!taskFormData.description.trim()) {
-            message.error("请输入任务描述");
+            message.error(t("detail.message.descriptionRequired"));
             return;
         }
         if (!taskFormData.courseName.trim()) {
-            message.error("请输入所属类型");
+            message.error(t("detail.message.courseRequired"));
             return;
         }
         if (!taskFormData.due_date) {
-            message.error("请选择截止时间");
+            message.error(t("detail.message.dueDateRequired"));
             return;
         }
 
@@ -677,7 +671,7 @@ const OrganizationDetail: React.FC = () => {
 
                 // 更新成功后，重新获取任务列表以确保数据同步
                 await fetchTasksList(1);
-                message.success("任务更新成功");
+                message.success(t("detail.message.taskUpdated"));
             } else {
                 // 创建模式 - 调用真实的创建接口
                 const endTime = Math.floor(new Date(taskFormData.due_date).getTime() / 1000);
@@ -704,10 +698,10 @@ const OrganizationDetail: React.FC = () => {
                     priority: taskFormData.priority,
                     due_date: taskFormData.due_date,
                     assignee: taskFormData.assignee,
-                    assignee_name: !response.assigned_by ? "待分配" : undefined,
+                    assignee_name: !response.assigned_by ? t("detail.value.unassigned") : undefined,
                     status: taskFormData.status || "draft",
                     creator: currentUser?.id || "unknown",
-                    creator_name: currentUser?.name || "未知用户",
+                    creator_name: currentUser?.name || t("detail.value.unknownUser"),
                     created_at: new Date().toISOString(),
                     updated_at: new Date().toISOString(),
                     assign_id: response.assign_id || "",
@@ -719,22 +713,22 @@ const OrganizationDetail: React.FC = () => {
                 };
                 setTasks((prev) => [newTask, ...prev]);
                 setTasksTotal((prev) => prev + 1);
-                message.success("任务创建成功");
+                message.success(t("detail.message.taskCreated"));
             }
             setTaskCreateModalVisible(false);
         } catch (error: any) {
             console.error("操作失败:", error);
-            message.error(error.message || "操作失败");
+            message.error(error.message || t("detail.message.operationFailed"));
         }
     };
 
     // 删除任务
     const handleDeleteTask = async (task: Task) => {
         const ok = await confirm({
-            title: "确认删除",
-            content: `确定要删除任务 "${task.title}" 吗？`,
-            confirmText: "删除",
-            cancelText: "取消",
+            title: t("detail.confirm.deleteTitle"),
+            content: t("detail.confirm.deleteContent", { title: task.title }),
+            confirmText: t("detail.confirm.delete"),
+            cancelText: t("detail.confirm.cancel"),
         });
         if (!ok) {
             return;
@@ -748,10 +742,10 @@ const OrganizationDetail: React.FC = () => {
 
             // 删除成功后，重新获取任务列表以确保数据同步
             await fetchTasksList(tasksPage);
-            message.success("任务删除成功");
+            message.success(t("detail.message.taskDeleted"));
         } catch (error) {
             console.error("删除任务失败:", error);
-            message.error("删除任务失败");
+            message.error(t("detail.message.deleteTaskFailed"));
         }
     };
 
@@ -768,19 +762,19 @@ const OrganizationDetail: React.FC = () => {
 
     const handleJoin = async () => {
         if (!currentUser) {
-            message.warn("请先登录后再申请加入组织");
+            message.warn(t("detail.message.loginRequired"));
             return;
         }
 
         if (org?.status !== "active") {
-            message.warn("该组织已停用，无法申请加入");
+            message.warn(t("detail.message.orgInactive"));
             return;
         }
         const ok = await confirm({
-            title: "申请加入组织",
-            content: "确定要申请加入该组织吗？",
-            confirmText: "确认加入",
-            cancelText: "取消",
+            title: t("detail.confirm.joinTitle"),
+            content: t("detail.confirm.joinContent"),
+            confirmText: t("detail.confirm.join"),
+            cancelText: t("detail.confirm.cancel"),
         });
         if (!ok) {
             return;
@@ -798,14 +792,12 @@ const OrganizationDetail: React.FC = () => {
                 return {
                     ...prevOrg,
                     user_in_org:
-                        typeof joinRes.user_in_org !== "undefined" && joinRes.user_in_org >= 0
-                            ? OrgMembershipStatusLabel[joinRes.user_in_org]
-                            : undefined,
+                        typeof joinRes.user_in_org !== "undefined" && joinRes.user_in_org >= 0 ? joinRes.user_in_org : undefined,
                 };
             });
-            message.success("已申请加入组织");
+            message.success(t("detail.message.joinSuccess"));
         } catch (e) {
-            message.error("申请加入失败");
+            message.error(t("detail.message.joinFailed"));
             // Refresh the organization data to ensure consistency
             if (id && currentUser) {
                 try {
@@ -818,11 +810,8 @@ const OrganizationDetail: React.FC = () => {
                         description: res.description,
                         memberCount: Array.isArray((res as any).members) ? (res as any).members.length : 0,
                         members: Array.isArray((res as any).members) ? (res as any).members : [],
-                        user_in_org: res.user_in_org ? OrgMembershipStatusLabel[res.user_in_org] : undefined,
-                        user_role:
-                            typeof res.user_role !== "undefined" && res.user_role > 0
-                                ? OrgRoleLabel[res.user_role as OrgRole]
-                                : undefined,
+                        user_in_org: res.user_in_org ?? undefined,
+                        user_role: typeof res.user_role !== "undefined" && res.user_role > 0 ? res.user_role : undefined,
                     };
                     setOrg(orgDetail);
                     const role = checkUserRole(res.user_role);
@@ -837,7 +826,7 @@ const OrganizationDetail: React.FC = () => {
     return (
         <>
             <div className={styles.mainContent}>
-                <AuthRequired message="您需要登录后才能查看组织详情。">
+                <AuthRequired message={t("detail.page.authRequired")}>
                     {loading || !org ? (
                         <OrganizationDetailSkeleton />
                     ) : (
@@ -913,24 +902,24 @@ const OrganizationDetail: React.FC = () => {
             {/* 创建/编辑任务模态框 */}
             <Modal
                 visible={taskCreateModalVisible}
-                title={selectedTask ? "编辑任务" : "创建任务"}
+                title={selectedTask ? t("detail.modal.editTitle") : t("detail.modal.createTitle")}
                 onClose={() => setTaskCreateModalVisible(false)}
                 width={600}
                 footer={
                     <div style={{ display: "flex", gap: "12px", justifyContent: "flex-end" }}>
                         <button className={styles.cancelButton} onClick={() => setTaskCreateModalVisible(false)}>
-                            取消
+                            {t("detail.modal.cancel")}
                         </button>
                         <button className={styles.confirmButton} onClick={handleTaskSubmit}>
-                            {selectedTask ? "保存修改" : "创建任务"}
+                            {selectedTask ? t("detail.modal.save") : t("detail.modal.create")}
                         </button>
                     </div>
                 }
             >
                 <div className={styles.formGroup}>
-                    <label className={styles.formLabel}>任务标题 *</label>
+                    <label className={styles.formLabel}>{t("detail.modal.titleLabel")}</label>
                     <Input
-                        placeholder="请输入任务标题"
+                        placeholder={t("detail.modal.titlePlaceholder")}
                         value={taskFormData.title}
                         onChange={(value) => setTaskFormData({ ...taskFormData, title: value })}
                         className={styles.formInput}
@@ -938,9 +927,9 @@ const OrganizationDetail: React.FC = () => {
                 </div>
 
                 <div className={styles.formGroup}>
-                    <label className={styles.formLabel}>所属类型 *</label>
+                    <label className={styles.formLabel}>{t("detail.modal.courseLabel")}</label>
                     <Input
-                        placeholder="请输入类型名称"
+                        placeholder={t("detail.modal.coursePlaceholder")}
                         value={taskFormData.courseName || ""}
                         onChange={(value) => setTaskFormData({ ...taskFormData, courseName: value })}
                         className={styles.formInput}
@@ -949,7 +938,7 @@ const OrganizationDetail: React.FC = () => {
 
                 <div className={styles.formRow}>
                     <div className={styles.formGroup}>
-                        <label className={styles.formLabel}>截止时间 *</label>
+                        <label className={styles.formLabel}>{t("detail.modal.dueDateLabel")}</label>
                         <DatePicker
                             showTime
                             value={taskFormData.due_date ? new Date(taskFormData.due_date) : undefined}
@@ -961,20 +950,20 @@ const OrganizationDetail: React.FC = () => {
                             }
                             size="large"
                             style={{ width: "100%" }}
-                            placeholder="请选择截止时间"
+                            placeholder={t("detail.modal.dueDatePlaceholder")}
                             format="YYYY-MM-DD HH:mm:ss"
                         />
                     </div>
                     <div className={styles.formGroup}>
-                        <label className={styles.formLabel}>文件大小限制 (MB) *</label>
+                        <label className={styles.formLabel}>{t("detail.modal.maxFileSizeLabel")}</label>
                         <Input
                             type="number"
-                            placeholder="请输入最大文件大小 (不超过96MB)"
+                            placeholder={t("detail.modal.maxFileSizePlaceholder")}
                             value={String(taskFormData.maxFileSize || "")}
                             onChange={(value) => {
                                 const num = Number(value);
                                 if (num > 96) {
-                                    message.error("文件大小不能超过96MB");
+                                    message.error(t("detail.message.fileSizeExceeded"));
                                     return;
                                 }
                                 setTaskFormData({ ...taskFormData, maxFileSize: num });
@@ -986,57 +975,61 @@ const OrganizationDetail: React.FC = () => {
 
                 <div style={{ display: "flex", gap: "20px" }}>
                     <div className={styles.formGroup} style={{ flex: 1 }}>
-                        <label className={styles.formLabel}>任务状态 *</label>
+                        <label className={styles.formLabel}>{t("detail.modal.statusLabel")}</label>
                         <CustomSelect
-                            name="状态选择"
+                            name={t("detail.modal.statusSelectName")}
                             options={[
-                                { id: "active", name: "进行中", color: "var(--success)" },
-                                { id: "closed", name: "已结束", color: "var(--error)" },
-                                { id: "draft", name: "草稿", color: "var(--warning)" },
+                                { id: "active", name: t("detail.status.active"), color: "var(--success)" },
+                                { id: "closed", name: t("detail.status.closed"), color: "var(--error)" },
+                                { id: "draft", name: t("detail.status.draft"), color: "var(--warning)" },
                             ]}
                             value={{
                                 id: taskFormData.status || "draft",
                                 name:
-                                    taskFormData.status === "active" ? "进行中" : taskFormData.status === "closed" ? "已结束" : "草稿",
+                                    taskFormData.status === "active"
+                                        ? t("detail.status.active")
+                                        : taskFormData.status === "closed"
+                                          ? t("detail.status.closed")
+                                          : t("detail.status.draft"),
                                 color: "",
                             }}
                             onChange={(option) => setTaskFormData({ ...taskFormData, status: option?.id as any })}
-                            placeholder="请选择状态"
+                            placeholder={t("detail.modal.statusPlaceholder")}
                             hideBadge={true}
                         />
                     </div>
                     <div className={styles.formGroup} style={{ flex: 1 }}>
-                        <label className={styles.formLabel}>优先级 *</label>
+                        <label className={styles.formLabel}>{t("detail.modal.priorityLabel")}</label>
                         <CustomSelect
-                            name="优先级选择"
+                            name={t("detail.modal.prioritySelectName")}
                             options={[
-                                { id: "low", name: "低", color: "#6c757d" },
-                                { id: "medium", name: "中", color: "#ffc107" },
-                                { id: "high", name: "高", color: "#ff9800" },
-                                { id: "urgent", name: "紧急", color: "#dc3545" },
+                                { id: "low", name: t("detail.priority.low"), color: "#6c757d" },
+                                { id: "medium", name: t("detail.priority.medium"), color: "#ffc107" },
+                                { id: "high", name: t("detail.priority.high"), color: "#ff9800" },
+                                { id: "urgent", name: t("detail.priority.urgent"), color: "#dc3545" },
                             ]}
                             value={{
                                 id: taskFormData.priority || "medium",
                                 name:
                                     taskFormData.priority === "low"
-                                        ? "低"
+                                        ? t("detail.priority.low")
                                         : taskFormData.priority === "medium"
-                                          ? "中"
+                                          ? t("detail.priority.medium")
                                           : taskFormData.priority === "high"
-                                            ? "高"
-                                            : "紧急",
+                                            ? t("detail.priority.high")
+                                            : t("detail.priority.urgent"),
                                 color: "",
                             }}
                             onChange={(option) => setTaskFormData({ ...taskFormData, priority: option?.id as any })}
-                            placeholder="请选择优先级"
+                            placeholder={t("detail.modal.priorityPlaceholder")}
                             hideBadge={true}
                         />
                     </div>
                 </div>
                 <div className={styles.formGroup}>
-                    <label className={styles.formLabel}>允许文件格式 (用逗号分隔) *</label>
+                    <label className={styles.formLabel}>{t("detail.modal.allowedTypesLabel")}</label>
                     <Input
-                        placeholder="例如: .pdf, .doc, .zip"
+                        placeholder={t("detail.modal.allowedTypesPlaceholder")}
                         value={allowedTypesInput}
                         onChange={(value) => {
                             setAllowedTypesInput(value);
@@ -1051,10 +1044,10 @@ const OrganizationDetail: React.FC = () => {
                     />
                 </div>
                 <div className={styles.formGroup}>
-                    <label className={styles.formLabel}>任务描述 *</label>
+                    <label className={styles.formLabel}>{t("detail.modal.descriptionLabel")}</label>
                     <textarea
                         className={styles.formTextarea}
-                        placeholder="请输入任务详细描述..."
+                        placeholder={t("detail.modal.descriptionPlaceholder")}
                         value={taskFormData.description}
                         onChange={(e) => setTaskFormData({ ...taskFormData, description: e.target.value })}
                     />

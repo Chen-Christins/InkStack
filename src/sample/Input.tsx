@@ -1,8 +1,10 @@
 import Input from "../components/input/Input";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { FaSearch, FaUser } from "react-icons/fa";
 
 function SampleInput() {
+    const { t } = useTranslation("sample");
     const [value, setValue] = useState("");
     const [searchText, setSearchText] = useState("");
     const [isLoading, setIsLoading] = useState(false);
@@ -17,10 +19,10 @@ function SampleInput() {
     return (
         <>
             <div style={{ padding: "20px", maxWidth: "400px" }}>
-                <h2>输入框示例</h2>
+                <h2>{t("input.title")}</h2>
                 {/* 基础用法 */}
                 <Input
-                    placeholder="请输入内容"
+                    placeholder={t("input.placeholder")}
                     value={value}
                     onChange={(value) => setValue(value)}
                     allowClear
@@ -29,7 +31,7 @@ function SampleInput() {
 
                 {/* 带前后缀和回车事件的搜索框 */}
                 <Input
-                    placeholder="搜索..."
+                    placeholder={t("input.searchPlaceholder")}
                     value={searchText}
                     onChange={(val) => setSearchText(val)}
                     onPressEnter={handleSearch}
@@ -41,12 +43,18 @@ function SampleInput() {
                 />
 
                 {/* 禁用状态 */}
-                <Input placeholder="禁用输入" value="无法修改的内容" disabled prefix={<FaUser />} style={{ marginBottom: "16px" }} />
+                <Input
+                    placeholder={t("input.disabledPlaceholder")}
+                    value={t("input.disabledValue")}
+                    disabled
+                    prefix={<FaUser />}
+                    style={{ marginBottom: "16px" }}
+                />
 
                 {/* 不同尺寸 */}
-                <Input placeholder="小尺寸" size="small" style={{ marginRight: "8px", width: "120px" }} />
-                <Input placeholder="默认尺寸" style={{ marginRight: "8px", width: "150px" }} />
-                <Input placeholder="大尺寸" size="large" style={{ width: "180px" }} />
+                <Input placeholder={t("input.smallPlaceholder")} size="small" style={{ marginRight: "8px", width: "120px" }} />
+                <Input placeholder={t("input.defaultPlaceholder")} style={{ marginRight: "8px", width: "150px" }} />
+                <Input placeholder={t("input.largePlaceholder")} size="large" style={{ width: "180px" }} />
             </div>
         </>
     );

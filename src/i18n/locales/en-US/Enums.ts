@@ -1,0 +1,123 @@
+const enums = {
+    articleState: {
+        reviewing: "Reviewing",
+        published: "Published",
+        unallowed: "Rejected",
+        private: "Private",
+    },
+    assignmentStatus: {
+        draft: "Draft",
+        open: "Open",
+        closed: "Closed",
+    },
+    assignmentPriority: {
+        low: "Low",
+        medium: "Medium",
+        high: "High",
+        urgent: "Urgent",
+    },
+    orgMembershipStatus: {
+        pending: "Pending",
+        joined: "Joined",
+        rejected: "Rejected",
+        left: "Left",
+    },
+    commentStatus: {
+        pending: "Pending",
+        approved: "Approved",
+        rejected: "Rejected",
+        spam: "Spam",
+    },
+    backupStatus: {
+        processing: "Processing",
+        completed: "Completed",
+        failed: "Failed",
+    },
+    reqStatus: {
+        new: "New",
+        developing: "Developing",
+        testing: "Testing",
+        done: "Done",
+        closed: "Closed",
+    },
+    bugStatus: {
+        new: "New",
+        processing: "Processing",
+        verified: "Verified",
+        closed: "Closed",
+        reopened: "Reopened",
+    },
+    rdTaskStatus: {
+        todo: "To Do",
+        doing: "In Progress",
+        done: "Done",
+        closed: "Closed",
+    },
+    rdPriority: {
+        low: "Low",
+        medium: "Medium",
+        high: "High",
+        urgent: "Urgent",
+    },
+    severity: {
+        minor: "Minor",
+        normal: "Normal",
+        serious: "Serious",
+        fatal: "Fatal",
+    },
+    crState: {
+        open: "Open",
+        closed: "Closed",
+        merged: "Merged",
+    },
+    reviewStatus: {
+        pending: "Pending",
+        reviewing: "Reviewing",
+        approved: "Approved",
+        rejected: "Rejected",
+        changes_requested: "Changes Requested",
+    },
+    agentSessionStatus: {
+        queued: "Queued",
+        running: "Running",
+        awaiting_permission: "Awaiting Approval",
+        succeeded: "Succeeded",
+        failed: "Failed",
+        cancelled: "Cancelled",
+    },
+    proposalStatus: {
+        pending: "Awaiting product approval",
+        approved: "Approved, awaiting apply",
+        applying: "Applying (cannot be undone)",
+        rejected: "Rejected",
+        applied: "Applied",
+        expired: "Expired",
+    },
+    syncStatus: {
+        idle: "Not synced",
+        syncing: "Syncing...",
+        success: "Synced",
+        failed: "Sync failed",
+    },
+    feedbackType: {
+        bug: "Bug report",
+        feature: "Feature request",
+        other: "Other",
+        all: "All",
+    },
+    platformRole: {
+        user: "User",
+        admin: "Administrator",
+        editor: "Editor",
+        checker: "Reviewer",
+    },
+    orgRole: {
+        member: "Member",
+        reporter: "Reporter",
+        developer: "Developer",
+        devLead: "Dev Lead",
+        orgAdmin: "Org Admin",
+    },
+} as const;
+
+export default enums;

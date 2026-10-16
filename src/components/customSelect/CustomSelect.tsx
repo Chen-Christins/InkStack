@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
+import { useTranslation } from "react-i18next";
 import type { CustomSelectProps, SelectOption } from "@/types";
 import styles from "./CustomSelect.module.css";
 
@@ -7,13 +8,16 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
     name,
     options,
     showDate = false,
-    placeholder = `请选择${name}...`,
+    placeholder,
     value,
     onChange,
     className = "",
     hideBadge = false,
     disabled = false,
 }) => {
+    const { t } = useTranslation("components");
+    const resolvedPlaceholder = placeholder ?? t("customSelect.placeholder", { name });
+
     const [isOpen, setIsOpen] = useState(false);
     const [openUpwards, setOpenUpwards] = useState(false);
     const [selectedOption, setSelectedOption] = useState<SelectOption | null>(value || null);
@@ -125,7 +129,7 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
     };
 
     const getDisplayValue = () => {
-        return selectedOption ? selectedOption.name : placeholder;
+        return selectedOption ? selectedOption.name : resolvedPlaceholder;
     };
 
     const isPlaceholder = !selectedOption;
@@ -162,7 +166,7 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
                             <input
                                 ref={searchInputRef}
                                 type="text"
-                                placeholder={`搜索${name}...`}
+                                placeholder={t("customSelect.searchPlaceholder", { name })}
                                 className={styles.searchInput}
                                 value={searchTerm}
                                 onChange={handleSearchChange}
@@ -170,7 +174,7 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
                         </div>
                         <div className={styles.options}>
                             {filteredOptions.length === 0 ? (
-                                <div className={styles.noResults}>未找到匹配的{name}</div>
+                                <div className={styles.noResults}>{t("customSelect.noResults", { name })}</div>
                             ) : (
                                 filteredOptions.map((option) => (
                                     <div
@@ -199,7 +203,7 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
             {selectedOption && !hideBadge && (
                 <div className={styles.badge}>
                     <span>{selectedOption.name}</span>
-                    <span className={styles.closeBtn} title="清除选择" onClick={clearSelection}>
+                    <span className={styles.closeBtn} title={t("customSelect.clearSelection")} onClick={clearSelection}>
                         <i className="bi bi-x"></i>
                     </span>
                 </div>

@@ -1,15 +1,22 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { LayoutPanelLeft, PanelTop } from "lucide-react";
 import { useLayoutMode } from "@/contexts/LayoutModeContext";
 import styles from "./LayoutModeToggle.module.css";
 
-const MODE_META = {
-    appShell: { label: "侧栏布局", nextLabel: "顶部布局" },
-    classic: { label: "顶部布局", nextLabel: "侧栏布局" },
-} as const;
-
 const LayoutModeToggle: React.FC = () => {
+    const { t } = useTranslation("components");
     const { mode, toggleMode } = useLayoutMode();
+    const MODE_META = {
+        appShell: {
+            label: t("layoutModeToggle.modes.appShell.label"),
+            nextLabel: t("layoutModeToggle.modes.appShell.nextLabel"),
+        },
+        classic: {
+            label: t("layoutModeToggle.modes.classic.label"),
+            nextLabel: t("layoutModeToggle.modes.classic.nextLabel"),
+        },
+    } as const;
     const currentMode = MODE_META[mode];
     const Icon = mode === "appShell" ? LayoutPanelLeft : PanelTop;
 
@@ -18,8 +25,8 @@ const LayoutModeToggle: React.FC = () => {
             type="button"
             className={styles.toggle}
             onClick={toggleMode}
-            aria-label={`当前界面布局：${currentMode.label}，点击切换到${currentMode.nextLabel}`}
-            title={`界面布局：${currentMode.label}，点击切换到${currentMode.nextLabel}`}
+            aria-label={t("layoutModeToggle.ariaLabel", { label: currentMode.label, nextLabel: currentMode.nextLabel })}
+            title={t("layoutModeToggle.title", { label: currentMode.label, nextLabel: currentMode.nextLabel })}
         >
             <Icon className={styles.icon} size={16} />
             <span className={styles.label}>{currentMode.label}</span>

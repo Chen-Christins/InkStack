@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { useParams, useLocation } from "react-router-dom";
 import { useRdNavigate } from "@/hooks/UseRdNavigate.ts";
 import { formatDateTime } from "@/utils/Utils.ts";
@@ -16,64 +17,6 @@ import { decodeId } from "@/utils/HashId.ts";
 import type { SelectOption } from "../../types";
 import type { Requirement, Bug, Task } from "@/types/RdPlatform.ts";
 
-// ---- Option lists ----
-
-const reqStatusOptions: SelectOption[] = [
-    { id: "new", name: "新建", color: "#3b82f6" },
-    { id: "developing", name: "开发中", color: "#eab308" },
-    { id: "testing", name: "测试中", color: "#a855f7" },
-    { id: "done", name: "已完成", color: "#22c55e" },
-    { id: "closed", name: "已关闭", color: "#6b7280" },
-];
-
-const bugStatusOptions: SelectOption[] = [
-    { id: "new", name: "新建", color: "#3b82f6" },
-    { id: "processing", name: "处理中", color: "#a855f7" },
-    { id: "verified", name: "已验证", color: "#22c55e" },
-    { id: "closed", name: "已关闭", color: "#6b7280" },
-    { id: "reopened", name: "已重开", color: "#ef4444" },
-];
-
-const taskStatusOptions: SelectOption[] = [
-    { id: "todo", name: "待办", color: "#6b7280" },
-    { id: "doing", name: "进行中", color: "#3b82f6" },
-    { id: "done", name: "已完成", color: "#22c55e" },
-    { id: "closed", name: "已关闭", color: "#6b7280" },
-];
-
-const priorityOptions: SelectOption[] = [
-    { id: "high", name: "高", color: "#ef4444" },
-    { id: "medium", name: "中", color: "#f59e0b" },
-    { id: "low", name: "低", color: "#22c55e" },
-];
-
-const bugPriorityOptions: SelectOption[] = [{ id: "urgent", name: "紧急", color: "#dc2626" }, ...priorityOptions];
-
-const severityOptions: SelectOption[] = [
-    { id: "fatal", name: "致命", color: "#dc2626" },
-    { id: "serious", name: "严重", color: "#ea580c" },
-    { id: "normal", name: "一般", color: "#f59e0b" },
-    { id: "minor", name: "轻微", color: "#22c55e" },
-];
-
-const reqStatusText: Record<string, string> = {
-    new: "新建",
-    developing: "开发中",
-    testing: "测试中",
-    done: "已完成",
-    closed: "已关闭",
-};
-const bugStatusText: Record<string, string> = {
-    new: "新建",
-    processing: "处理中",
-    verified: "已验证",
-    closed: "已关闭",
-    reopened: "已重开",
-};
-const taskStatusText: Record<string, string> = { todo: "待办", doing: "进行中", done: "已完成", closed: "已关闭" };
-const priorityText: Record<string, string> = { urgent: "紧急", high: "高", medium: "中", low: "低" };
-const severityText: Record<string, string> = { fatal: "致命", serious: "严重", normal: "一般", minor: "轻微" };
-
 type EntityType = "requirement" | "bug" | "task";
 
 function getTypeFromPath(pathname: string): EntityType {
@@ -84,16 +27,6 @@ function getTypeFromPath(pathname: string): EntityType {
         return "bug";
     }
     return "task";
-}
-
-function getTypeLabel(type: EntityType): string {
-    if (type === "requirement") {
-        return "需求";
-    }
-    if (type === "bug") {
-        return "缺陷";
-    }
-    return "任务";
 }
 
 function getTypeIcon(type: EntityType) {
@@ -123,6 +56,7 @@ const TicketDetail: React.FC = () => {
     const navigate = useRdNavigate();
     const location = useLocation();
     const { orgNameMap } = useRdOrg();
+    const { t } = useTranslation("rd");
 
     const entityType = getTypeFromPath(location.pathname);
     const id = encodedId ? String(decodeId(encodedId, entityType) ?? "") : "";
@@ -133,6 +67,92 @@ const TicketDetail: React.FC = () => {
     const [saving, setSaving] = useState(false);
     const [form, setForm] = useState<Record<string, string>>({});
     const [memberOptions, setMemberOptions] = useState<SelectOption[]>([]);
+
+    // ---- Option lists ----
+
+    const reqStatusOptions: SelectOption[] = [
+        { id: "new", name: t("ticketDetail.option.status.new"), color: "#3b82f6" },
+        { id: "developing", name: t("ticketDetail.option.status.developing"), color: "#eab308" },
+        { id: "testing", name: t("ticketDetail.option.status.testing"), color: "#a855f7" },
+        { id: "done", name: t("ticketDetail.option.status.done"), color: "#22c55e" },
+        { id: "closed", name: t("ticketDetail.option.status.closed"), color: "#6b7280" },
+    ];
+
+    const bugStatusOptions: SelectOption[] = [
+        { id: "new", name: t("ticketDetail.option.status.new"), color: "#3b82f6" },
+        { id: "processing", name: t("ticketDetail.option.status.processing"), color: "#a855f7" },
+        { id: "verified", name: t("ticketDetail.option.status.verified"), color: "#22c55e" },
+        { id: "closed", name: t("ticketDetail.option.status.closed"), color: "#6b7280" },
+        { id: "reopened", name: t("ticketDetail.option.status.reopened"), color: "#ef4444" },
+    ];
+
+    const taskStatusOptions: SelectOption[] = [
+        { id: "todo", name: t("ticketDetail.option.status.todo"), color: "#6b7280" },
+        { id: "doing", name: t("ticketDetail.option.status.doing"), color: "#3b82f6" },
+        { id: "done", name: t("ticketDetail.option.status.done"), color: "#22c55e" },
+        { id: "closed", name: t("ticketDetail.option.status.closed"), color: "#6b7280" },
+    ];
+
+    const priorityOptions: SelectOption[] = [
+        { id: "high", name: t("ticketDetail.option.priority.high"), color: "#ef4444" },
+        { id: "medium", name: t("ticketDetail.option.priority.medium"), color: "#f59e0b" },
+        { id: "low", name: t("ticketDetail.option.priority.low"), color: "#22c55e" },
+    ];
+
+    const bugPriorityOptions: SelectOption[] = [
+        { id: "urgent", name: t("ticketDetail.option.priority.urgent"), color: "#dc2626" },
+        ...priorityOptions,
+    ];
+
+    const severityOptions: SelectOption[] = [
+        { id: "fatal", name: t("ticketDetail.option.severity.fatal"), color: "#dc2626" },
+        { id: "serious", name: t("ticketDetail.option.severity.serious"), color: "#ea580c" },
+        { id: "normal", name: t("ticketDetail.option.severity.normal"), color: "#f59e0b" },
+        { id: "minor", name: t("ticketDetail.option.severity.minor"), color: "#22c55e" },
+    ];
+
+    const getTypeLabel = (type: EntityType): string => {
+        if (type === "requirement") {
+            return t("ticketDetail.type.requirement");
+        }
+        if (type === "bug") {
+            return t("ticketDetail.type.bug");
+        }
+        return t("ticketDetail.type.task");
+    };
+
+    const reqStatusText: Record<string, string> = {
+        new: t("ticketDetail.option.status.new"),
+        developing: t("ticketDetail.option.status.developing"),
+        testing: t("ticketDetail.option.status.testing"),
+        done: t("ticketDetail.option.status.done"),
+        closed: t("ticketDetail.option.status.closed"),
+    };
+    const bugStatusText: Record<string, string> = {
+        new: t("ticketDetail.option.status.new"),
+        processing: t("ticketDetail.option.status.processing"),
+        verified: t("ticketDetail.option.status.verified"),
+        closed: t("ticketDetail.option.status.closed"),
+        reopened: t("ticketDetail.option.status.reopened"),
+    };
+    const taskStatusText: Record<string, string> = {
+        todo: t("ticketDetail.option.status.todo"),
+        doing: t("ticketDetail.option.status.doing"),
+        done: t("ticketDetail.option.status.done"),
+        closed: t("ticketDetail.option.status.closed"),
+    };
+    const priorityText: Record<string, string> = {
+        urgent: t("ticketDetail.option.priority.urgent"),
+        high: t("ticketDetail.option.priority.high"),
+        medium: t("ticketDetail.option.priority.medium"),
+        low: t("ticketDetail.option.priority.low"),
+    };
+    const severityText: Record<string, string> = {
+        fatal: t("ticketDetail.option.severity.fatal"),
+        serious: t("ticketDetail.option.severity.serious"),
+        normal: t("ticketDetail.option.severity.normal"),
+        minor: t("ticketDetail.option.severity.minor"),
+    };
 
     // fetch org members when entering edit mode
     useEffect(() => {
@@ -250,9 +270,9 @@ const TicketDetail: React.FC = () => {
                   : RdAPI.getTaskById(id));
             setItem(data as DetailItem);
             setEditing(false);
-            message.success("保存成功");
+            message.success(t("ticketDetail.message.saveSuccess"));
         } catch (err: any) {
-            message.error(err?.message || "保存失败");
+            message.error(err?.message || t("ticketDetail.message.saveFailed"));
         } finally {
             setSaving(false);
         }
@@ -293,9 +313,9 @@ const TicketDetail: React.FC = () => {
                 <div className={styles.detailCard}>
                     <div className={styles.notFound}>
                         <div className={styles.notFoundIcon}>404</div>
-                        <p className={styles.notFoundText}>{getTypeLabel(entityType)}不存在或已被删除</p>
+                        <p className={styles.notFoundText}>{t("ticketDetail.notFound.text", { type: getTypeLabel(entityType) })}</p>
                         <button className={styles.btnPrimary} onClick={() => navigate(getListPath(entityType))}>
-                            返回列表
+                            {t("ticketDetail.notFound.back")}
                         </button>
                     </div>
                 </div>
@@ -311,7 +331,7 @@ const TicketDetail: React.FC = () => {
                 {/* ======== Card Header ======== */}
                 <div className={styles.cardHeader}>
                     <button className={styles.backBtn} onClick={() => navigate(getListPath(entityType))}>
-                        <FaArrowLeft /> 返回{typeLabel}列表
+                        <FaArrowLeft /> {t("ticketDetail.header.backToList", { type: typeLabel })}
                     </button>
 
                     <div className={styles.headerContent}>
@@ -321,7 +341,11 @@ const TicketDetail: React.FC = () => {
                                     {getTypeIcon(entityType)}
                                     {typeLabel}
                                 </span>
-                                {editing && <span style={{ fontSize: "12px", color: "var(--warning)", fontWeight: 500 }}>编辑中</span>}
+                                {editing && (
+                                    <span style={{ fontSize: "12px", color: "var(--warning)", fontWeight: 500 }}>
+                                        {t("ticketDetail.header.editing")}
+                                    </span>
+                                )}
                             </div>
                             <h1 className={styles.pageTitle}>{item.title}</h1>
                         </div>
@@ -329,7 +353,7 @@ const TicketDetail: React.FC = () => {
                         <div className={styles.headerRight}>
                             {!editing ? (
                                 <button className={styles.btnPrimary} onClick={() => setEditing(true)}>
-                                    <FaEdit /> 编辑
+                                    <FaEdit /> {t("ticketDetail.header.edit")}
                                 </button>
                             ) : (
                                 <div className={styles.formActions} style={{ marginTop: 0 }}>
@@ -340,10 +364,10 @@ const TicketDetail: React.FC = () => {
                                             initForm(item);
                                         }}
                                     >
-                                        <FaTimes /> 取消
+                                        <FaTimes /> {t("ticketDetail.header.cancel")}
                                     </button>
                                     <button className={styles.btnPrimary} onClick={handleSave} disabled={saving}>
-                                        <FaSave /> {saving ? "保存中..." : "保存"}
+                                        <FaSave /> {saving ? t("ticketDetail.header.saving") : t("ticketDetail.header.save")}
                                     </button>
                                 </div>
                             )}
@@ -355,15 +379,15 @@ const TicketDetail: React.FC = () => {
                 {editing ? (
                     <div className={styles.editForm}>
                         <div>
-                            {fieldLabel("标题", true)}
+                            {fieldLabel(t("ticketDetail.form.title"), true)}
                             <Input value={form.title || ""} onChange={(v) => setForm((p) => ({ ...p, title: v }))} size="large" />
                         </div>
 
                         <div className={styles.formRow}>
                             <div className={styles.formField}>
-                                {fieldLabel("状态")}
+                                {fieldLabel(t("ticketDetail.form.status"))}
                                 <CustomSelect
-                                    name="状态"
+                                    name={t("ticketDetail.form.status")}
                                     options={
                                         entityType === "requirement"
                                             ? reqStatusOptions
@@ -386,9 +410,9 @@ const TicketDetail: React.FC = () => {
 
                             {entityType === "bug" && (
                                 <div className={styles.formField}>
-                                    {fieldLabel("严重程度")}
+                                    {fieldLabel(t("ticketDetail.form.severity"))}
                                     <CustomSelect
-                                        name="严重程度"
+                                        name={t("ticketDetail.form.severity")}
                                         options={severityOptions}
                                         value={severityOptions.find((o) => o.id === form.severity) || null}
                                         onChange={(o) => setForm((p) => ({ ...p, severity: (o?.id as string) || "normal" }))}
@@ -398,9 +422,9 @@ const TicketDetail: React.FC = () => {
                             )}
 
                             <div className={styles.formField}>
-                                {fieldLabel("优先级")}
+                                {fieldLabel(t("ticketDetail.form.priority"))}
                                 <CustomSelect
-                                    name="优先级"
+                                    name={t("ticketDetail.form.priority")}
                                     options={entityType === "bug" ? bugPriorityOptions : priorityOptions}
                                     value={
                                         (entityType === "bug" ? bugPriorityOptions : priorityOptions).find(
@@ -413,9 +437,9 @@ const TicketDetail: React.FC = () => {
                             </div>
 
                             <div className={styles.formField}>
-                                {fieldLabel("负责人")}
+                                {fieldLabel(t("ticketDetail.form.assignee"))}
                                 <CustomSelect
-                                    name="负责人"
+                                    name={t("ticketDetail.form.assignee")}
                                     options={memberOptions}
                                     value={
                                         memberOptions.find((o) => o.id === form.assignee) ||
@@ -430,7 +454,7 @@ const TicketDetail: React.FC = () => {
                         {entityType === "requirement" && (
                             <div className={styles.formRow}>
                                 <div className={styles.formField}>
-                                    {fieldLabel("迭代")}
+                                    {fieldLabel(t("ticketDetail.form.iteration"))}
                                     <Input
                                         value={form.iteration || ""}
                                         onChange={(v) => setForm((p) => ({ ...p, iteration: v }))}
@@ -438,7 +462,7 @@ const TicketDetail: React.FC = () => {
                                     />
                                 </div>
                                 <div className={styles.formField}>
-                                    {fieldLabel("分类")}
+                                    {fieldLabel(t("ticketDetail.form.category"))}
                                     <Input
                                         value={form.category || ""}
                                         onChange={(v) => setForm((p) => ({ ...p, category: v }))}
@@ -446,7 +470,7 @@ const TicketDetail: React.FC = () => {
                                     />
                                 </div>
                                 <div className={styles.formField}>
-                                    {fieldLabel("来源")}
+                                    {fieldLabel(t("ticketDetail.form.source"))}
                                     <Input
                                         value={form.source || ""}
                                         onChange={(v) => setForm((p) => ({ ...p, source: v }))}
@@ -458,7 +482,7 @@ const TicketDetail: React.FC = () => {
                         {entityType === "bug" && (
                             <div className={styles.formRow}>
                                 <div className={styles.formField}>
-                                    {fieldLabel("模块")}
+                                    {fieldLabel(t("ticketDetail.form.module"))}
                                     <Input
                                         value={form.module || ""}
                                         onChange={(v) => setForm((p) => ({ ...p, module: v }))}
@@ -466,7 +490,7 @@ const TicketDetail: React.FC = () => {
                                     />
                                 </div>
                                 <div className={styles.formField}>
-                                    {fieldLabel("运行环境")}
+                                    {fieldLabel(t("ticketDetail.form.environment"))}
                                     <Input
                                         value={form.environment || ""}
                                         onChange={(v) => setForm((p) => ({ ...p, environment: v }))}
@@ -478,9 +502,9 @@ const TicketDetail: React.FC = () => {
                         {entityType === "task" && (
                             <div className={styles.formRow}>
                                 <div className={styles.formField}>
-                                    {fieldLabel("截止日期")}
+                                    {fieldLabel(t("ticketDetail.form.deadline"))}
                                     <DatePicker
-                                        placeholder="选择截止日期"
+                                        placeholder={t("ticketDetail.form.deadlinePlaceholder")}
                                         value={form.deadline ? new Date(form.deadline) : undefined}
                                         onChange={(date) =>
                                             setForm((p) => ({
@@ -495,7 +519,7 @@ const TicketDetail: React.FC = () => {
                                     />
                                 </div>
                                 <div className={styles.formField}>
-                                    {fieldLabel("预估工时 (h)")}
+                                    {fieldLabel(t("ticketDetail.form.estimatedHours"))}
                                     <Input
                                         value={form.estimatedHours || ""}
                                         onChange={(v) => setForm((p) => ({ ...p, estimatedHours: v }))}
@@ -506,7 +530,7 @@ const TicketDetail: React.FC = () => {
                         )}
 
                         <div>
-                            {fieldLabel("描述")}
+                            {fieldLabel(t("ticketDetail.form.description"))}
                             <textarea
                                 className={styles.formTextarea}
                                 value={form.description || ""}
@@ -517,7 +541,7 @@ const TicketDetail: React.FC = () => {
 
                         {entityType === "bug" && (
                             <div>
-                                {fieldLabel("复现步骤")}
+                                {fieldLabel(t("ticketDetail.form.stepsToReproduce"))}
                                 <textarea
                                     className={styles.formTextarea}
                                     value={form.stepsToReproduce || ""}
@@ -569,46 +593,55 @@ const TicketDetail: React.FC = () => {
 
                         {/* Meta info cards */}
                         <div className={styles.metaGrid}>
-                            {metaField("负责人", <AssigneeDisplay name={item.assignee} avatar={(item as any).assigneeAvatar} />)}
-                            {metaField("创建人", (item as any).creator)}
-                            {metaField("所属组织", orgNameMap[(item as any).organizationId] || (item as any).organizationId)}
+                            {metaField(
+                                t("ticketDetail.meta.assignee"),
+                                <AssigneeDisplay name={item.assignee} avatar={(item as any).assigneeAvatar} />,
+                            )}
+                            {metaField(t("ticketDetail.meta.creator"), (item as any).creator)}
+                            {metaField(
+                                t("ticketDetail.meta.organization"),
+                                orgNameMap[(item as any).organizationId] || (item as any).organizationId,
+                            )}
 
                             {entityType === "requirement" && (
                                 <>
-                                    {metaField("迭代", (item as Requirement).iteration)}
-                                    {metaField("分类", (item as Requirement).category)}
-                                    {metaField("来源", (item as Requirement).source)}
+                                    {metaField(t("ticketDetail.meta.iteration"), (item as Requirement).iteration)}
+                                    {metaField(t("ticketDetail.meta.category"), (item as Requirement).category)}
+                                    {metaField(t("ticketDetail.meta.source"), (item as Requirement).source)}
                                 </>
                             )}
                             {entityType === "bug" && (
                                 <>
-                                    {metaField("所属模块", (item as Bug).module)}
-                                    {metaField("关联需求", (item as Bug).relatedRequirementId)}
-                                    {metaField("运行环境", (item as Bug).environment)}
+                                    {metaField(t("ticketDetail.meta.module"), (item as Bug).module)}
+                                    {metaField(t("ticketDetail.meta.relatedRequirement"), (item as Bug).relatedRequirementId)}
+                                    {metaField(t("ticketDetail.meta.environment"), (item as Bug).environment)}
                                 </>
                             )}
                             {entityType === "task" && (
                                 <>
-                                    {metaField("关联需求", (item as Task).requirementId)}
-                                    {metaField("截止日期", (item as Task).deadline ? formatDateTime((item as Task).deadline) : "-")}
-                                    {metaField("预估工时", `${(item as Task).estimatedHours}h`)}
+                                    {metaField(t("ticketDetail.meta.relatedRequirement"), (item as Task).requirementId)}
+                                    {metaField(
+                                        t("ticketDetail.meta.deadline"),
+                                        (item as Task).deadline ? formatDateTime((item as Task).deadline) : "-",
+                                    )}
+                                    {metaField(t("ticketDetail.meta.estimatedHours"), `${(item as Task).estimatedHours}h`)}
                                 </>
                             )}
 
-                            {metaField("创建时间", item.createdAt ? formatDateTime(item.createdAt) : "-")}
-                            {metaField("更新时间", item.updatedAt ? formatDateTime(item.updatedAt) : "-")}
+                            {metaField(t("ticketDetail.meta.createdAt"), item.createdAt ? formatDateTime(item.createdAt) : "-")}
+                            {metaField(t("ticketDetail.meta.updatedAt"), item.updatedAt ? formatDateTime(item.updatedAt) : "-")}
                         </div>
 
                         {/* Description */}
                         <div className={styles.sectionBlock}>
-                            <div className={styles.sectionTitle}>描述</div>
-                            <div className={styles.sectionBody}>{item.description || "暂无描述"}</div>
+                            <div className={styles.sectionTitle}>{t("ticketDetail.section.description")}</div>
+                            <div className={styles.sectionBody}>{item.description || t("ticketDetail.section.noDescription")}</div>
                         </div>
 
                         {/* Steps to reproduce (bug only) */}
                         {entityType === "bug" && (item as Bug).stepsToReproduce && (
                             <div className={styles.sectionBlock}>
-                                <div className={styles.sectionTitle}>复现步骤</div>
+                                <div className={styles.sectionTitle}>{t("ticketDetail.section.stepsToReproduce")}</div>
                                 <div className={styles.sectionBody}>{(item as Bug).stepsToReproduce}</div>
                             </div>
                         )}

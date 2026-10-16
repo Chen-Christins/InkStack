@@ -7,6 +7,8 @@
  * - settings 加载后若语言变化，可调用 refreshErrorCodes 刷新
  */
 
+import i18n from "@/i18n";
+
 const STORAGE_KEY = "app_error_codes";
 
 interface CachedErrorCodes {
@@ -70,7 +72,7 @@ export function getErrorMsg(errno: number | string, fallbackMsg?: string): strin
     }
     // 查不到 → 触发重新拉取
     scheduleReFetch();
-    return fallbackMsg || "未知错误";
+    return fallbackMsg || i18n.t("common:errors.unknown");
 }
 
 // ---------- 内部实现 ----------

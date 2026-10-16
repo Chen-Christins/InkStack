@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import dayjs from "dayjs";
 import {
     FaPlus,
@@ -36,6 +37,7 @@ interface Organization {
 }
 
 const OrganizationManagement: React.FC = () => {
+    const { t } = useTranslation("admin");
     const [loading, setLoading] = useState(true);
     const [organizations, setOrganizations] = useState<Organization[]>([]);
     const [searchTerm, setSearchTerm] = useState("");
@@ -117,7 +119,7 @@ const OrganizationManagement: React.FC = () => {
             setOrganizations(mappedList);
             setTotal(res.total);
         } catch (e) {
-            message.error("获取组织列表失败");
+            message.error(t("organizations.messages.fetchOrgsFailed"));
         } finally {
             setLoading(false);
         }
@@ -134,33 +136,35 @@ const OrganizationManagement: React.FC = () => {
             setApplies(res.list || []);
             setAppliesTotal(res.total);
         } catch (e) {
-            message.error("获取申请列表失败");
+            message.error(t("organizations.messages.fetchAppliesFailed"));
         } finally {
             setAppliesLoading(false);
         }
     };
 
     const handleReview = async (applyId: string, action: "approve" | "reject") => {
-        const actionLabel = action === "approve" ? "通过" : "拒绝";
+        const actionLabel = action === "approve" ? t("organizations.applyActions.approve") : t("organizations.applyActions.reject");
+        const actionResult =
+            action === "approve" ? t("organizations.applyActions.approveResult") : t("organizations.applyActions.rejectResult");
         const isConfirmed = await confirm({
-            title: `确认${actionLabel}`,
-            content: `确定要${actionLabel}这个组织创建申请吗？`,
+            title: t("organizations.review.confirmTitle", { action: actionLabel }),
+            content: t("organizations.review.confirmContent", { action: actionLabel }),
             confirmText: actionLabel,
-            cancelText: "取消",
+            cancelText: t("organizations.actions.cancel"),
         });
         if (!isConfirmed) {
             return;
         }
         try {
             await OrganizationService.reviewApply({ apply_id: applyId, action });
-            message.success(`申请已${actionLabel}`);
+            message.success(t("organizations.review.success", { result: actionResult }));
             fetchApplies();
             fetchStats();
             if (action === "approve") {
                 fetchOrganizations();
             }
         } catch (e: any) {
-            message.error(e.message || "操作失败");
+            message.error(e.message || t("organizations.messages.operationFailed"));
         }
     };
 
@@ -208,7 +212,7 @@ const OrganizationManagement: React.FC = () => {
     // 处理表单提交
     const handleSubmit = async () => {
         if (!formData.name || !formData.type || !formData.status) {
-            message.error("请填写完整信息");
+            message.error(t("organizations.messages.incompleteForm"));
             return;
         }
         setLoading(true);
@@ -222,7 +226,7 @@ const OrganizationManagement: React.FC = () => {
                     status: STATUS_STR_MAP_NUMBER[formData.status!],
                     description: formData.description || "",
                 });
-                message.success("组织信息已更新");
+                message.success(t("organizations.messages.orgUpdated"));
             } else {
                 // 创建模式
                 await OrganizationService.createOrganization({
@@ -231,13 +235,13 @@ const OrganizationManagement: React.FC = () => {
                     status: STATUS_STR_MAP_NUMBER[formData.status!],
                     description: formData.description || "",
                 });
-                message.success("组织已创建");
+                message.success(t("organizations.messages.orgCreated"));
             }
             setIsModalVisible(false);
             await fetchOrganizations();
             fetchStats();
         } catch (e: any) {
-            message.error(e.message || "操作失败");
+            message.error(e.message || t("organizations.messages.operationFailed"));
         } finally {
             setLoading(false);
         }
@@ -283,10 +287,10 @@ const OrganizationManagement: React.FC = () => {
 
     const handleDelete = async (id: string) => {
         const isConfirmed = await confirm({
-            title: "确认删除",
-            content: "您确定要删除这个组织吗？删除后无法恢复。",
-            confirmText: "删除",
-            cancelText: "取消",
+            title: t("organizations.delete.title"),
+            content: t("organizations.delete.content"),
+            confirmText: t("organizations.actions.delete"),
+            cancelText: t("organizations.actions.cancel"),
         });
         if (isConfirmed) {
             setLoading(true);
@@ -294,9 +298,9 @@ const OrganizationManagement: React.FC = () => {
                 await OrganizationService.deleteOrganizations({ ids: id });
                 await fetchOrganizations();
                 fetchStats();
-                message.success("组织已删除");
+                message.success(t("organizations.delete.success"));
             } catch (e) {
-                message.error("删除失败");
+                message.error(t("organizations.delete.error"));
             } finally {
                 setLoading(false);
             }
@@ -308,13 +312,13 @@ const OrganizationManagement: React.FC = () => {
             case "active":
                 return (
                     <span className={`${styles.statusBadge} ${styles.statusActive}`}>
-                        <FaCheckCircle /> 正常
+                        <FaCheckCircle /> {t("organizations.status.active")}
                     </span>
                 );
             case "inactive":
                 return (
                     <span className={`${styles.statusBadge} ${styles.statusInactive}`}>
-                        <FaTimesCircle /> 停用
+                        <FaTimesCircle /> {t("organizations.status.inactive")}
                     </span>
                 );
             default:
@@ -329,17 +333,19 @@ const OrganizationManagement: React.FC = () => {
     const getApplyStatusBadge = (status: number) => {
         switch (status) {
             case 0:
-                return <span className={`${styles.statusBadge} ${styles.statusPending}`}>待审核</span>;
+                return (
+                    <span className={`${styles.statusBadge} ${styles.statusPending}`}>{t("organizations.applyStatus.pending")}</span>
+                );
             case 1:
                 return (
                     <span className={`${styles.statusBadge} ${styles.statusActive}`}>
-                        <FaCheckCircle /> 已通过
+                        <FaCheckCircle /> {t("organizations.applyStatus.approved")}
                     </span>
                 );
             case 2:
                 return (
                     <span className={`${styles.statusBadge} ${styles.statusInactive}`}>
-                        <FaTimesCircle /> 已拒绝
+                        <FaTimesCircle /> {t("organizations.applyStatus.rejected")}
                     </span>
                 );
             default:
@@ -353,16 +359,18 @@ const OrganizationManagement: React.FC = () => {
         <div className={styles.container}>
             <div className={styles.pageHeader}>
                 <div>
-                    <h1 className={styles.pageTitle}>组织管理</h1>
-                    <p className={styles.pageDescription}>管理平台内的组织信息，包括学校、企业等</p>
+                    <h1 className={styles.pageTitle}>{t("organizations.page.title")}</h1>
+                    <p className={styles.pageDescription}>{t("organizations.page.description")}</p>
                 </div>
                 <div className={styles.headerActions}>
                     {activeTab === "orgs" ? (
                         <button className={`${styles.btn} ${styles.btnPrimary}`} onClick={openCreateModal}>
-                            <FaPlus /> 新建组织
+                            <FaPlus /> {t("organizations.actions.create")}
                         </button>
                     ) : (
-                        <span style={{ fontSize: "13px", color: "var(--text-secondary)" }}>共 {appliesTotal} 条申请</span>
+                        <span style={{ fontSize: "13px", color: "var(--text-secondary)" }}>
+                            {t("organizations.applies.total", { total: appliesTotal })}
+                        </span>
                     )}
                 </div>
             </div>
@@ -373,21 +381,21 @@ const OrganizationManagement: React.FC = () => {
                         <FaBuilding />
                     </div>
                     <div className={styles.statValue}>{stats.total}</div>
-                    <div className={styles.statLabel}>总组织数</div>
+                    <div className={styles.statLabel}>{t("organizations.stats.total")}</div>
                 </div>
                 <div className={styles.statCard}>
                     <div className={`${styles.statIcon} ${styles.success}`}>
                         <FaCheckCircle />
                     </div>
                     <div className={styles.statValue}>{stats.active}</div>
-                    <div className={styles.statLabel}>正常</div>
+                    <div className={styles.statLabel}>{t("organizations.stats.active")}</div>
                 </div>
                 <div className={styles.statCard}>
                     <div className={`${styles.statIcon} ${styles.error}`}>
                         <FaTimesCircle />
                     </div>
                     <div className={styles.statValue}>{stats.inactive}</div>
-                    <div className={styles.statLabel}>停用</div>
+                    <div className={styles.statLabel}>{t("organizations.stats.inactive")}</div>
                 </div>
             </div>
 
@@ -397,13 +405,13 @@ const OrganizationManagement: React.FC = () => {
                     className={`${styles.tabBtn} ${activeTab === "orgs" ? styles.tabActive : ""}`}
                     onClick={() => setActiveTab("orgs")}
                 >
-                    <FaBuilding /> 组织列表
+                    <FaBuilding /> {t("organizations.tabs.orgs")}
                 </button>
                 <button
                     className={`${styles.tabBtn} ${activeTab === "applies" ? styles.tabActive : ""}`}
                     onClick={() => setActiveTab("applies")}
                 >
-                    <FaClipboardList /> 创建申请
+                    <FaClipboardList /> {t("organizations.tabs.applies")}
                     {(() => {
                         // 待审核数量提示（仅 orgs 视图时检查）
                         return null;
@@ -417,14 +425,14 @@ const OrganizationManagement: React.FC = () => {
                         <div className={styles.filterHeader}>
                             <h3 className={styles.filterTitle}>
                                 <FaFilter />
-                                筛选条件
+                                {t("organizations.filter.title")}
                             </h3>
                         </div>
                         <div className={styles.filterForm}>
                             <div className={styles.filterGroup}>
-                                <label className={styles.filterLabel}>搜索组织</label>
+                                <label className={styles.filterLabel}>{t("organizations.filter.searchLabel")}</label>
                                 <Input
-                                    placeholder="搜索组织名称..."
+                                    placeholder={t("organizations.filter.searchPlaceholder")}
                                     value={searchTerm}
                                     onChange={(value) => setSearchTerm(value)}
                                     prefix={<FaSearch />}
@@ -433,21 +441,26 @@ const OrganizationManagement: React.FC = () => {
                                 />
                             </div>
                             <div className={styles.filterGroup}>
-                                <label className={styles.filterLabel}>组织状态</label>
+                                <label className={styles.filterLabel}>{t("organizations.filter.statusLabel")}</label>
                                 <CustomSelect
-                                    name="状态筛选"
+                                    name={t("organizations.filter.statusSelectName")}
                                     options={[
-                                        { id: "all", name: "所有状态", color: "var(--text-secondary)" },
-                                        { id: "active", name: "正常", color: "var(--success)" },
-                                        { id: "inactive", name: "停用", color: "var(--error)" },
+                                        { id: "all", name: t("organizations.status.all"), color: "var(--text-secondary)" },
+                                        { id: "active", name: t("organizations.status.active"), color: "var(--success)" },
+                                        { id: "inactive", name: t("organizations.status.inactive"), color: "var(--error)" },
                                     ]}
                                     value={{
                                         id: statusFilter,
-                                        name: statusFilter === "all" ? "所有状态" : statusFilter === "active" ? "正常" : "停用",
+                                        name:
+                                            statusFilter === "all"
+                                                ? t("organizations.status.all")
+                                                : statusFilter === "active"
+                                                  ? t("organizations.status.active")
+                                                  : t("organizations.status.inactive"),
                                         color: "",
                                     }}
                                     onChange={(option) => setStatusFilter(option ? String(option.id) : "all")}
-                                    placeholder="状态筛选"
+                                    placeholder={t("organizations.filter.statusPlaceholder")}
                                     hideBadge={true}
                                 />
                             </div>
@@ -456,20 +469,22 @@ const OrganizationManagement: React.FC = () => {
 
                     <div className={styles.tableContainer}>
                         <div className={styles.tableHeader}>
-                            <h3 className={styles.tableTitle}>组织列表</h3>
+                            <h3 className={styles.tableTitle}>{t("organizations.table.title")}</h3>
                             <div className={styles.tableActions}>
-                                <span style={{ fontSize: "14px", color: "var(--text-secondary)" }}>共 {total} 个组织</span>
+                                <span style={{ fontSize: "14px", color: "var(--text-secondary)" }}>
+                                    {t("organizations.table.totalOrgs", { total })}
+                                </span>
                             </div>
                         </div>
                         <table className={`${styles.orgTable} ${styles.organizationTable}`}>
                             <thead>
                                 <tr>
-                                    <th>组织名称</th>
-                                    <th>类型</th>
-                                    <th>成员人数</th>
-                                    <th>状态</th>
-                                    <th>创建时间</th>
-                                    <th>操作</th>
+                                    <th>{t("organizations.table.columns.name")}</th>
+                                    <th>{t("organizations.table.columns.type")}</th>
+                                    <th>{t("organizations.table.columns.members")}</th>
+                                    <th>{t("organizations.table.columns.status")}</th>
+                                    <th>{t("organizations.table.columns.createdAt")}</th>
+                                    <th>{t("organizations.table.columns.actions")}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -516,21 +531,21 @@ const OrganizationManagement: React.FC = () => {
                                                 <div className={styles.actionButtons}>
                                                     <button
                                                         className={styles.actionBtn}
-                                                        title="预览"
+                                                        title={t("organizations.actions.preview")}
                                                         onClick={() => openPreviewModal(item)}
                                                     >
                                                         <FaEye />
                                                     </button>
                                                     <button
                                                         className={styles.actionBtn}
-                                                        title="编辑"
+                                                        title={t("organizations.actions.edit")}
                                                         onClick={() => openEditModal(item)}
                                                     >
                                                         <FaEdit />
                                                     </button>
                                                     <button
                                                         className={`${styles.actionBtn} ${styles.delete}`}
-                                                        title="删除"
+                                                        title={t("organizations.actions.delete")}
                                                         onClick={() => handleDelete(item.id)}
                                                     >
                                                         <FaTrash />
@@ -549,7 +564,7 @@ const OrganizationManagement: React.FC = () => {
                                                 color: "var(--text-secondary)",
                                             }}
                                         >
-                                            暂无数据
+                                            {t("organizations.table.empty")}
                                         </td>
                                     </tr>
                                 )}
@@ -558,7 +573,11 @@ const OrganizationManagement: React.FC = () => {
                         {totalPages >= 1 && (
                             <div className={styles.pagination}>
                                 <span className={styles.pageInfo}>
-                                    显示 {startIndex + 1} - {Math.min(startIndex + pageSize, total)} 条， 共 {total} 条记录
+                                    {t("organizations.pagination.showing", {
+                                        start: startIndex + 1,
+                                        end: Math.min(startIndex + pageSize, total),
+                                        total,
+                                    })}
                                 </span>
                                 <div className={styles.pageButtons}>
                                     <button className={styles.pageBtn} disabled={currentPage === 1} onClick={() => setCurrentPage(1)}>
@@ -609,61 +628,64 @@ const OrganizationManagement: React.FC = () => {
                     {/* 创建/编辑模态框 */}
                     <Modal
                         visible={isModalVisible}
-                        title={currentOrg ? "编辑组织" : "新建组织"}
+                        title={currentOrg ? t("organizations.modal.editTitle") : t("organizations.modal.createTitle")}
                         onClose={() => setIsModalVisible(false)}
                         width={600}
                         footer={
                             <>
                                 <button className={`${styles.btn} ${styles.btnSecondary}`} onClick={() => setIsModalVisible(false)}>
-                                    取消
+                                    {t("organizations.actions.cancel")}
                                 </button>
                                 <button className={`${styles.btn} ${styles.btnPrimary}`} onClick={handleSubmit}>
-                                    {currentOrg ? "保存修改" : "立即创建"}
+                                    {currentOrg ? t("organizations.modal.save") : t("organizations.modal.create")}
                                 </button>
                             </>
                         }
                     >
                         <div className={styles.formGroup}>
-                            <label className={styles.formLabel}>组织名称 *</label>
+                            <label className={styles.formLabel}>{t("organizations.modal.nameLabel")}</label>
                             <Input
-                                placeholder="请输入组织名称"
+                                placeholder={t("organizations.modal.namePlaceholder")}
                                 value={formData.name || ""}
                                 onChange={(value) => setFormData({ ...formData, name: value })}
                                 className={styles.formInput}
                             />
                         </div>
                         <div className={styles.formGroup}>
-                            <label className={styles.formLabel}>组织类型 *</label>
+                            <label className={styles.formLabel}>{t("organizations.modal.typeLabel")}</label>
                             <Input
-                                placeholder="请输入组织类型，如学校、企业"
+                                placeholder={t("organizations.modal.typePlaceholder")}
                                 value={formData.type || ""}
                                 onChange={(value) => setFormData({ ...formData, type: value })}
                                 className={styles.formInput}
                             />
                         </div>
                         <div className={styles.formGroup}>
-                            <label className={styles.formLabel}>组织状态 *</label>
+                            <label className={styles.formLabel}>{t("organizations.modal.statusLabel")}</label>
                             <CustomSelect
-                                name="状态选择"
+                                name={t("organizations.modal.statusSelectName")}
                                 options={[
-                                    { id: "active", name: "正常", color: "var(--success)" },
-                                    { id: "inactive", name: "停用", color: "var(--error)" },
+                                    { id: "active", name: t("organizations.status.active"), color: "var(--success)" },
+                                    { id: "inactive", name: t("organizations.status.inactive"), color: "var(--error)" },
                                 ]}
                                 value={{
                                     id: formData.status || "active",
-                                    name: formData.status === "active" ? "正常" : "停用",
+                                    name:
+                                        formData.status === "active"
+                                            ? t("organizations.status.active")
+                                            : t("organizations.status.inactive"),
                                     color: "",
                                 }}
                                 onChange={(option) => setFormData({ ...formData, status: option?.id as any })}
-                                placeholder="请选择状态"
+                                placeholder={t("organizations.modal.statusPlaceholder")}
                                 hideBadge={true}
                             />
                         </div>
                         <div className={styles.formGroup}>
-                            <label className={styles.formLabel}>组织描述</label>
+                            <label className={styles.formLabel}>{t("organizations.modal.descriptionLabel")}</label>
                             <textarea
                                 className={styles.formTextarea}
-                                placeholder="请输入组织描述..."
+                                placeholder={t("organizations.modal.descriptionPlaceholder")}
                                 value={formData.description || ""}
                                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                             />
@@ -673,12 +695,12 @@ const OrganizationManagement: React.FC = () => {
                     {/* 预览模态框（卡片样式） */}
                     <Modal
                         visible={isPreviewVisible}
-                        title={previewOrg ? `组织预览` : "组织预览"}
+                        title={previewOrg ? t("organizations.preview.title") : t("organizations.preview.title")}
                         onClose={() => setIsPreviewVisible(false)}
                         width={520}
                         footer={
                             <button className={`${styles.btn} ${styles.btnSecondary}`} onClick={() => setIsPreviewVisible(false)}>
-                                关闭
+                                {t("organizations.actions.close")}
                             </button>
                         }
                     >
@@ -730,14 +752,14 @@ const OrganizationManagement: React.FC = () => {
                                             marginRight: "16px",
                                         }}
                                     >
-                                        创建时间：{previewOrg.createdAt}
+                                        {t("organizations.preview.createdAt", { date: previewOrg.createdAt })}
                                     </span>
                                     <span style={{ color: "var(--text-secondary)", fontSize: "13px" }}>
-                                        成员人数：{previewOrg.memberCount}
+                                        {t("organizations.preview.members", { value: previewOrg.memberCount })}
                                     </span>
                                 </div>
                                 <div style={{ marginBottom: "10px" }}>
-                                    <strong style={{ fontSize: "1rem" }}>描述：</strong>
+                                    <strong style={{ fontSize: "1rem" }}>{t("organizations.preview.description")}</strong>
                                     <div
                                         style={{
                                             marginTop: "6px",
@@ -746,7 +768,7 @@ const OrganizationManagement: React.FC = () => {
                                             lineHeight: "1.7",
                                         }}
                                     >
-                                        {previewOrg.description || "暂无描述"}
+                                        {previewOrg.description || t("organizations.preview.noDescription")}
                                     </div>
                                 </div>
                             </div>
@@ -760,29 +782,29 @@ const OrganizationManagement: React.FC = () => {
                         <div className={styles.filterHeader}>
                             <h3 className={styles.filterTitle}>
                                 <FaFilter />
-                                筛选条件
+                                {t("organizations.filter.title")}
                             </h3>
                         </div>
                         <div className={styles.filterForm}>
                             <div className={styles.filterGroup}>
-                                <label className={styles.filterLabel}>申请状态</label>
+                                <label className={styles.filterLabel}>{t("organizations.applies.filterLabel")}</label>
                                 <CustomSelect
-                                    name="申请状态筛选"
+                                    name={t("organizations.applies.statusSelectName")}
                                     options={[
-                                        { id: "0", name: "待审核", color: "#f0ad4e" },
-                                        { id: "1", name: "已通过", color: "var(--success)" },
-                                        { id: "2", name: "已拒绝", color: "var(--error)" },
+                                        { id: "0", name: t("organizations.applyStatus.pending"), color: "#f0ad4e" },
+                                        { id: "1", name: t("organizations.applyStatus.approved"), color: "var(--success)" },
+                                        { id: "2", name: t("organizations.applyStatus.rejected"), color: "var(--error)" },
                                     ]}
                                     value={{
                                         id: String(appliesStatusFilter ?? ""),
                                         name:
                                             appliesStatusFilter === undefined
-                                                ? "全部"
+                                                ? t("organizations.applyStatus.all")
                                                 : appliesStatusFilter === 0
-                                                  ? "待审核"
+                                                  ? t("organizations.applyStatus.pending")
                                                   : appliesStatusFilter === 1
-                                                    ? "已通过"
-                                                    : "已拒绝",
+                                                    ? t("organizations.applyStatus.approved")
+                                                    : t("organizations.applyStatus.rejected"),
                                         color: "",
                                     }}
                                     onChange={(option) => {
@@ -790,7 +812,7 @@ const OrganizationManagement: React.FC = () => {
                                         setAppliesStatusFilter(val);
                                         setAppliesPage(1);
                                     }}
-                                    placeholder="申请状态"
+                                    placeholder={t("organizations.applies.statusPlaceholder")}
                                     hideBadge={true}
                                 />
                             </div>
@@ -799,7 +821,7 @@ const OrganizationManagement: React.FC = () => {
 
                     <div className={styles.tableContainer}>
                         <div className={styles.tableHeader}>
-                            <h3 className={styles.tableTitle}>创建申请列表</h3>
+                            <h3 className={styles.tableTitle}>{t("organizations.applies.tableTitle")}</h3>
                         </div>
                         {appliesLoading ? (
                             <Loading />
@@ -808,13 +830,13 @@ const OrganizationManagement: React.FC = () => {
                                 <table className={`${styles.orgTable} ${styles.applyTable}`}>
                                     <thead>
                                         <tr>
-                                            <th>申请人</th>
-                                            <th>组织名称</th>
-                                            <th>类型</th>
-                                            <th>描述</th>
-                                            <th>状态</th>
-                                            <th>申请时间</th>
-                                            <th>操作</th>
+                                            <th>{t("organizations.applies.columns.user")}</th>
+                                            <th>{t("organizations.applies.columns.orgName")}</th>
+                                            <th>{t("organizations.applies.columns.type")}</th>
+                                            <th>{t("organizations.applies.columns.description")}</th>
+                                            <th>{t("organizations.applies.columns.status")}</th>
+                                            <th>{t("organizations.applies.columns.createdAt")}</th>
+                                            <th>{t("organizations.applies.columns.actions")}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -841,14 +863,14 @@ const OrganizationManagement: React.FC = () => {
                                                                 <>
                                                                     <button
                                                                         className={`${styles.actionBtn} ${styles.approveAction}`}
-                                                                        title="通过"
+                                                                        title={t("organizations.applyActions.approve")}
                                                                         onClick={() => handleReview(item.id, "approve")}
                                                                     >
                                                                         <FaCheckCircle />
                                                                     </button>
                                                                     <button
                                                                         className={`${styles.actionBtn} ${styles.rejectAction}`}
-                                                                        title="拒绝"
+                                                                        title={t("organizations.applyActions.reject")}
                                                                         onClick={() => handleReview(item.id, "reject")}
                                                                     >
                                                                         <FaTimesCircle />
@@ -857,7 +879,7 @@ const OrganizationManagement: React.FC = () => {
                                                             )}
                                                             {item.status !== 0 && (
                                                                 <span style={{ fontSize: "12px", color: "var(--text-tertiary)" }}>
-                                                                    {item.review_reason || "已完成审核"}
+                                                                    {item.review_reason || t("organizations.applies.reviewed")}
                                                                 </span>
                                                             )}
                                                         </div>
@@ -874,7 +896,7 @@ const OrganizationManagement: React.FC = () => {
                                                         color: "var(--text-secondary)",
                                                     }}
                                                 >
-                                                    暂无申请记录
+                                                    {t("organizations.applies.empty")}
                                                 </td>
                                             </tr>
                                         )}
@@ -883,8 +905,11 @@ const OrganizationManagement: React.FC = () => {
                                 {appliesPages >= 1 && (
                                     <div className={styles.pagination}>
                                         <span className={styles.pageInfo}>
-                                            显示 {(appliesPage - 1) * appliesPageSize + 1} -{" "}
-                                            {Math.min(appliesPage * appliesPageSize, appliesTotal)} 条， 共 {appliesTotal} 条记录
+                                            {t("organizations.applies.pagination.showing", {
+                                                start: (appliesPage - 1) * appliesPageSize + 1,
+                                                end: Math.min(appliesPage * appliesPageSize, appliesTotal),
+                                                total: appliesTotal,
+                                            })}
                                         </span>
                                         <div className={styles.pageButtons}>
                                             <button

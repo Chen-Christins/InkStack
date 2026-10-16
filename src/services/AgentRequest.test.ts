@@ -1,7 +1,11 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import i18n from "@/i18n";
 import { agentRequest } from "./AgentRequest.ts";
 
 afterEach(() => vi.restoreAllMocks());
+beforeEach(async () => {
+    await i18n.changeLanguage("zh-CN");
+});
 describe("Agent service outage boundary", () => {
     it("reports a stopped service without changing login or invoking another API", async () => {
         const fetcher = vi.fn().mockRejectedValue(new TypeError("Failed to fetch"));

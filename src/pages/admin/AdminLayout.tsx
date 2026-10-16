@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useLocation, Outlet, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
     FaHome,
     FaUsers,
@@ -39,6 +40,7 @@ const AdminLayout: React.FC = () => {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const location = useLocation();
     const { user, logout, isAuthenticated, loading } = useAuth();
+    const { t } = useTranslation("admin");
 
     // 如果正在加载认证状态，显示加载中
     if (loading) {
@@ -53,7 +55,7 @@ const AdminLayout: React.FC = () => {
                     color: "var(--text-secondary)",
                 }}
             >
-                加载中...
+                {t("layout.loading")}
             </div>
         );
     }
@@ -97,7 +99,7 @@ const AdminLayout: React.FC = () => {
                         color: "var(--text-primary)",
                     }}
                 >
-                    访问被拒绝
+                    {t("layout.accessDenied")}
                 </h1>
                 <p
                     style={{
@@ -109,9 +111,9 @@ const AdminLayout: React.FC = () => {
                         lineHeight: "1.6",
                     }}
                 >
-                    抱歉，您没有权限访问此页面。该区域仅限管理员访问。
+                    {t("layout.deniedLine1")}
                     <br />
-                    如果您认为这是一个错误，请联系系统管理员或尝试重新登录。
+                    {t("layout.deniedLine2")}
                 </p>
                 <div style={{ display: "flex", gap: "16px" }}>
                     <button
@@ -131,7 +133,7 @@ const AdminLayout: React.FC = () => {
                             gap: "8px",
                         }}
                     >
-                        <FaHome /> 返回首页
+                        <FaHome /> {t("layout.backHome")}
                     </button>
                     <button
                         onClick={() => logout()}
@@ -146,7 +148,7 @@ const AdminLayout: React.FC = () => {
                             fontWeight: "500",
                         }}
                     >
-                        切换账号
+                        {t("layout.switchAccount")}
                     </button>
                 </div>
             </div>
@@ -165,53 +167,53 @@ const AdminLayout: React.FC = () => {
     // 导航菜单配置
     const navSections: { title: string; items: NavItem[] }[] = [
         {
-            title: "主要功能",
+            title: t("layout.sections.main"),
             items: [
-                { id: "dashboard", label: "仪表盘", icon: <FaHome />, path: "/admin" },
+                { id: "dashboard", label: t("layout.nav.dashboard"), icon: <FaHome />, path: "/admin" },
                 {
                     id: "users",
-                    label: "用户管理",
+                    label: t("layout.nav.users"),
                     icon: <FaUsers />,
                     path: "/admin/users",
                 },
                 {
                     id: "articles",
-                    label: "文章管理",
+                    label: t("layout.nav.articles"),
                     icon: <FaFileAlt />,
                     path: "/admin/articles",
                 },
                 {
                     id: "assignments",
-                    label: "任务管理",
+                    label: t("layout.nav.assignments"),
                     icon: <FaClipboardList />,
                     path: "/admin/assignments",
                 },
                 {
                     id: "organizations",
-                    label: "组织管理",
+                    label: t("layout.nav.organizations"),
                     icon: <FaBuilding />,
                     path: "/admin/organizations",
                 },
                 {
                     id: "comments",
-                    label: "评论管理",
+                    label: t("layout.nav.comments"),
                     icon: <FaComments />,
                     path: "/admin/comments",
                 },
                 {
                     id: "notifications",
-                    label: "发送通知",
+                    label: t("layout.nav.notifications"),
                     icon: <FaBell />,
                     path: "/admin/notifications",
                 },
             ],
         },
         {
-            title: "内容管理",
+            title: t("layout.sections.content"),
             items: [
                 {
                     id: "categories",
-                    label: "分类管理",
+                    label: t("layout.nav.categories"),
                     icon: <FaTags />,
                     path: "/admin/categories",
                 },
@@ -219,7 +221,7 @@ const AdminLayout: React.FC = () => {
                     ? [
                           {
                               id: "media",
-                              label: "媒体库",
+                              label: t("layout.nav.media"),
                               icon: <FaImages />,
                               path: "/admin/media",
                           },
@@ -227,29 +229,29 @@ const AdminLayout: React.FC = () => {
                     : []),
                 {
                     id: "database",
-                    label: "数据管理",
+                    label: t("layout.nav.database"),
                     icon: <FaDatabase />,
                     path: "/admin/database",
                 },
             ],
         },
         {
-            title: "系统设置",
+            title: t("layout.sections.system"),
             items: [
                 {
                     id: "settings",
-                    label: "系统设置",
+                    label: t("layout.nav.settings"),
                     icon: <FaCog />,
                     path: "/admin/settings",
                 },
             ],
         },
         {
-            title: "运营管理",
+            title: t("layout.sections.operation"),
             items: [
                 {
                     id: "feedbacks",
-                    label: "帮助运营",
+                    label: t("layout.nav.feedbacks"),
                     icon: <FaPaperPlane />,
                     path: "/admin/feedbacks",
                 },
@@ -330,7 +332,7 @@ const AdminLayout: React.FC = () => {
     // 获取面包屑导航
     const getBreadcrumbs = () => {
         const pathSegments = location.pathname.split("/").filter(Boolean);
-        const breadcrumbs = [{ label: "首页", path: "/admin" }];
+        const breadcrumbs: { label: string; path: string }[] = [{ label: t("layout.breadcrumbHome"), path: "/admin" }];
 
         if (pathSegments.length > 1) {
             const currentSection = navSections.find((section) => section.items.some((item) => item.path === location.pathname));
@@ -372,12 +374,12 @@ const AdminLayout: React.FC = () => {
                             className={styles.adminLogo}
                         >
                             <span className={styles.adminLogoIcon}>⚡</span>
-                            <span className={styles.adminLogoText}>管理后台</span>
+                            <span className={styles.adminLogoText}>{t("layout.brand")}</span>
                         </div>
                         <button
                             className={styles.toggleSidebarBtn}
                             onClick={toggleSidebar}
-                            title={sidebarCollapsed ? "展开侧边栏" : "收起侧边栏"}
+                            title={sidebarCollapsed ? t("layout.expandSidebar") : t("layout.collapseSidebar")}
                         >
                             {sidebarCollapsed ? <FaBars /> : <FaTimes />}
                         </button>
@@ -415,7 +417,7 @@ const AdminLayout: React.FC = () => {
                     <header className={styles.adminTopBar}>
                         <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
                             {/* 移动端菜单按钮 */}
-                            <button className={styles.mobileMenuBtn} onClick={toggleMobileMenu} aria-label="打开菜单">
+                            <button className={styles.mobileMenuBtn} onClick={toggleMobileMenu} aria-label={t("layout.openMenu")}>
                                 <FaBars />
                             </button>
 

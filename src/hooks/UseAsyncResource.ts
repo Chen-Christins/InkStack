@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type DependencyList } from "react";
+import i18n from "@/i18n";
 
 export interface UseAsyncResourceOptions {
     timeoutMs?: number;
@@ -47,7 +48,7 @@ export function useAsyncResource<T>(
         const timeoutPromise = new Promise<never>((_resolve, reject) => {
             timer = setTimeout(() => {
                 controller.abort();
-                reject(new Error("请求超时"));
+                reject(new Error(i18n.t("services:asyncResource.timeout")));
             }, timeoutMs);
         });
 

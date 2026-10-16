@@ -1,0 +1,42 @@
+const nav = {
+    home: "首页",
+    goHome: "回到首页",
+    organizations: "组织",
+    organizationsShort: "组织",
+    help: "帮助",
+    navMenu: "导航菜单",
+    openMenu: "打开菜单",
+    closeMenu: "关闭菜单",
+    openNavMenu: "打开导航菜单",
+    backToHome: "返回首页",
+    personalCenter: "个人中心",
+    writeArticle: "撰写文章",
+    messages: "私信",
+    logout: "退出登录",
+    viewProfile: "查看个人资料",
+    admin: "管理后台",
+    testPage: "进入测试页面",
+    saveDraft: "保存草稿",
+    saveChanges: "保存修改",
+    publishArticle: "发布文章",
+    updateArticle: "更新文章",
+    tools: {
+        theme: "主题风格",
+        calendar: "站点日历",
+        subscribe: "订阅更新",
+        language: "语言",
+    },
+    width: {
+        default: "默认",
+        wide: "较宽",
+        full: "全宽",
+        tooltip: "布局宽度：{{current}}，点击切换",
+    },
+    layoutMode: {
+        appShell: "侧栏布局",
+        classic: "顶部布局",
+        tooltip: "界面布局：{{current}}，点击切换",
+    },
+} as const;
+
+export default nav;

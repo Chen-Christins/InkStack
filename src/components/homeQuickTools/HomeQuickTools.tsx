@@ -1,27 +1,17 @@
 import React, { useEffect, useRef, useState } from "react";
-import { FaPalette, FaCalendarAlt, FaRss } from "react-icons/fa";
+import { useTranslation } from "react-i18next";
+import { FaPalette, FaCalendarAlt, FaRss, FaGlobe } from "react-icons/fa";
 import { StretchHorizontal, LayoutPanelLeft, PanelTop } from "lucide-react";
 import styles from "./HomeQuickTools.module.css";
 import ThemeStylePanel from "../themeStylePanel/ThemeStylePanel";
 import Calendar from "../calendar/Calendar";
 import SubscribeBox from "../subscribeBox/SubscribeBox";
+import LanguagePanel from "../languagePanel/LanguagePanel";
 import { useLayoutWidth, type LayoutWidthMode } from "@/contexts/LayoutWidthContext";
 import { useLayoutMode } from "@/contexts/LayoutModeContext";
 
-type ToolKey = "theme" | "calendar" | "subscribe";
+type ToolKey = "theme" | "calendar" | "subscribe" | "language";
 type UtilityKey = "width" | "layoutMode";
-
-const TOOLS: { key: ToolKey; label: string; icon: React.ReactNode }[] = [
-    { key: "theme", label: "主题风格", icon: <FaPalette /> },
-    { key: "calendar", label: "站点日历", icon: <FaCalendarAlt /> },
-    { key: "subscribe", label: "订阅更新", icon: <FaRss /> },
-];
-
-const WIDTH_LABEL: Record<LayoutWidthMode, string> = {
-    default: "默认",
-    wide: "较宽",
-    full: "全宽",
-};
 
 interface HomeQuickToolsProps {
     /** 仅展示指定的弹框工具；不传则展示全部 */
@@ -31,10 +21,25 @@ interface HomeQuickToolsProps {
 }
 
 const HomeQuickTools: React.FC<HomeQuickToolsProps> = ({ tools, utilities }) => {
+    const { t } = useTranslation("nav");
     const [openKey, setOpenKey] = useState<ToolKey | null>(null);
     const dockRef = useRef<HTMLDivElement>(null);
+
+    const allTools: { key: ToolKey; label: string; icon: React.ReactNode }[] = [
+        { key: "theme", label: t("tools.theme"), icon: <FaPalette /> },
+        { key: "calendar", label: t("tools.calendar"), icon: <FaCalendarAlt /> },
+        { key: "subscribe", label: t("tools.subscribe"), icon: <FaRss /> },
+        { key: "language", label: t("tools.language"), icon: <FaGlobe /> },
+    ];
+
+    const widthLabel: Record<LayoutWidthMode, string> = {
+        default: t("width.default"),
+        wide: t("width.wide"),
+        full: t("width.full"),
+    };
+
     // 订阅更新尚未实现，仅开发环境展示
-    const availableTools = import.meta.env.DEV ? TOOLS : TOOLS.filter((tool) => tool.key !== "subscribe");
+    const availableTools = import.meta.env.DEV ? allTools : allTools.filter((tool) => tool.key !== "subscribe");
     const visibleTools = tools ? availableTools.filter((tool) => tools.includes(tool.key)) : availableTools;
 
     const { mode: widthMode, cycleMode: cycleWidth } = useLayoutWidth();
@@ -64,7 +69,7 @@ const HomeQuickTools: React.FC<HomeQuickToolsProps> = ({ tools, utilities }) => 
         };
     }, [openKey]);
 
-    const activeTool = TOOLS.find((tool) => tool.key === openKey);
+    const activeTool = allTools.find((tool) => tool.key === openKey);
     const showUtility = (key: UtilityKey) => utilities?.includes(key) ?? false;
 
     return (
@@ -88,8 +93,8 @@ const HomeQuickTools: React.FC<HomeQuickToolsProps> = ({ tools, utilities }) => 
                     <button
                         type="button"
                         className={styles.toolBtn}
-                        title={`布局宽度：${WIDTH_LABEL[widthMode]}，点击切换`}
-                        aria-label={`布局宽度：${WIDTH_LABEL[widthMode]}，点击切换`}
+                        title={t("width.tooltip", { current: widthLabel[widthMode] })}
+                        aria-label={t("width.tooltip", { current: widthLabel[widthMode] })}
                         onClick={cycleWidth}
                     >
                         <StretchHorizontal size={16} />
@@ -100,8 +105,12 @@ const HomeQuickTools: React.FC<HomeQuickToolsProps> = ({ tools, utilities }) => 
                     <button
                         type="button"
                         className={styles.toolBtn}
-                        title={`界面布局：${layoutMode === "appShell" ? "侧栏布局" : "顶部布局"}，点击切换`}
-                        aria-label={`界面布局：${layoutMode === "appShell" ? "侧栏布局" : "顶部布局"}，点击切换`}
+                        title={t("layoutMode.tooltip", {
+                            current: layoutMode === "appShell" ? t("layoutMode.appShell") : t("layoutMode.classic"),
+                        })}
+                        aria-label={t("layoutMode.tooltip", {
+                            current: layoutMode === "appShell" ? t("layoutMode.appShell") : t("layoutMode.classic"),
+                        })}
                         onClick={toggleMode}
                     >
                         {layoutMode === "appShell" ? <LayoutPanelLeft size={16} /> : <PanelTop size={16} />}
@@ -115,6 +124,7 @@ const HomeQuickTools: React.FC<HomeQuickToolsProps> = ({ tools, utilities }) => 
                         {openKey === "theme" && <ThemeStylePanel />}
                         {openKey === "calendar" && <Calendar />}
                         {openKey === "subscribe" && <SubscribeBox />}
+                        {openKey === "language" && <LanguagePanel />}
                     </div>
                 </div>
             )}

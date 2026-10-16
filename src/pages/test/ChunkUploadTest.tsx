@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import FileService from "@/services/FileService.ts";
 import message from "@/components/message/Message";
 import styles from "./ChunkUploadTest.module.css";
@@ -9,6 +10,7 @@ interface ChunkStatus {
 }
 
 const ChunkUploadTest: React.FC = () => {
+    const { t } = useTranslation("sample");
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [uploading, setUploading] = useState(false);
     const [progress, setProgress] = useState(0);
@@ -40,7 +42,13 @@ const ChunkUploadTest: React.FC = () => {
             setUploadResult(null);
             setProgress(0);
 
-            addLog(`选择了文件: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB, ${chunkCount} 个分块)`);
+            addLog(
+                t("chunkUpload.log.selectedFile", {
+                    name: file.name,
+                    size: (file.size / 1024 / 1024).toFixed(2),
+                    chunks: chunkCount,
+                }),
+            );
         }
     };
 
@@ -58,7 +66,7 @@ const ChunkUploadTest: React.FC = () => {
         setLogs([]);
         setUploadResult(null);
 
-        addLog("开始上传...");
+        addLog(t("chunkUpload.log.startUpload"));
 
         try {
             const result = await FileService.uploadFileByChunks({
@@ -70,26 +78,26 @@ const ChunkUploadTest: React.FC = () => {
                 maxRetries: 3,
                 onProgress: (progress) => {
                     setProgress(progress);
-                    addLog(`上传进度: ${progress}%`);
+                    addLog(t("chunkUpload.log.progress", { progress }));
                 },
                 onChunkUploaded: (chunkIndex, totalChunks) => {
                     updateChunkStatus(chunkIndex, "uploaded");
-                    addLog(`分块 ${chunkIndex + 1}/${totalChunks} 上传成功`);
+                    addLog(t("chunkUpload.log.chunkUploaded", { current: chunkIndex + 1, total: totalChunks }));
                 },
             });
 
             setUploadResult(result);
 
             if (result.success) {
-                message.success("文件上传成功！");
-                addLog(`✅ 上传成功！文件路径: ${result.filePath}`);
+                message.success(t("chunkUpload.message.success"));
+                addLog(t("chunkUpload.log.uploadSuccess", { path: result.filePath ?? "" }));
             } else {
-                message.error(result.error || "上传失败");
-                addLog(`❌ 上传失败: ${result.error}`);
+                message.error(result.error || t("chunkUpload.message.uploadFailed"));
+                addLog(t("chunkUpload.log.uploadFailed", { error: result.error ?? "" }));
             }
         } catch (error: any) {
-            message.error(error.message || "上传出错");
-            addLog(`❌ 上传出错: ${error.message}`);
+            message.error(error.message || t("chunkUpload.message.uploadError"));
+            addLog(t("chunkUpload.log.uploadError", { error: error.message }));
         } finally {
             setUploading(false);
         }
@@ -120,7 +128,13 @@ const ChunkUploadTest: React.FC = () => {
             setUploadResult(null);
             setProgress(0);
 
-            addLog(`拖拽了文件: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB, ${chunkCount} 个分块)`);
+            addLog(
+                t("chunkUpload.log.droppedFile", {
+                    name: file.name,
+                    size: (file.size / 1024 / 1024).toFixed(2),
+                    chunks: chunkCount,
+                }),
+            );
         }
     };
 
@@ -140,41 +154,41 @@ const ChunkUploadTest: React.FC = () => {
 
     return (
         <div className={styles.container}>
-            <h1>分块上传测试工具</h1>
-            <p>这个工具用于测试大文件分块上传功能，验证是否还有重复上传问题。</p>
+            <h1>{t("chunkUpload.title")}</h1>
+            <p>{t("chunkUpload.description")}</p>
 
             <div className={styles.uploadArea} onDragOver={handleDragOver} onDrop={handleDrop}>
                 <input type="file" id="fileInput" onChange={handleFileSelect} className={styles.fileInput} />
                 <label htmlFor="fileInput" className={styles.uploadLabel}>
                     <div className={styles.uploadIcon}>📁</div>
-                    <p>点击选择文件或拖拽文件到此处</p>
+                    <p>{t("chunkUpload.dropZone")}</p>
                 </label>
             </div>
 
             {selectedFile && (
                 <div className={styles.fileInfo}>
-                    <h3>文件信息</h3>
+                    <h3>{t("chunkUpload.fileInfo.title")}</h3>
                     <p>
-                        <strong>文件名:</strong> {selectedFile.name}
+                        <strong>{t("chunkUpload.fileInfo.name")}</strong> {selectedFile.name}
                     </p>
                     <p>
-                        <strong>文件大小:</strong> {formatFileSize(selectedFile.size)}
+                        <strong>{t("chunkUpload.fileInfo.size")}</strong> {formatFileSize(selectedFile.size)}
                     </p>
                     <p>
-                        <strong>分块数量:</strong> {chunkStatuses.length}
+                        <strong>{t("chunkUpload.fileInfo.chunkCount")}</strong> {chunkStatuses.length}
                     </p>
                     <p>
-                        <strong>分块大小:</strong> 2MB
+                        <strong>{t("chunkUpload.fileInfo.chunkSize")}</strong> 2MB
                     </p>
                 </div>
             )}
 
             <div className={styles.buttonGroup}>
                 <button className={`${styles.btn} ${styles.btnPrimary}`} onClick={handleUpload} disabled={!selectedFile || uploading}>
-                    {uploading ? "上传中..." : "开始上传"}
+                    {uploading ? t("chunkUpload.actions.uploading") : t("chunkUpload.actions.startUpload")}
                 </button>
                 <button className={`${styles.btn} ${styles.btnSecondary}`} onClick={clearLogs}>
-                    清空日志
+                    {t("chunkUpload.actions.clearLogs")}
                 </button>
             </div>
 
@@ -190,14 +204,14 @@ const ChunkUploadTest: React.FC = () => {
 
             {chunkStatuses.length > 0 && (
                 <div className={styles.chunkInfo}>
-                    <h3>分块状态</h3>
+                    <h3>{t("chunkUpload.status.title")}</h3>
                     <div className={styles.chunkGrid}>
                         {chunkStatuses.map((chunk) => (
                             <div
                                 key={chunk.index}
                                 className={`${styles.chunkItem} ${styles[`chunk${chunk.status.charAt(0).toUpperCase() + chunk.status.slice(1)}`]}`}
                             >
-                                分块 {chunk.index}
+                                {t("chunkUpload.status.chunk", { index: chunk.index })}
                                 {chunk.status === "uploaded" && " ✓"}
                                 {chunk.status === "uploading" && " ..."}
                                 {chunk.status === "error" && " ✗"}
@@ -205,19 +219,19 @@ const ChunkUploadTest: React.FC = () => {
                         ))}
                     </div>
                     <div className={styles.legend}>
-                        <span className={`${styles.legendItem} ${styles.legendPending}`}>待上传</span>
-                        <span className={`${styles.legendItem} ${styles.legendUploading}`}>上传中</span>
-                        <span className={`${styles.legendItem} ${styles.legendUploaded}`}>已上传</span>
-                        <span className={`${styles.legendItem} ${styles.legendError}`}>错误</span>
+                        <span className={`${styles.legendItem} ${styles.legendPending}`}>{t("chunkUpload.legend.pending")}</span>
+                        <span className={`${styles.legendItem} ${styles.legendUploading}`}>{t("chunkUpload.legend.uploading")}</span>
+                        <span className={`${styles.legendItem} ${styles.legendUploaded}`}>{t("chunkUpload.legend.uploaded")}</span>
+                        <span className={`${styles.legendItem} ${styles.legendError}`}>{t("chunkUpload.legend.error")}</span>
                     </div>
                 </div>
             )}
 
             <div className={styles.logContainer}>
-                <h3>上传日志</h3>
+                <h3>{t("chunkUpload.log.title")}</h3>
                 <div className={styles.log}>
                     {logs.length === 0 ? (
-                        <div className={styles.emptyLog}>等待上传开始...</div>
+                        <div className={styles.emptyLog}>{t("chunkUpload.log.empty")}</div>
                     ) : (
                         logs.map((log, index) => (
                             <div key={index} className={styles.logEntry}>
@@ -230,13 +244,14 @@ const ChunkUploadTest: React.FC = () => {
 
             {uploadResult && (
                 <div className={`${styles.result} ${uploadResult.success ? styles.success : styles.error}`}>
-                    <h3>上传结果</h3>
+                    <h3>{t("chunkUpload.result.title")}</h3>
                     <p>
-                        <strong>状态:</strong> {uploadResult.success ? "成功" : "失败"}
+                        <strong>{t("chunkUpload.result.status")}</strong>{" "}
+                        {uploadResult.success ? t("chunkUpload.result.success") : t("chunkUpload.result.failure")}
                     </p>
                     {uploadResult.success && (
                         <p>
-                            <strong>文件路径:</strong> {uploadResult.filePath}
+                            <strong>{t("chunkUpload.result.filePath")}</strong> {uploadResult.filePath}
                         </p>
                     )}
                     {uploadResult.uploadId && (
@@ -246,7 +261,7 @@ const ChunkUploadTest: React.FC = () => {
                     )}
                     {uploadResult.error && (
                         <p>
-                            <strong>错误信息:</strong> {uploadResult.error}
+                            <strong>{t("chunkUpload.result.errorMessage")}</strong> {uploadResult.error}
                         </p>
                     )}
                 </div>

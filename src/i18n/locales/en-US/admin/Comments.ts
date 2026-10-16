@@ -1,0 +1,68 @@
+const section = {
+    loading: "Loading comment management...",
+    title: "Comment Management",
+    description: "Manage user comments, moderate content, and handle reports",
+    totalComments: "{{total}} comments in total",
+    empty: "No data",
+    filter: {
+        title: "Filters",
+        clear: "Clear Filters",
+        searchLabel: "Search Comments",
+        searchPlaceholder: "Comment content, author, or article title",
+        statusLabel: "Status",
+        statusPlaceholder: "Select status...",
+        statusOptions: {
+            all: "All Statuses",
+            approved: "Approved",
+            pending: "Pending",
+            rejected: "Rejected",
+            spam: "Spam",
+        },
+        reportedLabel: "Report Status",
+        reportedPlaceholder: "Select report status...",
+        reportedOptions: {
+            all: "All",
+            reported: "Reported",
+            normal: "Normal",
+        },
+    },
+    batch: {
+        selected: "{{total}} comments selected",
+        approve: "Approve",
+        reject: "Reject",
+        markSpam: "Mark as Spam",
+        delete: "Delete",
+    },
+    actions: {
+        approve: "Approve",
+        reject: "Reject",
+        markSpam: "Mark as Spam",
+        delete: "Delete",
+    },
+    card: {
+        report: "Reported {{value}}",
+        article: "Article: {{value}}",
+        likes: "{{value}} likes",
+        replies: "{{value}} replies",
+    },
+    pagination: {
+        info: "Showing {{start}} - {{end}} of {{total}} comments",
+    },
+    confirm: {
+        approveTitle: "Approve Comments",
+        approveContent: "Are you sure you want to approve the {{total}} selected comments?",
+        approveConfirm: "Confirm Approve",
+        rejectTitle: "Reject Comments",
+        rejectContent: "Are you sure you want to reject the {{total}} selected comments?",
+        rejectConfirm: "Confirm Reject",
+        spamTitle: "Mark as Spam",
+        spamContent: "Are you sure you want to mark the {{total}} selected comments as spam?",
+        spamConfirm: "Confirm Mark",
+        deleteTitle: "Delete Comments",
+        deleteContent: "Are you sure you want to delete the {{total}} selected comments? This cannot be undone.",
+        deleteConfirm: "Confirm Delete",
+        cancel: "Cancel",
+    },
+} as const;
+
+export default section;

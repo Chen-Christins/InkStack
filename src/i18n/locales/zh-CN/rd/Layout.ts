@@ -1,0 +1,47 @@
+const section = {
+    loading: "加载中...",
+    authRequired: "您需要登录后才能访问研发平台。",
+    checkingAccess: "正在验证权限...",
+    needOrgTitle: "需要加入组织",
+    needOrgLine1: "研发平台需要您加入一个组织，并在组织中具有报告者及以上角色才能访问。",
+    needOrgLine2: "请前往组织页面查找并申请加入您所属的团队，或联系组织管理员为您开通权限。",
+    joinOrg: "加入组织",
+    backHome: "返回首页",
+    switchAccount: "切换账号",
+    brand: "研发平台",
+    openMenu: "打开菜单",
+    expandSidebar: "展开侧边栏",
+    collapseSidebar: "收起侧边栏",
+    breadcrumbHome: "研发平台",
+    breadcrumb: {
+        create: "新建",
+        edit: "编辑",
+        detail: "详情",
+    },
+    sections: {
+        overview: "总览",
+        rdManagement: "研发管理",
+        smartCollab: "智能协作",
+        analytics: "分析洞察",
+        myRelated: "与我相关",
+    },
+    nav: {
+        dashboard: "仪表盘",
+        requirements: "需求管理",
+        bugs: "缺陷管理",
+        tasks: "任务管理",
+        reviews: "代码审查",
+        agent: "Agent 助手",
+        trends: "趋势分析",
+        myTickets: "我的工单",
+    },
+    roles: {
+        member: "普通成员",
+        reporter: "报告者",
+        developer: "开发者",
+        rdLead: "研发主管",
+        orgAdmin: "组织管理员",
+    },
+} as const;
+
+export default section;

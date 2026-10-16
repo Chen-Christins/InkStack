@@ -3,6 +3,7 @@
 // ============================================================
 
 import type { SelectOption } from "./index";
+import i18n from "@/i18n";
 
 // ===== 类型定义 =====
 
@@ -26,25 +27,25 @@ export interface ProviderPreset {
 export const PROVIDER_OPTIONS: SelectOption[] = [
     { id: "openai", name: "OpenAI", color: "#10a37f" },
     { id: "anthropic", name: "Anthropic", color: "#d97706" },
-    { id: "zhipu", name: "智谱 AI", color: "#4a6cf7" },
-    { id: "custom", name: "自定义兼容服务", color: "#64748b" },
+    { id: "zhipu", name: i18n.t("services:apiOptions.zhipu"), color: "#4a6cf7" },
+    { id: "custom", name: i18n.t("services:apiOptions.custom"), color: "#64748b" },
 ];
 
 /** 协议选项 */
 export const PROTOCOL_OPTIONS: SelectOption[] = [
-    { id: "openai", name: "OpenAI 兼容协议", color: "#10a37f" },
-    { id: "claude", name: "Anthropic 兼容协议", color: "#d97706" },
-    { id: "glm", name: "智谱 GLM 兼容协议", color: "#4a6cf7" },
+    { id: "openai", name: i18n.t("services:apiOptions.openaiProtocol"), color: "#10a37f" },
+    { id: "claude", name: i18n.t("services:apiOptions.claudeProtocol"), color: "#d97706" },
+    { id: "glm", name: i18n.t("services:apiOptions.glmProtocol"), color: "#4a6cf7" },
 ];
 
 /** 响应格式选项（按协议分类） */
 export const RESPONSE_OPTIONS: Record<ApiType, SelectOption[]> = {
     openai: [
-        { id: "responses", name: "Responses API (/responses)", color: "#10a37f" },
-        { id: "chat_completions", name: "Chat Completions (/chat/completions)", color: "#0ea5e9" },
+        { id: "responses", name: i18n.t("services:apiOptions.responses"), color: "#10a37f" },
+        { id: "chat_completions", name: i18n.t("services:apiOptions.chatCompletions"), color: "#0ea5e9" },
     ],
-    claude: [{ id: "messages", name: "Messages API (/messages)", color: "#d97706" }],
-    glm: [{ id: "chat_completions", name: "Chat Completions (/chat/completions)", color: "#4a6cf7" }],
+    claude: [{ id: "messages", name: i18n.t("services:apiOptions.messages"), color: "#d97706" }],
+    glm: [{ id: "chat_completions", name: i18n.t("services:apiOptions.chatCompletions"), color: "#4a6cf7" }],
 };
 
 // ===== 默认配置 =====
@@ -76,7 +77,7 @@ export const PROVIDER_DEFAULTS: Record<ServiceProvider, ProviderPreset> = {
         type: "openai",
         responseType: "chat_completions",
         url: "https://api.example.com/v1/chat/completions",
-        keyPlaceholder: "请输入完整 API Key",
+        keyPlaceholder: i18n.t("services:apiOptions.customKeyPlaceholder"),
         defaultModel: "gpt-4o",
     },
 };

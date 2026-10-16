@@ -1,4 +1,5 @@
 import http from "../infra/Http.ts";
+import i18n from "@/i18n";
 
 /**
  * 文件上传参数
@@ -177,7 +178,7 @@ export class FileService {
             });
 
             if (!initResult.success || !initResult.uploadId) {
-                throw new Error(initResult.error || "初始化分块上传失败");
+                throw new Error(initResult.error || i18n.t("services:file.initFailed"));
             }
 
             uploadId = initResult.uploadId;
@@ -244,7 +245,13 @@ export class FileService {
 
                         retries++;
                         if (retries > maxRetries) {
-                            throw new Error(`分块 ${chunkIndex} 上传失败，已重试 ${maxRetries} 次: ${error.message}`);
+                            throw new Error(
+                                i18n.t("services:file.chunkFailed", {
+                                    chunk: chunkIndex,
+                                    retries: maxRetries,
+                                    message: error.message,
+                                }),
+                            );
                         }
                         // 等待一段时间后重试（指数退避）
                         const delay = Math.min(1000 * Math.pow(2, retries - 1), 5000);
@@ -258,7 +265,7 @@ export class FileService {
             const completeResult = await this.completeChunkUpload(uploadId);
 
             if (!completeResult.success || !completeResult.filePath) {
-                throw new Error(completeResult.error || "完成上传失败");
+                throw new Error(completeResult.error || i18n.t("services:file.completeFailed"));
             }
 
             // 清理跟踪记录
@@ -283,7 +290,7 @@ export class FileService {
 
             return {
                 success: false,
-                error: error instanceof Error ? error.message : "上传失败",
+                error: error instanceof Error ? error.message : i18n.t("services:file.uploadFailed"),
             };
         }
     }
@@ -324,7 +331,7 @@ export class FileService {
         } catch (error: any) {
             return {
                 success: false,
-                error: error?.message || "初始化失败",
+                error: error?.message || i18n.t("services:file.initFailedShort"),
             };
         }
     }
@@ -353,7 +360,7 @@ export class FileService {
             timeout: 30000, // 30秒超时
         });
         if (result.errno !== 0) {
-            throw new Error(result.message || "分块上传失败");
+            throw new Error(result.message || i18n.t("services:file.chunkUploadFailed"));
         }
     }
 
@@ -385,7 +392,7 @@ export class FileService {
         } catch (error: any) {
             return {
                 success: false,
-                error: error?.message || "完成上传失败",
+                error: error?.message || i18n.t("services:file.completeFailed"),
             };
         }
     }
@@ -453,7 +460,7 @@ export class FileService {
         });
 
         if (!res.ok) {
-            throw new Error("下载失败");
+            throw new Error(i18n.t("services:file.downloadFailed"));
         }
         const contentType = res.headers.get("Content-Type");
         if (contentType && contentType.includes("application/json")) {

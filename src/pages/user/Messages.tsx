@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { FaSearch, FaPaperPlane, FaCircle, FaRegSmile, FaArrowLeft, FaPlus, FaTrash } from "react-icons/fa";
 import styles from "./UserPage.module.css";
 import msgStyles from "./Messages.module.css";
@@ -14,7 +15,7 @@ import type { ChatMsg, Conversation } from "@/types/Message.ts";
 import type { MutualFollowUser } from "@/types/Follow.ts";
 
 /** 将 Unix 时间戳格式化为展示时间（今天 HH:MM / 昨天 HH:MM / 日期） */
-const formatMsgTime = (ts: number): string => {
+const formatMsgTime = (ts: number, yesterdayLabel: string): string => {
     if (!ts) {
         return "";
     }
@@ -27,13 +28,14 @@ const formatMsgTime = (ts: number): string => {
     const yesterday = new Date(now);
     yesterday.setDate(now.getDate() - 1);
     if (date.toDateString() === yesterday.toDateString()) {
-        return `昨天 ${hhmm}`;
+        return `${yesterdayLabel} ${hhmm}`;
     }
     const mmdd = `${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
     return date.getFullYear() === now.getFullYear() ? `${mmdd} ${hhmm}` : `${date.getFullYear()}-${mmdd} ${hhmm}`;
 };
 
 const Messages: React.FC = () => {
+    const { t } = useTranslation("user");
     const { user } = useAuth();
     // 普通用户无权限使用私信
     const denied = !user || isNormalUser(user.role);
@@ -316,10 +318,10 @@ const Messages: React.FC = () => {
                 return;
             }
             const ok = await confirm({
-                title: "删除会话",
-                content: `确定删除与「${target.name}」的会话吗？删除后对方仍可看到，对方再发消息时该会话会重新出现。`,
-                confirmText: "删除",
-                cancelText: "取消",
+                title: t("messages.deleteConfirm.title"),
+                content: t("messages.deleteConfirm.content", { name: target.name }),
+                confirmText: t("messages.deleteConfirm.confirm"),
+                cancelText: t("messages.deleteConfirm.cancel"),
             });
             if (!ok) {
                 return;
@@ -343,7 +345,7 @@ const Messages: React.FC = () => {
                 // 静默处理
             }
         },
-        [conversations],
+        [conversations, t],
     );
 
     if (denied) {
@@ -351,7 +353,7 @@ const Messages: React.FC = () => {
             <div className={`${styles.page} ${msgStyles.msgPage}`}>
                 <div className={msgStyles.wrapper}>
                     <div className={msgStyles.convEmpty} style={{ margin: "auto" }}>
-                        私信功能仅对内部成员开放
+                        {t("messages.denied")}
                     </div>
                 </div>
             </div>
@@ -364,16 +366,22 @@ const Messages: React.FC = () => {
                 <div className={`${msgStyles.chatLayout} ${mobileChatOpen ? msgStyles.showChat : ""}`}>
                     <aside className={msgStyles.convList}>
                         <div className={msgStyles.convSearch}>
-                            <Input placeholder="搜索会话" value={search} onChange={setSearch} prefix={<FaSearch />} allowClear />
+                            <Input
+                                placeholder={t("messages.sidebar.searchPlaceholder")}
+                                value={search}
+                                onChange={setSearch}
+                                prefix={<FaSearch />}
+                                allowClear
+                            />
                             <button className={msgStyles.newChatBtn} onClick={openNewChat}>
-                                <FaPlus /> 发起会话
+                                <FaPlus /> {t("messages.sidebar.newChat")}
                             </button>
                         </div>
                         <div className={msgStyles.convItems}>
                             {loading ? (
-                                <div className={msgStyles.convEmpty}>加载中...</div>
+                                <div className={msgStyles.convEmpty}>{t("messages.loading")}</div>
                             ) : filtered.length === 0 ? (
-                                <div className={msgStyles.convEmpty}>暂无会话</div>
+                                <div className={msgStyles.convEmpty}>{t("messages.sidebar.empty")}</div>
                             ) : (
                                 filtered.map((c) => (
                                     <div
@@ -388,7 +396,9 @@ const Messages: React.FC = () => {
                                         <div className={msgStyles.convInfo}>
                                             <div className={msgStyles.convTop}>
                                                 <span className={msgStyles.convName}>{c.name}</span>
-                                                <span className={msgStyles.convTime}>{formatMsgTime(c.last_time)}</span>
+                                                <span className={msgStyles.convTime}>
+                                                    {formatMsgTime(c.last_time, t("messages.time.yesterday"))}
+                                                </span>
                                             </div>
                                             <div className={msgStyles.convBottom}>
                                                 <span className={msgStyles.convPreview}>
@@ -399,7 +409,7 @@ const Messages: React.FC = () => {
                                         </div>
                                         <button
                                             className={msgStyles.convDelete}
-                                            title="删除会话"
+                                            title={t("messages.sidebar.delete")}
                                             onClick={(e) => {
                                                 e.stopPropagation();
                                                 handleDelete(String(c.id));
@@ -423,13 +433,15 @@ const Messages: React.FC = () => {
                                     <Avatar name={active.name} size={36} />
                                     <div>
                                         <div className={msgStyles.chatName}>{active.name}</div>
-                                        <div className={msgStyles.chatStatus}>{active.online ? "在线" : "离线"}</div>
+                                        <div className={msgStyles.chatStatus}>
+                                            {active.online ? t("messages.chat.online") : t("messages.chat.offline")}
+                                        </div>
                                     </div>
                                 </header>
 
                                 <div className={msgStyles.chatBody} ref={bodyRef}>
                                     {messages.length === 0 ? (
-                                        <div className={msgStyles.convEmpty}>暂无消息，打个招呼吧</div>
+                                        <div className={msgStyles.convEmpty}>{t("messages.chat.empty")}</div>
                                     ) : (
                                         messages.map((m) => (
                                             <div key={m.id} className={`${msgStyles.msgRow} ${m.fromMe ? msgStyles.msgMine : ""}`}>
@@ -438,7 +450,9 @@ const Messages: React.FC = () => {
                                                     <div className={`${msgStyles.bubble} ${m.fromMe ? msgStyles.bubbleMine : ""}`}>
                                                         {m.text}
                                                     </div>
-                                                    <span className={msgStyles.bubbleTime}>{formatMsgTime(m.create_time)}</span>
+                                                    <span className={msgStyles.bubbleTime}>
+                                                        {formatMsgTime(m.create_time, t("messages.time.yesterday"))}
+                                                    </span>
                                                 </div>
                                             </div>
                                         ))
@@ -446,12 +460,12 @@ const Messages: React.FC = () => {
                                 </div>
 
                                 <footer className={msgStyles.chatInput}>
-                                    <button className={msgStyles.emojiBtn} title="表情">
+                                    <button className={msgStyles.emojiBtn} title={t("messages.chat.emoji")}>
                                         <FaRegSmile />
                                     </button>
                                     <input
                                         className={msgStyles.textInput}
-                                        placeholder="输入消息，回车发送"
+                                        placeholder={t("messages.chat.inputPlaceholder")}
                                         value={input}
                                         onChange={(e) => setInput(e.target.value)}
                                         onKeyDown={(e) => {
@@ -467,7 +481,7 @@ const Messages: React.FC = () => {
                                 </footer>
                             </>
                         ) : (
-                            <div className={msgStyles.chatEmpty}>请选择一个会话开始聊天</div>
+                            <div className={msgStyles.chatEmpty}>{t("messages.chat.selectPrompt")}</div>
                         )}
                     </section>
                 </div>
@@ -477,14 +491,14 @@ const Messages: React.FC = () => {
                 <div className={msgStyles.modalMask} onClick={() => setNewChatOpen(false)}>
                     <div className={msgStyles.modalBox} onClick={(e) => e.stopPropagation()}>
                         <div className={msgStyles.modalHeader}>
-                            <span>发起会话</span>
+                            <span>{t("messages.newChatModal.title")}</span>
                             <button className={msgStyles.modalClose} onClick={() => setNewChatOpen(false)}>
                                 ×
                             </button>
                         </div>
                         <div className={msgStyles.modalSearch}>
                             <Input
-                                placeholder="搜索互相关注的用户"
+                                placeholder={t("messages.newChatModal.searchPlaceholder")}
                                 value={peerSearch}
                                 onChange={setPeerSearch}
                                 prefix={<FaSearch />}
@@ -494,9 +508,9 @@ const Messages: React.FC = () => {
                         </div>
                         <div className={msgStyles.modalList}>
                             {peerLoading ? (
-                                <div className={msgStyles.convEmpty}>加载中...</div>
+                                <div className={msgStyles.convEmpty}>{t("messages.loading")}</div>
                             ) : mutualUsers.length === 0 ? (
-                                <div className={msgStyles.convEmpty}>暂无互相关注的用户</div>
+                                <div className={msgStyles.convEmpty}>{t("messages.newChatModal.empty")}</div>
                             ) : (
                                 mutualUsers.map((u) => (
                                     <div key={u.id} className={msgStyles.modalItem} onClick={() => startChat(u)}>
@@ -505,7 +519,9 @@ const Messages: React.FC = () => {
                                             <div className={msgStyles.modalItemName}>{u.name}</div>
                                             <div className={msgStyles.modalItemAccount}>@{u.account}</div>
                                         </div>
-                                        {startingPeerId === u.id && <span className={msgStyles.modalItemLoading}>创建中...</span>}
+                                        {startingPeerId === u.id && (
+                                            <span className={msgStyles.modalItemLoading}>{t("messages.newChatModal.creating")}</span>
+                                        )}
                                     </div>
                                 ))
                             )}

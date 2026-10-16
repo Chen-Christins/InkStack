@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { decodeId } from "@/utils/HashId.ts";
 import { useAsyncResource } from "@/hooks/UseAsyncResource";
 import {
@@ -60,6 +61,7 @@ interface AssignmentSubmissionItem {
 }
 
 const AssignmentSubmissions: React.FC = () => {
+    const { t } = useTranslation("assignment");
     const { id: encodedId } = useParams();
     const id = encodedId ? decodeId(encodedId, "assignment") : null;
     const navigate = useNavigate();
@@ -92,7 +94,13 @@ const AssignmentSubmissions: React.FC = () => {
     }, [id]);
     const assignment = data?.assignment ?? null;
     const submissions = data?.submissions ?? [];
-    const errorText = !id ? "作业ID不能为空" : error instanceof Error ? error.message : error ? "获取数据失败" : null;
+    const errorText = !id
+        ? t("submissions.errors.idRequired")
+        : error instanceof Error
+          ? error.message
+          : error
+            ? t("submissions.errors.fetchFailed")
+            : null;
 
     // 分页计算
     const totalPages = Math.ceil(submissions.length / pageSize);
@@ -127,25 +135,25 @@ const AssignmentSubmissions: React.FC = () => {
             if (submitTime > endTime) {
                 return (
                     <span className={`${styles.statusBadge} ${styles.statusLate}`}>
-                        <FaExclamationCircle /> 迟交
+                        <FaExclamationCircle /> {t("submissions.status.late")}
                     </span>
                 );
             }
             return (
                 <span className={`${styles.statusBadge} ${styles.statusSubmitted}`}>
-                    <FaCheckCircle /> 已提交
+                    <FaCheckCircle /> {t("submissions.status.submitted")}
                 </span>
             );
         } else if (status === 2) {
             return (
                 <span className={`${styles.statusBadge} ${styles.statusLate}`}>
-                    <FaExclamationCircle /> 迟交
+                    <FaExclamationCircle /> {t("submissions.status.late")}
                 </span>
             );
         } else {
             return (
                 <span className={`${styles.statusBadge} ${styles.statusPending}`}>
-                    <FaHourglassHalf /> 未提交
+                    <FaHourglassHalf /> {t("submissions.status.pending")}
                 </span>
             );
         }
@@ -163,7 +171,7 @@ const AssignmentSubmissions: React.FC = () => {
         else if (score >= 70) className += ` ${styles.scoreAverage}`;
         else className += ` ${styles.scorePoor}`;
 
-        return <span className={className}>{score} 分</span>;
+        return <span className={className}>{t("submissions.score", { value: score })}</span>;
     };
 
     const handleDownload = async (file: SubmissionFile) => {
@@ -178,7 +186,7 @@ const AssignmentSubmissions: React.FC = () => {
 
             await FileService.downloadFile(file.file_path, file.file_name);
         } catch (err: any) {
-            message.error(err.message || "下载失败");
+            message.error(err.message || t("submissions.messages.downloadFailed"));
         } finally {
             // 从下载中状态移除
             setDownloadingFiles((prev) => {
@@ -207,7 +215,7 @@ const AssignmentSubmissions: React.FC = () => {
                 }
             }
         } catch (err: any) {
-            message.error(err.message || "打包下载失败");
+            message.error(err.message || t("submissions.messages.downloadAllFailed"));
         } finally {
             // 从下载中状态移除
             setDownloadingAll((prev) => {
@@ -238,7 +246,7 @@ const AssignmentSubmissions: React.FC = () => {
         return (
             <div className={styles.container}>
                 <div className={styles.mainContent}>
-                    <AuthRequired message="您需要登录后才能查看作业提交详情。">
+                    <AuthRequired message={t("submissions.authRequired")}>
                         <div className={styles.loadingContainer}>
                             {/* 头部骨架 */}
                             <div className={styles.loadingHeader}>
@@ -323,12 +331,12 @@ const AssignmentSubmissions: React.FC = () => {
         return (
             <div className={styles.container}>
                 <div className={styles.mainContent}>
-                    <AuthRequired message="您需要登录后才能查看作业提交详情。">
+                    <AuthRequired message={t("submissions.authRequired")}>
                         <ErrorState
-                            title="加载失败"
-                            message={errorText || "未找到该作业"}
+                            title={t("submissions.loadFailed")}
+                            message={errorText || t("submissions.assignmentNotFound")}
                             icon={<FaExclamationCircle />}
-                            actionText="返回作业列表"
+                            actionText={t("submissions.backToList")}
                             onAction={() => navigate("/assignments")}
                         />
                     </AuthRequired>
@@ -340,12 +348,12 @@ const AssignmentSubmissions: React.FC = () => {
     return (
         <div className={styles.container}>
             <div className={styles.mainContent}>
-                <AuthRequired message="您需要登录后才能查看作业提交详情。">
+                <AuthRequired message={t("submissions.authRequired")}>
                     <div className={styles.card}>
                         {/* 头部信息 */}
                         <div className={styles.header}>
                             <button className={styles.backButton} onClick={() => navigate(-1)}>
-                                <FaArrowLeft /> 返回上一页
+                                <FaArrowLeft /> {t("submissions.back")}
                             </button>
                             <div className={styles.headerContent}>
                                 <div className={styles.titleGroup}>
@@ -356,10 +364,10 @@ const AssignmentSubmissions: React.FC = () => {
                                 </div>
                                 <div className={styles.stats}>
                                     <span className={styles.statItem}>
-                                        <FaUser /> {submissions.length} 人提交
+                                        <FaUser /> {t("submissions.submittedCount", { value: submissions.length })}
                                     </span>
                                     <span className={styles.statItem}>
-                                        <FaCalendarAlt /> 截止 {formatDate(assignment.end_time)}
+                                        <FaCalendarAlt /> {t("submissions.deadline", { value: formatDate(assignment.end_time) })}
                                     </span>
                                 </div>
                             </div>
@@ -367,19 +375,19 @@ const AssignmentSubmissions: React.FC = () => {
 
                         {/* 作业描述 */}
                         <div className={styles.descriptionSection}>
-                            <h3 className={styles.sectionTitle}>作业描述</h3>
+                            <h3 className={styles.sectionTitle}>{t("submissions.description")}</h3>
                             <p className={styles.description}>{assignment.description}</p>
                         </div>
 
                         {/* 提交列表 */}
                         <div className={styles.submissionsSection}>
-                            <h3 className={styles.sectionTitle}>提交详情</h3>
+                            <h3 className={styles.sectionTitle}>{t("submissions.submissionsTitle")}</h3>
 
                             {submissions.length === 0 ? (
                                 <div className={styles.emptyState}>
                                     <FaFileAlt className={styles.emptyIcon} />
-                                    <h3 className={styles.emptyText}>暂无提交</h3>
-                                    <p className={styles.emptySubtext}>还没有学生提交作业</p>
+                                    <h3 className={styles.emptyText}>{t("submissions.empty.title")}</h3>
+                                    <p className={styles.emptySubtext}>{t("submissions.empty.subtext")}</p>
                                 </div>
                             ) : (
                                 <>
@@ -427,11 +435,13 @@ const AssignmentSubmissions: React.FC = () => {
                                                                         {submission.list && submission.list.length === 1
                                                                             ? submission.list[0]!.file_name
                                                                             : submission.list
-                                                                              ? `${submission.list.length} 个文件`
-                                                                              : "0 个文件"}
+                                                                              ? t("submissions.fileCount", {
+                                                                                    value: submission.list.length,
+                                                                                })
+                                                                              : t("submissions.fileCount", { value: 0 })}
                                                                     </p>
                                                                     <p className={styles.fileSize}>
-                                                                        总大小:{" "}
+                                                                        {t("submissions.totalSize")}{" "}
                                                                         {formatFileSize(getTotalFileSize(submission.list || []))}
                                                                     </p>
                                                                 </div>
@@ -445,11 +455,12 @@ const AssignmentSubmissions: React.FC = () => {
                                                                     >
                                                                         {downloadingFiles.has(submission.list![0].id) ? (
                                                                             <>
-                                                                                <FaDownload className={styles.spinning} /> 下载中...
+                                                                                <FaDownload className={styles.spinning} />{" "}
+                                                                                {t("submissions.downloading")}
                                                                             </>
                                                                         ) : (
                                                                             <>
-                                                                                <FaDownload /> 下载
+                                                                                <FaDownload /> {t("submissions.download")}
                                                                             </>
                                                                         )}
                                                                     </button>
@@ -463,11 +474,11 @@ const AssignmentSubmissions: React.FC = () => {
                                                                             {downloadingAll.has(submission.user_id) ? (
                                                                                 <>
                                                                                     <FaDownload className={styles.spinning} />{" "}
-                                                                                    打包中...
+                                                                                    {t("submissions.packaging")}
                                                                                 </>
                                                                             ) : (
                                                                                 <>
-                                                                                    <FaDownload /> 打包下载
+                                                                                    <FaDownload /> {t("submissions.downloadAll")}
                                                                                 </>
                                                                             )}
                                                                         </button>
@@ -479,11 +490,11 @@ const AssignmentSubmissions: React.FC = () => {
                                                                         >
                                                                             {expandedSubmissions.has(submission.user_id) ? (
                                                                                 <>
-                                                                                    <FaChevronUp /> 收起
+                                                                                    <FaChevronUp /> {t("submissions.collapse")}
                                                                                 </>
                                                                             ) : (
                                                                                 <>
-                                                                                    <FaChevronDown /> 展开
+                                                                                    <FaChevronDown /> {t("submissions.expand")}
                                                                                 </>
                                                                             )}
                                                                         </button>
@@ -498,7 +509,11 @@ const AssignmentSubmissions: React.FC = () => {
                                                             expandedSubmissions.has(submission.user_id) && (
                                                                 <div className={styles.filesList}>
                                                                     <div className={styles.filesListHeader}>
-                                                                        <span>文件列表 ({submission.list?.length || 0})</span>
+                                                                        <span>
+                                                                            {t("submissions.fileList", {
+                                                                                value: submission.list?.length || 0,
+                                                                            })}
+                                                                        </span>
                                                                     </div>
                                                                     {submission.list.map((file) => (
                                                                         <div key={file.id} className={styles.fileItem}>
@@ -532,7 +547,9 @@ const AssignmentSubmissions: React.FC = () => {
                                                                             {/* 单个文件的反馈 */}
                                                                             {file.feedback && (
                                                                                 <div className={styles.feedback}>
-                                                                                    <h5 className={styles.feedbackTitle}>文件评语</h5>
+                                                                                    <h5 className={styles.feedbackTitle}>
+                                                                                        {t("submissions.fileFeedback")}
+                                                                                    </h5>
                                                                                     <p className={styles.feedbackContent}>
                                                                                         {file.feedback}
                                                                                     </p>
@@ -548,7 +565,7 @@ const AssignmentSubmissions: React.FC = () => {
                                                 {/* 整体反馈 */}
                                                 {submission.list && submission.list.length === 1 && submission.list[0].feedback && (
                                                     <div className={styles.feedback}>
-                                                        <h5 className={styles.feedbackTitle}>教师评语</h5>
+                                                        <h5 className={styles.feedbackTitle}>{t("submissions.teacherFeedback")}</h5>
                                                         <p className={styles.feedbackContent}>{submission.list[0]!.feedback}</p>
                                                     </div>
                                                 )}
@@ -565,7 +582,7 @@ const AssignmentSubmissions: React.FC = () => {
                                                 disabled={currentPage === 1}
                                             >
                                                 <FaChevronLeft />
-                                                上一页
+                                                {t("submissions.prevPage")}
                                             </button>
 
                                             <div className={styles.pageNumbers}>
@@ -585,7 +602,7 @@ const AssignmentSubmissions: React.FC = () => {
                                                 onClick={() => setCurrentPage(currentPage + 1)}
                                                 disabled={currentPage === totalPages}
                                             >
-                                                下一页
+                                                {t("submissions.nextPage")}
                                                 <FaChevronRight />
                                             </button>
                                         </div>

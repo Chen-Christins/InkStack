@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
+import type { TFunction } from "i18next";
 import { Eye, EyeOff, Mail, User, Lock, ArrowLeft, Check, AlertCircle } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import styles from "./AuthPage.module.css"; // 导入 CSS Modules
@@ -30,73 +32,73 @@ const GithubIcon: React.FC<{ size?: number }> = ({ size = 18 }) => (
 );
 
 // 表单验证规则
-const validateForm = (type: FormType, formData: any) => {
+const validateForm = (type: FormType, formData: any, t: TFunction<"auth">) => {
     const errors: Record<string, string> = {};
 
     if (type === "login") {
         if (!formData.usernameOrEmail) {
-            errors.usernameOrEmail = "请输入用户名或邮箱";
+            errors.usernameOrEmail = t("validation.usernameOrEmailRequired");
         }
         if (!formData.password) {
-            errors.password = "请输入密码";
+            errors.password = t("validation.passwordRequired");
         } else if (formData.password.length < 6) {
-            errors.password = "密码长度至少6位";
+            errors.password = t("validation.passwordMin");
         }
     } else if (type === "register") {
         if (!formData.account) {
-            errors.account = "请输入用户名";
+            errors.account = t("validation.accountRequired");
         } else if (!/^[A-Za-z]/.test(formData.account)) {
-            errors.account = "用户名必须以字母开头";
+            errors.account = t("validation.accountStartLetter");
         } else if (formData.account.length < 5 || formData.account.length > 16) {
-            errors.account = "用户名长度为 5~16 个字符";
+            errors.account = t("validation.accountLength");
         } else if (!/^[A-Za-z][0-9A-Za-z\-_\.]{4,15}$/.test(formData.account)) {
-            errors.account = "用户名只能包含字母、数字、-、_、.";
+            errors.account = t("validation.accountCharset");
         }
 
         if (!formData.email) {
-            errors.email = "请输入邮箱";
+            errors.email = t("validation.emailRequired");
         } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-            errors.email = "请输入有效的邮箱地址";
+            errors.email = t("validation.emailInvalid");
         }
 
         if (!formData.auth_code) {
-            errors.auth_code = "请输入验证码";
+            errors.auth_code = t("validation.codeRequired");
         } else if (formData.auth_code.length < 4) {
-            errors.auth_code = "验证码长度至少4位";
+            errors.auth_code = t("validation.codeMin");
         }
 
         if (!formData.password) {
-            errors.password = "请输入密码";
+            errors.password = t("validation.passwordRequired");
         }
 
         if (!formData.confirmPassword) {
-            errors.confirmPassword = "请确认密码";
+            errors.confirmPassword = t("validation.confirmPasswordRequired");
         } else if (formData.password !== formData.confirmPassword) {
-            errors.confirmPassword = "两次密码输入不一致";
+            errors.confirmPassword = t("validation.passwordMismatch");
         }
     } else if (type === "forgotPassword") {
         if (!formData.email) {
-            errors.email = "请输入邮箱";
+            errors.email = t("validation.emailRequired");
         } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-            errors.email = "请输入有效的邮箱地址";
+            errors.email = t("validation.emailInvalid");
         }
 
         if (!formData.code) {
-            errors.code = "请输入验证码";
+            errors.code = t("validation.codeRequired");
         } else if (formData.code.length < 4) {
-            errors.code = "验证码长度至少4位";
+            errors.code = t("validation.codeMin");
         }
 
         if (!formData.newPassword) {
-            errors.newPassword = "请输入新密码";
+            errors.newPassword = t("validation.newPasswordRequired");
         } else if (formData.newPassword.length < 6) {
-            errors.newPassword = "密码长度至少6位";
+            errors.newPassword = t("validation.newPasswordMin");
         }
 
         if (!formData.confirmNewPassword) {
-            errors.confirmNewPassword = "请确认新密码";
+            errors.confirmNewPassword = t("validation.confirmNewPasswordRequired");
         } else if (formData.newPassword !== formData.confirmNewPassword) {
-            errors.confirmNewPassword = "两次密码输入不一致";
+            errors.confirmNewPassword = t("validation.passwordMismatch");
         }
     }
 
@@ -107,6 +109,7 @@ const AuthPage: React.FC = () => {
     // 获取认证状态
     const { login } = useAuth();
     const { settings } = useSiteSettings();
+    const { t } = useTranslation("auth");
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -148,11 +151,11 @@ const AuthPage: React.FC = () => {
         if (!params.has("oauth_error")) {
             return;
         }
-        setMessage({ text: "GitHub 登录失败或已取消，请重试", type: "error" });
+        setMessage({ text: t("message.githubFailed"), type: "error" });
         params.delete("oauth_error");
         const query = params.toString();
         navigate(`${location.pathname}${query ? `?${query}` : ""}`, { replace: true });
-    }, [location.pathname, location.search, navigate]);
+    }, [location.pathname, location.search, navigate, t]);
 
     // 处理输入变化
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -173,7 +176,7 @@ const AuthPage: React.FC = () => {
     const handleSendCode = async () => {
         const email = formData.email;
         if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-            setErrors((prev) => ({ ...prev, email: "请输入有效的邮箱地址" }));
+            setErrors((prev) => ({ ...prev, email: t("validation.emailInvalid") }));
             return;
         }
 
@@ -195,15 +198,15 @@ const AuthPage: React.FC = () => {
             } else if (formType === "forgotPassword") {
                 await AuthService.sendPasswordResetCode(email);
             } else {
-                throw new Error("不支持的验证码类型");
+                throw new Error(t("message.unsupportedCodeType"));
             }
 
             setCountdown(60);
-            setMessage({ text: "验证码已发送，请注意查收", type: "success" });
+            setMessage({ text: t("message.codeSent"), type: "success" });
         } catch (error: any) {
             console.error("发送验证码失败:", error);
             setMessage({
-                text: error.msg || error.message || "验证码发送失败",
+                text: error.msg || error.message || t("message.codeSendFailed"),
                 type: "error",
             });
         } finally {
@@ -224,7 +227,7 @@ const AuthPage: React.FC = () => {
         e.preventDefault();
 
         // 验证表单
-        const newErrors = validateForm(formType, formData);
+        const newErrors = validateForm(formType, formData, t);
         if (Object.keys(newErrors).length > 0) {
             setErrors(newErrors);
             return;
@@ -236,7 +239,7 @@ const AuthPage: React.FC = () => {
         try {
             if (formType === "login") {
                 await login(formData.usernameOrEmail, formData.password);
-                setMessage({ text: "登录成功，正在跳转...", type: "success" });
+                setMessage({ text: t("message.loginSuccess"), type: "success" });
                 const params = new URLSearchParams(location.search);
                 const redirect = resolveRedirect(params.get("redirect"));
                 setTimeout(() => {
@@ -249,11 +252,11 @@ const AuthPage: React.FC = () => {
                     passwd: formData.password, // AuthService 内部会进行 MD5 加密
                     auth_code: formData.auth_code,
                 });
-                setMessage({ text: "注册成功，请登录", type: "success" });
+                setMessage({ text: t("message.registerSuccess"), type: "success" });
                 setTimeout(() => setFormType("login"), 200);
             } else if (formType === "forgotPassword") {
                 await AuthService.forgetPassword(formData.email, formData.newPassword, formData.code);
-                setMessage({ text: "密码重置成功，请登录", type: "success" });
+                setMessage({ text: t("message.resetSuccess"), type: "success" });
                 setTimeout(() => setFormType("login"), 200);
             }
         } catch (error: any) {
@@ -261,7 +264,11 @@ const AuthPage: React.FC = () => {
                 text:
                     error.msg ||
                     error.message ||
-                    `${formType === "login" ? "登录" : formType === "register" ? "注册" : "重置密码"}失败`,
+                    (formType === "login"
+                        ? t("message.loginFailed")
+                        : formType === "register"
+                          ? t("message.registerFailed")
+                          : t("message.resetFailed")),
                 type: "error",
             });
         } finally {
@@ -298,11 +305,11 @@ const AuthPage: React.FC = () => {
     const renderTitle = () => {
         switch (formType) {
             case "login":
-                return "欢迎回来";
+                return t("title.login");
             case "register":
-                return "创建账号";
+                return t("title.register");
             case "forgotPassword":
-                return "重置密码";
+                return t("title.forgotPassword");
             default:
                 return "";
         }
@@ -312,11 +319,11 @@ const AuthPage: React.FC = () => {
     const renderDescription = () => {
         switch (formType) {
             case "login":
-                return "请输入您的账号信息登录";
+                return t("description.login");
             case "register":
-                return "创建新账号，开始您的旅程";
+                return t("description.register");
             case "forgotPassword":
-                return "输入您的邮箱，我们将发送验证码重置密码";
+                return t("description.forgotPassword");
             default:
                 return "";
         }
@@ -335,7 +342,7 @@ const AuthPage: React.FC = () => {
                         {formType !== "login" && (
                             <button onClick={() => switchForm("login")} className={styles.backButton}>
                                 <ArrowLeft size={18} />
-                                <span>返回登录</span>
+                                <span>{t("backToLogin")}</span>
                             </button>
                         )}
 
@@ -362,7 +369,7 @@ const AuthPage: React.FC = () => {
                                 <>
                                     <div className={styles.formGroup}>
                                         <label htmlFor="usernameOrEmail" className={styles.label}>
-                                            用户名或邮箱
+                                            {t("fields.usernameOrEmail")}
                                         </label>
                                         <div className={styles.formControl}>
                                             <User size={18} className={styles.icon} />
@@ -373,7 +380,7 @@ const AuthPage: React.FC = () => {
                                                 value={formData.usernameOrEmail}
                                                 onChange={handleInputChange}
                                                 className={`${styles.input} ${errors.usernameOrEmail ? styles.inputError : ""}`}
-                                                placeholder="请输入用户名或邮箱"
+                                                placeholder={t("placeholders.usernameOrEmail")}
                                             />
                                         </div>
                                         {errors.usernameOrEmail && (
@@ -386,7 +393,7 @@ const AuthPage: React.FC = () => {
 
                                     <div className={styles.formGroup}>
                                         <label htmlFor="password" className={styles.label}>
-                                            密码
+                                            {t("fields.password")}
                                         </label>
                                         <div className={styles.formControl}>
                                             <Lock size={18} className={styles.icon} />
@@ -397,7 +404,7 @@ const AuthPage: React.FC = () => {
                                                 value={formData.password}
                                                 onChange={handleInputChange}
                                                 className={`${styles.input} ${errors.password ? styles.inputError : ""}`}
-                                                placeholder="请输入密码"
+                                                placeholder={t("placeholders.password")}
                                                 autoComplete="current-password"
                                             />
                                             <button
@@ -423,7 +430,7 @@ const AuthPage: React.FC = () => {
                                 <>
                                     <div className={styles.formGroup}>
                                         <label htmlFor="account" className={styles.label}>
-                                            用户名
+                                            {t("fields.account")}
                                         </label>
                                         <div className={styles.formControl}>
                                             <User size={18} className={styles.icon} />
@@ -434,7 +441,7 @@ const AuthPage: React.FC = () => {
                                                 value={formData.account}
                                                 onChange={handleInputChange}
                                                 className={`${styles.input} ${errors.account ? styles.inputError : ""}`}
-                                                placeholder="字母开头，5~16位，可含字母、数字、-、_、."
+                                                placeholder={t("placeholders.account")}
                                             />
                                         </div>
                                         {errors.account && (
@@ -447,7 +454,7 @@ const AuthPage: React.FC = () => {
 
                                     <div className={styles.formGroup}>
                                         <label htmlFor="email" className={styles.label}>
-                                            邮箱
+                                            {t("fields.email")}
                                         </label>
                                         <div className={styles.formControl}>
                                             <Mail size={18} className={styles.icon} />
@@ -458,7 +465,7 @@ const AuthPage: React.FC = () => {
                                                 value={formData.email}
                                                 onChange={handleInputChange}
                                                 className={`${styles.input} ${errors.email ? styles.inputError : ""}`}
-                                                placeholder="请输入邮箱"
+                                                placeholder={t("placeholders.email")}
                                             />
                                         </div>
                                         {errors.email && (
@@ -471,7 +478,7 @@ const AuthPage: React.FC = () => {
 
                                     <div className={styles.formGroup}>
                                         <label htmlFor="auth_code" className={styles.label}>
-                                            验证码
+                                            {t("fields.code")}
                                         </label>
                                         <div className={styles.formControl}>
                                             <Mail size={18} className={styles.icon} />
@@ -482,7 +489,7 @@ const AuthPage: React.FC = () => {
                                                 value={formData.auth_code}
                                                 onChange={handleInputChange}
                                                 className={`${styles.input} ${errors.auth_code ? styles.inputError : ""}`}
-                                                placeholder="请输入验证码"
+                                                placeholder={t("placeholders.code")}
                                             />
                                             <button
                                                 type="button"
@@ -490,7 +497,7 @@ const AuthPage: React.FC = () => {
                                                 disabled={countdown > 0}
                                                 className={styles.actionButton}
                                             >
-                                                {countdown > 0 ? `${countdown}s后重发` : "获取验证码"}
+                                                {countdown > 0 ? t("sendCode.resend", { seconds: countdown }) : t("sendCode.send")}
                                             </button>
                                         </div>
                                         {errors.auth_code && (
@@ -503,7 +510,7 @@ const AuthPage: React.FC = () => {
 
                                     <div className={styles.formGroup}>
                                         <label htmlFor="password" className={styles.label}>
-                                            密码
+                                            {t("fields.password")}
                                         </label>
                                         <div className={styles.formControl}>
                                             <Lock size={18} className={styles.icon} />
@@ -514,7 +521,7 @@ const AuthPage: React.FC = () => {
                                                 value={formData.password}
                                                 onChange={handleInputChange}
                                                 className={`${styles.input} ${errors.password ? styles.inputError : ""}`}
-                                                placeholder="请输入密码"
+                                                placeholder={t("placeholders.password")}
                                                 autoComplete="new-password"
                                             />
                                             <button
@@ -535,7 +542,7 @@ const AuthPage: React.FC = () => {
 
                                     <div className={styles.formGroup}>
                                         <label htmlFor="confirmPassword" className={styles.label}>
-                                            确认密码
+                                            {t("fields.confirmPassword")}
                                         </label>
                                         <div className={styles.formControl}>
                                             <Lock size={18} className={styles.icon} />
@@ -546,7 +553,7 @@ const AuthPage: React.FC = () => {
                                                 value={formData.confirmPassword}
                                                 onChange={handleInputChange}
                                                 className={`${styles.input} ${errors.confirmPassword ? styles.inputError : ""}`}
-                                                placeholder="请确认密码"
+                                                placeholder={t("placeholders.confirmPassword")}
                                                 autoComplete="new-password"
                                             />
                                             <button
@@ -572,7 +579,7 @@ const AuthPage: React.FC = () => {
                                 <>
                                     <div className={styles.formGroup}>
                                         <label htmlFor="email" className={styles.label}>
-                                            邮箱
+                                            {t("fields.email")}
                                         </label>
                                         <div className={styles.formControl}>
                                             <Mail size={18} className={styles.icon} />
@@ -583,7 +590,7 @@ const AuthPage: React.FC = () => {
                                                 value={formData.email}
                                                 onChange={handleInputChange}
                                                 className={`${styles.input} ${errors.email ? styles.inputError : ""}`}
-                                                placeholder="请输入邮箱"
+                                                placeholder={t("placeholders.email")}
                                             />
                                         </div>
                                         {errors.email && (
@@ -596,7 +603,7 @@ const AuthPage: React.FC = () => {
 
                                     <div className={styles.formGroup}>
                                         <label htmlFor="code" className={styles.label}>
-                                            验证码
+                                            {t("fields.code")}
                                         </label>
                                         <div className={styles.formControl}>
                                             <Mail size={18} className={styles.icon} />
@@ -607,7 +614,7 @@ const AuthPage: React.FC = () => {
                                                 value={formData.code}
                                                 onChange={handleInputChange}
                                                 className={`${styles.input} ${errors.code ? styles.inputError : ""}`}
-                                                placeholder="请输入验证码"
+                                                placeholder={t("placeholders.code")}
                                             />
                                             <button
                                                 type="button"
@@ -615,7 +622,7 @@ const AuthPage: React.FC = () => {
                                                 disabled={countdown > 0}
                                                 className={styles.actionButton}
                                             >
-                                                {countdown > 0 ? `${countdown}s后重发` : "获取验证码"}
+                                                {countdown > 0 ? t("sendCode.resend", { seconds: countdown }) : t("sendCode.send")}
                                             </button>
                                         </div>
                                         {errors.code && (
@@ -628,7 +635,7 @@ const AuthPage: React.FC = () => {
 
                                     <div className={styles.formGroup}>
                                         <label htmlFor="newPassword" className={styles.label}>
-                                            新密码
+                                            {t("fields.newPassword")}
                                         </label>
                                         <div className={styles.formControl}>
                                             <Lock size={18} className={styles.icon} />
@@ -639,7 +646,7 @@ const AuthPage: React.FC = () => {
                                                 value={formData.newPassword}
                                                 onChange={handleInputChange}
                                                 className={`${styles.input} ${errors.newPassword ? styles.inputError : ""}`}
-                                                placeholder="请输入新密码"
+                                                placeholder={t("placeholders.newPassword")}
                                                 autoComplete="new-password"
                                             />
                                             <button
@@ -660,7 +667,7 @@ const AuthPage: React.FC = () => {
 
                                     <div className={styles.formGroup}>
                                         <label htmlFor="confirmNewPassword" className={styles.label}>
-                                            确认新密码
+                                            {t("fields.confirmNewPassword")}
                                         </label>
                                         <div className={styles.formControl}>
                                             <Lock size={18} className={styles.icon} />
@@ -671,7 +678,7 @@ const AuthPage: React.FC = () => {
                                                 value={formData.confirmNewPassword}
                                                 onChange={handleInputChange}
                                                 className={`${styles.input} ${errors.confirmNewPassword ? styles.inputError : ""}`}
-                                                placeholder="请确认新密码"
+                                                placeholder={t("placeholders.confirmNewPassword")}
                                                 autoComplete="new-password"
                                             />
                                             <button
@@ -698,15 +705,19 @@ const AuthPage: React.FC = () => {
                                     <div className={styles.btnLoading}>
                                         <div className={styles.loadingSpinner}></div>
                                         <span>
-                                            {formType === "login" ? "登录中..." : formType === "register" ? "注册中..." : "重置中..."}
+                                            {formType === "login"
+                                                ? t("submit.loggingIn")
+                                                : formType === "register"
+                                                  ? t("submit.registering")
+                                                  : t("submit.resetting")}
                                         </span>
                                     </div>
                                 ) : formType === "login" ? (
-                                    "登录"
+                                    t("submit.login")
                                 ) : formType === "register" ? (
-                                    "注册"
+                                    t("submit.register")
                                 ) : (
-                                    "重置密码"
+                                    t("submit.resetPassword")
                                 )}
                             </button>
 
@@ -714,7 +725,7 @@ const AuthPage: React.FC = () => {
                             {formType === "login" && (
                                 <>
                                     <div className={styles.divider}>
-                                        <span>或</span>
+                                        <span>{t("or")}</span>
                                     </div>
                                     <Button
                                         type="button"
@@ -724,7 +735,7 @@ const AuthPage: React.FC = () => {
                                         onClick={handleGithubLogin}
                                     >
                                         <GithubIcon size={18} />
-                                        <span>使用 GitHub 登录</span>
+                                        <span>{t("githubLogin")}</span>
                                     </Button>
                                 </>
                             )}
@@ -734,26 +745,26 @@ const AuthPage: React.FC = () => {
                                 {formType === "login" ? (
                                     <div className={styles.formSwitchRow}>
                                         <span className={styles.formSwitchItem}>
-                                            忘记密码？
+                                            {t("links.forgotPrompt")}
                                             <button
                                                 type="button"
                                                 onClick={() => switchForm("forgotPassword")}
                                                 className={`${styles.btn} ${styles.textBtn}`}
                                             >
-                                                点击重置
+                                                {t("links.resetLink")}
                                             </button>
                                         </span>
                                         {settings.enableRegistration && (
                                             <>
                                                 <div className={styles.formSwitchDivider}></div>
                                                 <span className={styles.formSwitchItem}>
-                                                    还没有账号？
+                                                    {t("links.noAccount")}
                                                     <button
                                                         type="button"
                                                         onClick={() => switchForm("register")}
                                                         className={`${styles.btn} ${styles.textBtn}`}
                                                     >
-                                                        立即注册
+                                                        {t("links.registerNow")}
                                                     </button>
                                                 </span>
                                             </>
@@ -761,24 +772,24 @@ const AuthPage: React.FC = () => {
                                     </div>
                                 ) : formType === "register" ? (
                                     <div>
-                                        已有账号？
+                                        {t("links.haveAccount")}
                                         <button
                                             type="button"
                                             onClick={() => switchForm("login")}
                                             className={`${styles.btn} ${styles.textBtn}`}
                                         >
-                                            立即登录
+                                            {t("links.loginNow")}
                                         </button>
                                     </div>
                                 ) : (
                                     <div>
-                                        想起密码了？
+                                        {t("links.rememberPassword")}
                                         <button
                                             type="button"
                                             onClick={() => switchForm("login")}
                                             className={`${styles.btn} ${styles.textBtn}`}
                                         >
-                                            立即登录
+                                            {t("links.loginNow")}
                                         </button>
                                     </div>
                                 )}

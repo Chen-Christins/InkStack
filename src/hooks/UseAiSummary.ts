@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { tokenManager } from "../auth/TokenManager.ts";
+import i18n from "@/i18n";
 
 /**
  * 时间戳工具函数，格式: [HH:MM:SS.mmm]
@@ -116,13 +117,13 @@ function useAiSummary(articleId?: string | number) {
                         // ignore
                     }
                     console.error(`${ts()} [AI-SSE] ❌ HTTP 错误响应 body:`, errorBody.substring(0, 500));
-                    throw new Error(`请求失败 (HTTP ${response.status})`);
+                    throw new Error(i18n.t("article:ai.requestFailed", { status: response.status }));
                 }
 
                 const reader = response.body?.getReader();
                 if (!reader) {
                     console.error(`${ts()} [AI-SSE] ❌ response.body 为空，无法获取 ReadableStream reader`);
-                    throw new Error("浏览器不支持流式读取（ReadableStream）");
+                    throw new Error(i18n.t("article:ai.streamUnsupported"));
                 }
 
                 console.log(`${ts()} [AI-SSE] ┌────────── 开始读取流 ──────────`);
@@ -171,7 +172,7 @@ function useAiSummary(articleId?: string | number) {
 
                         // 流结束但没有收到任何有效数据 → 视为失败
                         if (eventCount === 0) {
-                            setError("AI 总结生成失败，请稍后重试");
+                            setError(i18n.t("article:ai.failed"));
                         }
 
                         setIsStreaming(false);
@@ -271,7 +272,7 @@ function useAiSummary(articleId?: string | number) {
                     console.error(`${ts()} [AI-SSE]    name   : ${err.name}`);
                     console.error(`${ts()} [AI-SSE]    message: ${err.message}`);
                     console.error(`${ts()} [AI-SSE]    stack  : ${err.stack?.substring(0, 300)}`);
-                    setError(err?.message || "网络错误，请稍后重试");
+                    setError(err?.message || i18n.t("article:ai.networkError"));
                 }
                 setIsStreaming(false);
             });

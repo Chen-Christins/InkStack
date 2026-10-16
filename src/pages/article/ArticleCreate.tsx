@@ -3,6 +3,7 @@ import CategoryService from "@/services/CategoryService.ts";
 import LabelService from "@/services/LabelService.ts";
 import React, { useState, useRef, useEffect } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { encodeId, decodeId } from "@/utils/HashId.ts";
 import ReactMarkdown from "react-markdown";
 import { articleMarkdownComponents, articleMarkdownPlugins } from "@/components/articleView/Markdown";
@@ -56,54 +57,12 @@ function clearDraftFromStorage(): void {
     sessionStorage.removeItem(ARTICLE_DRAFT_KEY);
 }
 
-const markdownHelpData = [
-    { element: "标题", syntax: "# H1\n## H2\n### H3", example: "# 一级标题" },
-    { element: "加粗", syntax: "**粗体**", example: "这是**粗体**文字" },
-    { element: "斜体", syntax: "*斜体*", example: "这是*斜体*文字" },
-    {
-        element: "链接",
-        syntax: "[文本](URL)",
-        example: "[百度](https://www.baidu.com)",
-    },
-    {
-        element: "图片",
-        syntax: "![alt文本](图片URL)",
-        example: "![logo](https://example.com/logo.png)",
-    },
-    {
-        element: "列表",
-        syntax: "- 项目1\n- 项目2",
-        example: "- 第一项\n- 第二项",
-    },
-    {
-        element: "代码块",
-        syntax: "```语言\n代码\n```",
-        example: '```javascript\n// console.log("Hello");\n```',
-    },
-    { element: "引用", syntax: "> 引用内容", example: "> 这是引用内容" },
-    {
-        element: "数学公式(行内)",
-        syntax: "$公式$",
-        example: "勾股定理: $a^2 + b^2 = c^2$",
-    },
-    {
-        element: "数学公式(块级)",
-        syntax: "$$公式$$",
-        example: "$$\n\\int_a^b f(x)dx = F(b) - F(a)\n$$",
-    },
-    {
-        element: "Mermaid图表",
-        syntax: "```mermaid\n图表代码\n```",
-        example:
-            "```mermaid\ngraph TD\n    A[开始] --> B{条件判断}\n    B -->|是| C[执行操作]\n    B -->|否| D[结束]\n    C --> D\n```",
-    },
-];
-
 const ArticleCreate: React.FC<ArticleCreateProps> = ({ onSaveDraft, onPublish, initialData }) => {
     const { user } = useAuth();
     const { id: encodedId } = useParams();
     const id = encodedId ? decodeId(encodedId, "article") : null;
     const navigate = useNavigate();
+    const { t } = useTranslation("article");
     const [loading, setLoading] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     const [permissionDenied, setPermissionDenied] = useState(false);
@@ -121,10 +80,10 @@ const ArticleCreate: React.FC<ArticleCreateProps> = ({ onSaveDraft, onPublish, i
     const copyTimeoutRef = useRef<number | null>(null);
 
     // 处理复制功能
-    const handleCopy = async (text: string, type: string = "代码") => {
+    const handleCopy = async (text: string, type?: string) => {
         try {
             await navigator.clipboard.writeText(text);
-            setCopySuccess(`${type}已复制到剪贴板`);
+            setCopySuccess(t("code.copiedToClipboard", { type: type ?? t("code.copy") }));
 
             // 清除之前的定时器
             if (copyTimeoutRef.current) {
@@ -136,7 +95,7 @@ const ArticleCreate: React.FC<ArticleCreateProps> = ({ onSaveDraft, onPublish, i
                 setCopySuccess("");
             }, 3000);
         } catch (err) {
-            setCopySuccess("复制失败，请手动复制");
+            setCopySuccess(t("code.copyFailedManual"));
             setTimeout(() => setCopySuccess(""), 3000);
         }
     };
@@ -271,7 +230,7 @@ const ArticleCreate: React.FC<ArticleCreateProps> = ({ onSaveDraft, onPublish, i
                         }
                     } catch (err) {
                         console.error("获取文章详情失败:", err);
-                        message.error("获取文章详情失败");
+                        message.error(t("create.fetchFailed"));
                     }
                 }
                 setLoading(false);
@@ -368,7 +327,7 @@ const ArticleCreate: React.FC<ArticleCreateProps> = ({ onSaveDraft, onPublish, i
                     label: labelIds,
                     category: categoryId,
                 });
-                message.success("文章更新成功");
+                message.success(t("create.updated"));
             } else {
                 const createParams: CreateArticleParams = {
                     title: formData.title,
@@ -383,15 +342,15 @@ const ArticleCreate: React.FC<ArticleCreateProps> = ({ onSaveDraft, onPublish, i
                 }
                 const data = await ArticleService.createArticle(createParams);
                 if (data) {
-                    message.success("草稿保存成功");
+                    message.success(t("create.draftSaved"));
                     clearDraftFromStorage();
                 } else {
-                    message.error("草稿保存失败");
+                    message.error(t("create.draftSaveFailed"));
                 }
             }
         } catch (err) {
             console.error("保存草稿失败:", err);
-            message.error("保存草稿失败");
+            message.error(t("create.draftSaveFailed"));
         } finally {
             setSubmitting(false);
         }
@@ -419,11 +378,7 @@ const ArticleCreate: React.FC<ArticleCreateProps> = ({ onSaveDraft, onPublish, i
                     label: labelIds,
                     category: categoryId,
                 });
-                message.success(
-                    <span>
-                        文章「<strong>{formData.title || "无标题"}</strong>」更新成功
-                    </span>,
-                );
+                message.success(t("create.updatedWithTitle", { title: formData.title || t("untitled") }));
                 navigate(`/article/${encodeId(id, "article")}`);
             } else {
                 const createParams: CreateArticleParams = {
@@ -445,22 +400,18 @@ const ArticleCreate: React.FC<ArticleCreateProps> = ({ onSaveDraft, onPublish, i
                         id: createRes.id,
                         publish_time: timestamp,
                     });
-                    message.success(
-                        <span>
-                            文章「<strong>{formData.title || "无标题"}</strong>」发布成功
-                        </span>,
-                    );
+                    message.success(t("create.publishedWithTitle", { title: formData.title || t("untitled") }));
                     clearDraftFromStorage();
                     navigate(`/article/${encodeId(createRes.id, "article")}`);
                     // console.log('发布文章成功:', publishRes);
                 } else {
                     // console.error('创建文章失败，无法发布');
-                    message.error("创建文章失败，无法发布");
+                    message.error(t("create.createFailedCannotPublish"));
                 }
             }
         } catch (err) {
             console.error("发布文章失败:", err);
-            message.error("发布文章失败");
+            message.error(t("create.publishFailed"));
         } finally {
             setSubmitting(false);
         }
@@ -481,6 +432,37 @@ const ArticleCreate: React.FC<ArticleCreateProps> = ({ onSaveDraft, onPublish, i
         setEditorToolbarState({ active: true, submitting, isEdit: !!id });
         return () => setEditorToolbarState({ active: false, submitting: false, isEdit: false });
     }, [setEditorToolbarState, submitting, id]);
+
+    // Markdown 语法帮助数据
+    const markdownHelpData = [
+        {
+            element: t("create.help.heading.element"),
+            syntax: t("create.help.heading.syntax"),
+            example: t("create.help.heading.example"),
+        },
+        { element: t("create.help.bold.element"), syntax: t("create.help.bold.syntax"), example: t("create.help.bold.example") },
+        { element: t("create.help.italic.element"), syntax: t("create.help.italic.syntax"), example: t("create.help.italic.example") },
+        { element: t("create.help.link.element"), syntax: t("create.help.link.syntax"), example: t("create.help.link.example") },
+        { element: t("create.help.image.element"), syntax: t("create.help.image.syntax"), example: t("create.help.image.example") },
+        { element: t("create.help.list.element"), syntax: t("create.help.list.syntax"), example: t("create.help.list.example") },
+        { element: t("create.help.code.element"), syntax: t("create.help.code.syntax"), example: t("create.help.code.example") },
+        { element: t("create.help.quote.element"), syntax: t("create.help.quote.syntax"), example: t("create.help.quote.example") },
+        {
+            element: t("create.help.mathInline.element"),
+            syntax: t("create.help.mathInline.syntax"),
+            example: t("create.help.mathInline.example"),
+        },
+        {
+            element: t("create.help.mathBlock.element"),
+            syntax: t("create.help.mathBlock.syntax"),
+            example: t("create.help.mathBlock.example"),
+        },
+        {
+            element: t("create.help.mermaid.element"),
+            syntax: t("create.help.mermaid.syntax"),
+            example: t("create.help.mermaid.example"),
+        },
+    ];
 
     // 创建标题组件工厂函数
     const createHeadingComponent = (level: number) => {
@@ -582,10 +564,10 @@ const ArticleCreate: React.FC<ArticleCreateProps> = ({ onSaveDraft, onPublish, i
                 <div style={{ fontSize: "48px", color: "#dc3545", marginBottom: "20px" }}>
                     <FaLock />
                 </div>
-                <h2 style={{ marginBottom: "10px", color: "#333" }}>访问被拒绝</h2>
-                <p style={{ color: "#666", marginBottom: "20px" }}>您没有权限编辑此文章，因为它不属于您。</p>
+                <h2 style={{ marginBottom: "10px", color: "#333" }}>{t("create.permissionDenied")}</h2>
+                <p style={{ color: "#666", marginBottom: "20px" }}>{t("create.permissionDeniedDesc")}</p>
                 <button className={`${styles.btn} ${styles.btnPrimary}`} onClick={() => navigate("/")}>
-                    返回首页
+                    {t("create.backHome")}
                 </button>
             </div>
         );
@@ -598,7 +580,7 @@ const ArticleCreate: React.FC<ArticleCreateProps> = ({ onSaveDraft, onPublish, i
                 <div className={styles.editorHeader}>
                     <h2>
                         <Link to="/" className={styles.editorHeaderLink}>
-                            {id ? "编辑文章" : "创建新文章"}
+                            {id ? t("create.editTitle") : t("create.createTitle")}
                         </Link>
                     </h2>
                 </div>
@@ -607,12 +589,12 @@ const ArticleCreate: React.FC<ArticleCreateProps> = ({ onSaveDraft, onPublish, i
                 <div className={styles.formSection}>
                     <div className={styles.formSectionTitle}>
                         <i className="bi bi-type"></i>
-                        文章标题
+                        {t("create.titleLabel")}
                     </div>
                     <input
                         type="text"
                         className={styles.formControl}
-                        placeholder="请输入文章标题..."
+                        placeholder={t("create.titlePlaceholder")}
                         value={formData.title}
                         onChange={handleTitleChange}
                     />
@@ -622,7 +604,7 @@ const ArticleCreate: React.FC<ArticleCreateProps> = ({ onSaveDraft, onPublish, i
                 <div className={styles.formSection}>
                     <div className={styles.formSectionTitle}>
                         <i className="bi bi-file-earmark"></i>
-                        文章类型
+                        {t("create.typeLabel")}
                     </div>
                     <div className={styles.radioGroup}>
                         <label className={styles.radioItem}>
@@ -634,7 +616,7 @@ const ArticleCreate: React.FC<ArticleCreateProps> = ({ onSaveDraft, onPublish, i
                                 checked={formData.articleType === "original"}
                                 onChange={() => handleTypeChange("original")}
                             />
-                            <span className={styles.radioLabel}>原创文章</span>
+                            <span className={styles.radioLabel}>{t("create.typeOriginal")}</span>
                         </label>
                         <label className={styles.radioItem}>
                             <input
@@ -645,7 +627,7 @@ const ArticleCreate: React.FC<ArticleCreateProps> = ({ onSaveDraft, onPublish, i
                                 checked={formData.articleType === "repost"}
                                 onChange={() => handleTypeChange("repost")}
                             />
-                            <span className={styles.radioLabel}>转载文章</span>
+                            <span className={styles.radioLabel}>{t("create.typeRepost")}</span>
                         </label>
                     </div>
                 </div>
@@ -654,11 +636,11 @@ const ArticleCreate: React.FC<ArticleCreateProps> = ({ onSaveDraft, onPublish, i
                 <div className={styles.formSection}>
                     <div className={styles.formSectionTitle}>
                         <i className="bi bi-folder"></i>
-                        文章分类
+                        {t("create.categoryLabel")}
                     </div>
                     <div style={{ position: "relative" }}>
                         <CustomSelect
-                            name={"分类"}
+                            name={t("create.categorySelect")}
                             options={categories}
                             value={formData.category}
                             hideBadge
@@ -673,12 +655,12 @@ const ArticleCreate: React.FC<ArticleCreateProps> = ({ onSaveDraft, onPublish, i
                 <div className={styles.formSection}>
                     <div className={styles.formSectionTitle}>
                         <i className="bi bi-tags"></i>
-                        文章标签
-                        <AddButton name="标签" onAdd={handleAddTag} />
+                        {t("create.tagLabel")}
+                        <AddButton name={t("create.tagSelect")} onAdd={handleAddTag} />
                     </div>
                     <div style={{ position: "relative" }}>
                         <CustomSelect
-                            name={"标签"}
+                            name={t("create.tagSelect")}
                             options={tags.filter((tag) => !selectedTags.find((t) => t.id === tag.id))}
                             value={null}
                             onChange={(selected, _idx) => {
@@ -709,14 +691,14 @@ const ArticleCreate: React.FC<ArticleCreateProps> = ({ onSaveDraft, onPublish, i
                 <div className={styles.formSection}>
                     <div className={styles.formSectionTitle}>
                         <i className="bi bi-pencil"></i>
-                        文章内容
+                        {t("create.contentLabel")}
                     </div>
 
                     {/* 工具栏 */}
                     <div className={styles.toolbar}>
                         <div className={styles.toolbarLeft}>
                             <button className={`${styles.btn} ${styles.btnOutlinePrimary}`} onClick={handleImportClick}>
-                                <FaFileImport /> 导入Markdown
+                                <FaFileImport /> {t("create.importMarkdown")}
                             </button>
                             <input
                                 ref={fileInputRef}
@@ -726,7 +708,7 @@ const ArticleCreate: React.FC<ArticleCreateProps> = ({ onSaveDraft, onPublish, i
                                 onChange={handleFileImport}
                             />
                             <button className={`${styles.btn} ${styles.btnOutline}`} onClick={() => setShowHelpModal(true)}>
-                                <FaInfoCircle /> 语法帮助
+                                <FaInfoCircle /> {t("create.syntaxHelp")}
                             </button>
                         </div>
                         <div className={styles.toolbarRight}>
@@ -734,19 +716,19 @@ const ArticleCreate: React.FC<ArticleCreateProps> = ({ onSaveDraft, onPublish, i
                                 className={`${styles.editorTab} ${viewMode === "editor" ? styles.active : ""}`}
                                 onClick={() => setViewMode("editor")}
                             >
-                                <FaEdit /> 编辑
+                                <FaEdit /> {t("create.modeEditor")}
                             </button>
                             <button
                                 className={`${styles.editorTab} ${viewMode === "preview" ? styles.active : ""}`}
                                 onClick={() => setViewMode("preview")}
                             >
-                                <FaEye /> 预览
+                                <FaEye /> {t("create.modePreview")}
                             </button>
                             <button
                                 className={`${styles.editorTab} ${viewMode === "both" ? styles.active : ""}`}
                                 onClick={() => setViewMode("both")}
                             >
-                                分屏
+                                {t("create.modeSplit")}
                             </button>
                         </div>
                     </div>
@@ -757,7 +739,7 @@ const ArticleCreate: React.FC<ArticleCreateProps> = ({ onSaveDraft, onPublish, i
                             <div className={styles.editorColumn}>
                                 <textarea
                                     className={`${styles.markdownEditor} ${styles.editorContent} ${styles.active}`}
-                                    placeholder="在这里输入Markdown格式的内容..."
+                                    placeholder={t("create.contentPlaceholder")}
                                     value={formData.content}
                                     onChange={handleContentChange}
                                 />
@@ -775,7 +757,7 @@ const ArticleCreate: React.FC<ArticleCreateProps> = ({ onSaveDraft, onPublish, i
                                             onCopy: (text) => {
                                                 void navigator.clipboard.writeText(text);
                                             },
-                                            mermaidCopyLabel: "复制代码",
+                                            mermaidCopyLabel: t("code.copyCode"),
                                             trimMermaidCopy: false,
                                         })}
                                     >
@@ -793,7 +775,7 @@ const ArticleCreate: React.FC<ArticleCreateProps> = ({ onSaveDraft, onPublish, i
                 <div className={styles.modalOverlay}>
                     <div className={styles.modalContent}>
                         <div className={styles.modalHeader}>
-                            <h3 className={styles.modalTitle}>Markdown 语法帮助</h3>
+                            <h3 className={styles.modalTitle}>{t("create.helpTitle")}</h3>
                             <button className={styles.modalClose} onClick={() => setShowHelpModal(false)}>
                                 ×
                             </button>
@@ -802,9 +784,9 @@ const ArticleCreate: React.FC<ArticleCreateProps> = ({ onSaveDraft, onPublish, i
                             <table className={styles.table}>
                                 <thead>
                                     <tr>
-                                        <th>元素</th>
-                                        <th>语法</th>
-                                        <th>示例</th>
+                                        <th>{t("create.helpTable.element")}</th>
+                                        <th>{t("create.helpTable.syntax")}</th>
+                                        <th>{t("create.helpTable.example")}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -821,7 +803,7 @@ const ArticleCreate: React.FC<ArticleCreateProps> = ({ onSaveDraft, onPublish, i
                                                             paragraph: ParagraphComponent,
                                                             heading: createHeadingComponent,
                                                             onCopy: handleCopy,
-                                                            mermaidCopyLabel: "复制代码",
+                                                            mermaidCopyLabel: t("code.copyCode"),
                                                             trimMermaidCopy: true,
                                                         })}
                                                     >
@@ -837,7 +819,7 @@ const ArticleCreate: React.FC<ArticleCreateProps> = ({ onSaveDraft, onPublish, i
                         <div className={styles.modalFooter}>
                             {copySuccess && <div className={styles.copySuccessMessage}>{copySuccess}</div>}
                             <button className={`${styles.btn} ${styles.btnPrimary}`} onClick={() => setShowHelpModal(false)}>
-                                我知道了
+                                {t("create.know")}
                             </button>
                         </div>
                     </div>

@@ -2,21 +2,23 @@ import ThemeStylePanel from "../components/themeStylePanel/ThemeStylePanel";
 import ThemeToggle from "../components/themeToggle/ThemeToggle";
 import LayoutWidthToggle from "../components/layoutWidthToggle/LayoutWidthToggle";
 import { useTheme } from "../contexts/ThemeContext";
+import { useTranslation } from "react-i18next";
 
 function SampleThemeStylePanel() {
+    const { t } = useTranslation("sample");
     const { preset } = useTheme();
 
     const presetNames: Record<string, string> = {
-        default: "默认",
-        time: "时代周刊",
-        monochrome: "极简黑白",
-        mint: "护眼豆绿",
-        ocean: "海洋蓝",
-        sakura: "樱花粉",
-        cyberpunk: "赛博朋克",
-        gold: "暗金奢华",
-        lavender: "薰衣草紫",
-        pi: "Pi 极客",
+        default: t("themeStylePanel.presets.default"),
+        time: t("themeStylePanel.presets.time"),
+        monochrome: t("themeStylePanel.presets.monochrome"),
+        mint: t("themeStylePanel.presets.mint"),
+        ocean: t("themeStylePanel.presets.ocean"),
+        sakura: t("themeStylePanel.presets.sakura"),
+        cyberpunk: t("themeStylePanel.presets.cyberpunk"),
+        gold: t("themeStylePanel.presets.gold"),
+        lavender: t("themeStylePanel.presets.lavender"),
+        pi: t("themeStylePanel.presets.pi"),
     };
 
     return (
@@ -30,9 +32,9 @@ function SampleThemeStylePanel() {
                     maxWidth: "560px",
                 }}
             >
-                <h2>主题风格面板示例</h2>
+                <h2>{t("themeStylePanel.title")}</h2>
                 <p style={{ color: "var(--text-secondary)" }}>
-                    当前风格：{presetNames[preset] || preset}。可配合右上角的明暗切换（各风格 × 浅色/深色）预览效果。
+                    {t("themeStylePanel.currentStyle", { style: presetNames[preset] || preset })}
                 </p>
                 <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
                     <ThemeToggle />
@@ -47,8 +49,8 @@ function SampleThemeStylePanel() {
                         backgroundColor: "var(--card-bg)",
                     }}
                 >
-                    <h3 style={{ marginBottom: "8px" }}>标题预览</h3>
-                    <p style={{ color: "var(--text-secondary)" }}>正文内容预览 — The quick brown fox jumps over the lazy dog.</p>
+                    <h3 style={{ marginBottom: "8px" }}>{t("themeStylePanel.titlePreview")}</h3>
+                    <p style={{ color: "var(--text-secondary)" }}>{t("themeStylePanel.bodyPreview")}</p>
                 </div>
             </div>
         </>

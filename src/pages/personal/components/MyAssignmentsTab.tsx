@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { FaArrowRight, FaCalendarAlt, FaCheckCircle, FaClipboardList, FaExclamationCircle, FaEye, FaSearch } from "react-icons/fa";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import Button from "@/components/button/Button";
 import CustomSelect from "@/components/customSelect/CustomSelect";
@@ -20,14 +21,16 @@ const STATUS_MAP: Record<number, AssignmentFilter> = {
     2: "closed",
 };
 
-const filterOptions: SelectOption[] = [
-    { id: "all", name: "全部任务", color: "#6b7280" },
-    { id: "open", name: "开启中", color: "#10b981" },
-    { id: "closed", name: "已关闭", color: "#ef4444" },
-];
-
 const MyAssignmentsTab: React.FC = () => {
+    const { t } = useTranslation("personal");
     const navigate = useNavigate();
+
+    const filterOptions: SelectOption[] = [
+        { id: "all", name: t("assignments.filterAll"), color: "#6b7280" },
+        { id: "open", name: t("assignments.statusOpen"), color: "#10b981" },
+        { id: "closed", name: t("assignments.statusClosed"), color: "#ef4444" },
+    ];
+
     const [searchTerm, setSearchTerm] = useState("");
     const [filter, setFilter] = useState<AssignmentFilter>("all");
     const [selectedFilter, setSelectedFilter] = useState<SelectOption | null>(filterOptions[0]);
@@ -71,12 +74,12 @@ const MyAssignmentsTab: React.FC = () => {
         return statusString === "closed" ? (
             <span className={`${styles.assignmentStatus} ${styles.assignmentStatusClosed}`}>
                 <FaExclamationCircle />
-                已关闭
+                {t("assignments.statusClosed")}
             </span>
         ) : (
             <span className={`${styles.assignmentStatus} ${styles.assignmentStatusOpen}`}>
                 <FaCheckCircle />
-                开启中
+                {t("assignments.statusOpen")}
             </span>
         );
     };
@@ -89,7 +92,7 @@ const MyAssignmentsTab: React.FC = () => {
     return (
         <div className={styles.contentSection}>
             <div className={styles.sectionHeader}>
-                <h2>我的任务</h2>
+                <h2>{t("assignments.title")}</h2>
             </div>
 
             <div className={styles.searchFilterBar}>
@@ -97,12 +100,12 @@ const MyAssignmentsTab: React.FC = () => {
                     value={searchTerm}
                     onChange={setSearchTerm}
                     prefix={<FaSearch />}
-                    placeholder="搜索任务名称、描述或科目..."
+                    placeholder={t("assignments.searchPlaceholder")}
                     allowClear
                     className={styles.assignmentSearchInput}
                 />
                 <CustomSelect
-                    name="任务状态"
+                    name={t("assignments.statusName")}
                     options={filterOptions}
                     value={selectedFilter}
                     onChange={handleFilterChange}
@@ -113,10 +116,10 @@ const MyAssignmentsTab: React.FC = () => {
 
             {error ? (
                 <ErrorState
-                    title="加载失败"
-                    message={error instanceof Error ? error.message : "获取任务列表失败"}
+                    title={t("assignments.loadFailed")}
+                    message={error instanceof Error ? error.message : t("assignments.loadFailedMessage")}
                     icon={<FaExclamationCircle />}
-                    actionText="重新加载"
+                    actionText={t("assignments.reload")}
                     onAction={reload}
                 />
             ) : loading ? (
@@ -139,8 +142,8 @@ const MyAssignmentsTab: React.FC = () => {
             ) : filteredAssignments.length === 0 ? (
                 <div className={styles.emptyState}>
                     <FaClipboardList className={styles.emptyIcon} />
-                    <h3>暂无任务</h3>
-                    <p>当前筛选条件下没有找到相关任务</p>
+                    <h3>{t("assignments.emptyTitle")}</h3>
+                    <p>{t("assignments.emptyDescription")}</p>
                 </div>
             ) : (
                 <div className={styles.assignmentsGrid}>
@@ -155,12 +158,12 @@ const MyAssignmentsTab: React.FC = () => {
                                 </div>
 
                                 <h3 className={styles.assignmentTitle}>{item.name}</h3>
-                                <p className={styles.assignmentDescription}>{item.description || "暂无任务说明"}</p>
+                                <p className={styles.assignmentDescription}>{item.description || t("assignments.noDescription")}</p>
 
                                 <div className={styles.assignmentMeta}>
                                     <span>
                                         <FaCalendarAlt />
-                                        截止 {formatDate(item.end_time)}
+                                        {t("assignments.deadline", { date: formatDate(item.end_time) })}
                                     </span>
                                     <span>{Math.round(item.file_size)} MB</span>
                                     <span>{item.file_type}</span>
@@ -175,7 +178,7 @@ const MyAssignmentsTab: React.FC = () => {
                                         onClick={() => navigate(`/assignment/submissions/${encodeId(item.id, "assignment")}`)}
                                     >
                                         <FaEye />
-                                        提交记录
+                                        {t("assignments.submissions")}
                                     </Button>
                                     <Button
                                         color={closed ? "secondary" : "primary"}
@@ -183,7 +186,7 @@ const MyAssignmentsTab: React.FC = () => {
                                         size="small"
                                         onClick={() => navigate(`/assignment/submit/${encodeId(item.id, "assignment")}`)}
                                     >
-                                        {closed ? "查看详情" : "去提交"}
+                                        {closed ? t("assignments.viewDetail") : t("assignments.goSubmit")}
                                         <FaArrowRight />
                                     </Button>
                                 </div>

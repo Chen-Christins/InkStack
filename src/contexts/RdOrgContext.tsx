@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useMemo, type ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "./AuthContext";
 import { useNavigate } from "react-router-dom";
 import { RdPlatformService } from "../services/RdPlatformService.ts";
@@ -42,6 +43,7 @@ export const useRdOrg = (): RdOrgContextType => {
 export const RdOrgProvider: React.FC<{ children: ReactNode; initialOrgId?: string }> = ({ children, initialOrgId = "" }) => {
     const { user, logout } = useAuth();
     const navigate = useNavigate();
+    const { t } = useTranslation("rd");
     const [orgs, setOrgs] = useState<RdOrgInfo[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedOrgId, setSelectedOrgId] = useState(initialOrgId);
@@ -123,7 +125,7 @@ export const RdOrgProvider: React.FC<{ children: ReactNode; initialOrgId?: strin
                     color: "var(--text-secondary)",
                 }}
             >
-                加载组织信息...
+                {t("orgGate.loading")}
             </div>
         );
     }
@@ -160,7 +162,7 @@ export const RdOrgProvider: React.FC<{ children: ReactNode; initialOrgId?: strin
                         color: "var(--text-primary)",
                     }}
                 >
-                    暂无组织
+                    {t("orgGate.noOrgTitle")}
                 </h1>
                 <p
                     style={{
@@ -172,9 +174,9 @@ export const RdOrgProvider: React.FC<{ children: ReactNode; initialOrgId?: strin
                         lineHeight: "1.6",
                     }}
                 >
-                    您还没有加入任何组织，请先加入或创建一个组织后再使用研发平台。
+                    {t("orgGate.noOrgLine1")}
                     <br />
-                    请前往组织页面查找并申请加入您所属的团队，或联系组织管理员为您开通权限。
+                    {t("orgGate.noOrgLine2")}
                 </p>
                 <div style={{ display: "flex", gap: "16px", flexWrap: "wrap", justifyContent: "center" }}>
                     <button
@@ -194,7 +196,7 @@ export const RdOrgProvider: React.FC<{ children: ReactNode; initialOrgId?: strin
                             gap: "8px",
                         }}
                     >
-                        <FaBuilding /> 加入组织
+                        <FaBuilding /> {t("orgGate.joinOrg")}
                     </button>
                     <button
                         onClick={() => navigate("/")}
@@ -212,7 +214,7 @@ export const RdOrgProvider: React.FC<{ children: ReactNode; initialOrgId?: strin
                             gap: "8px",
                         }}
                     >
-                        <FaHome /> 返回首页
+                        <FaHome /> {t("orgGate.backHome")}
                     </button>
                     <button
                         onClick={() => logout()}
@@ -227,7 +229,7 @@ export const RdOrgProvider: React.FC<{ children: ReactNode; initialOrgId?: strin
                             fontWeight: "500",
                         }}
                     >
-                        切换账号
+                        {t("orgGate.switchAccount")}
                     </button>
                 </div>
             </div>

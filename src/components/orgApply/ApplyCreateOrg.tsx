@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { FaBuilding, FaTimes } from "react-icons/fa";
 import styles from "./ApplyCreateOrg.module.css";
 import OrganizationService from "@/services/OrganizationService.ts";
@@ -10,12 +11,13 @@ interface ApplyCreateOrgProps {
 }
 
 const ApplyCreateOrg: React.FC<ApplyCreateOrgProps> = ({ visible, onClose }) => {
+    const { t } = useTranslation("components");
     const [formData, setFormData] = useState({ name: "", type: "", description: "" });
     const [submitting, setSubmitting] = useState(false);
 
     const handleSubmit = async () => {
         if (!formData.name.trim() || !formData.type.trim()) {
-            message.error("请填写组织名称和类型");
+            message.error(t("applyCreateOrg.message.nameTypeRequired"));
             return;
         }
         setSubmitting(true);
@@ -25,11 +27,11 @@ const ApplyCreateOrg: React.FC<ApplyCreateOrgProps> = ({ visible, onClose }) => 
                 type: formData.type.trim(),
                 description: formData.description.trim(),
             });
-            message.success("申请已提交，请等待管理员审核");
+            message.success(t("applyCreateOrg.message.submitSuccess"));
             setFormData({ name: "", type: "", description: "" });
             onClose();
         } catch (e: any) {
-            message.error(e.message || "提交失败，请重试");
+            message.error(e.message || t("applyCreateOrg.message.submitFailed"));
         } finally {
             setSubmitting(false);
         }
@@ -55,7 +57,7 @@ const ApplyCreateOrg: React.FC<ApplyCreateOrgProps> = ({ visible, onClose }) => 
             <div className={`${styles.panel} ${visible ? styles.panelOpen : ""}`}>
                 <div className={styles.panelHeader}>
                     <h3 className={styles.panelTitle}>
-                        <FaBuilding /> 申请创建组织
+                        <FaBuilding /> {t("applyCreateOrg.title")}
                     </h3>
                     <button className={styles.closeBtn} onClick={handleClose}>
                         <FaTimes />
@@ -63,35 +65,33 @@ const ApplyCreateOrg: React.FC<ApplyCreateOrgProps> = ({ visible, onClose }) => 
                 </div>
 
                 <div className={styles.panelBody}>
-                    <p className={styles.panelHint}>
-                        提交申请后，管理员将审核您的组织创建请求。审核通过后，您将自动成为该组织的管理员。
-                    </p>
+                    <p className={styles.panelHint}>{t("applyCreateOrg.hint")}</p>
 
                     <div className={styles.formGroup}>
-                        <label className={styles.formLabel}>组织名称 *</label>
+                        <label className={styles.formLabel}>{t("applyCreateOrg.nameLabel")}</label>
                         <input
                             className={styles.formInput}
-                            placeholder="请输入组织名称"
+                            placeholder={t("applyCreateOrg.namePlaceholder")}
                             value={formData.name}
                             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                         />
                     </div>
 
                     <div className={styles.formGroup}>
-                        <label className={styles.formLabel}>组织类型 *</label>
+                        <label className={styles.formLabel}>{t("applyCreateOrg.typeLabel")}</label>
                         <input
                             className={styles.formInput}
-                            placeholder="如：研发团队、设计团队、运营团队"
+                            placeholder={t("applyCreateOrg.typePlaceholder")}
                             value={formData.type}
                             onChange={(e) => setFormData({ ...formData, type: e.target.value })}
                         />
                     </div>
 
                     <div className={styles.formGroup}>
-                        <label className={styles.formLabel}>组织描述</label>
+                        <label className={styles.formLabel}>{t("applyCreateOrg.descriptionLabel")}</label>
                         <textarea
                             className={styles.formTextarea}
-                            placeholder="请简要描述组织的目标和方向..."
+                            placeholder={t("applyCreateOrg.descriptionPlaceholder")}
                             value={formData.description}
                             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                             rows={4}
@@ -101,10 +101,10 @@ const ApplyCreateOrg: React.FC<ApplyCreateOrgProps> = ({ visible, onClose }) => 
 
                 <div className={styles.panelFooter}>
                     <button className={styles.btnCancel} onClick={handleClose} disabled={submitting}>
-                        取消
+                        {t("applyCreateOrg.cancel")}
                     </button>
                     <button className={styles.btnSubmit} onClick={handleSubmit} disabled={submitting}>
-                        {submitting ? "提交中..." : "提交申请"}
+                        {submitting ? t("applyCreateOrg.submitting") : t("applyCreateOrg.submit")}
                     </button>
                 </div>
             </div>

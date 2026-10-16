@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import styles from "./Loading.module.css";
 
 interface LoadingProps {
@@ -7,7 +8,9 @@ interface LoadingProps {
     overlay?: boolean;
 }
 
-const Loading: React.FC<LoadingProps> = ({ size = "medium", text = "加载中...", overlay = false }) => {
+const Loading: React.FC<LoadingProps> = ({ size = "medium", text, overlay = false }) => {
+    const { t } = useTranslation("components");
+    const resolvedText = text ?? t("loading.defaultText");
     const content = (
         <div className={`${styles.loadingContainer} ${styles[size]}`}>
             <div className={styles.spinner}>
@@ -16,7 +19,7 @@ const Loading: React.FC<LoadingProps> = ({ size = "medium", text = "加载中...
                 <div className={styles.spinnerCircle}></div>
                 <div className={styles.spinnerCircle}></div>
             </div>
-            {text && <div className={styles.loadingText}>{text}</div>}
+            {resolvedText && <div className={styles.loadingText}>{resolvedText}</div>}
         </div>
     );
 

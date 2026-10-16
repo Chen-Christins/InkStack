@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
 import { tokenManager, type SessionInvalidReason } from "@/auth/TokenManager.ts";
+import i18n from "@/i18n";
 import message from "@/components/message/Message";
 
 /**
@@ -10,7 +11,7 @@ import message from "@/components/message/Message";
 const SessionNotifier: React.FC = () => {
     useEffect(() => {
         const handleInvalidated = (reason: SessionInvalidReason) => {
-            message.error(reason === "kicked" ? "账号已在其他设备登录，请重新登录" : "登录已过期，请重新登录");
+            message.error(reason === "kicked" ? i18n.t("auth:session.kicked") : i18n.t("auth:session.expired"));
         };
         tokenManager.addSessionInvalidatedListener(handleInvalidated);
         return () => {

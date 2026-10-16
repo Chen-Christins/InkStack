@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import styles from "./SearchBox.module.css";
 
 // 搜索图标组件
@@ -54,7 +55,7 @@ export interface SearchProps {
 const SearchBox: React.FC<SearchProps> = ({
     value,
     defaultValue = "",
-    placeholder = "请输入搜索内容...",
+    placeholder,
     buttonText = "",
     disabled = false,
     showClear = true,
@@ -69,6 +70,9 @@ const SearchBox: React.FC<SearchProps> = ({
     onBlur,
     onPressEnter,
 }) => {
+    const { t } = useTranslation("components");
+    const resolvedPlaceholder = placeholder ?? t("searchBox.placeholder");
+
     const [inputValue, setInputValue] = useState(value || defaultValue);
     const inputRef = useRef<HTMLInputElement>(null);
 
@@ -140,13 +144,13 @@ const SearchBox: React.FC<SearchProps> = ({
                 onKeyDown={handleKeyDown}
                 onFocus={onFocus}
                 onBlur={onBlur}
-                placeholder={placeholder}
+                placeholder={resolvedPlaceholder}
                 disabled={disabled}
                 className={styles.searchInput}
             />
 
             {showClear && inputValue && !disabled && (
-                <button type="button" className={styles.clearButton} onClick={handleClear} aria-label="清除搜索内容">
+                <button type="button" className={styles.clearButton} onClick={handleClear} aria-label={t("searchBox.clear")}>
                     <ClearIcon />
                 </button>
             )}

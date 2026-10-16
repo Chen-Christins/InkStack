@@ -22,7 +22,9 @@ import {
     FaPlus,
 } from "react-icons/fa";
 import type { Member, Task, OrganizationDetail } from "@/types/Organization.ts";
-import { OrgRole, OrgRoleLabel, canManageOrg } from "@/types/Roles.ts";
+import { OrgRole, canManageOrg } from "@/types/Roles.ts";
+import { useEnumLabels } from "@/i18n/UseEnumLabels";
+import { useTranslation } from "react-i18next";
 import Avatar from "../avatar/Avatar";
 import styles from "./Organization.module.css";
 import Modal from "../modal/Modal";
@@ -148,21 +150,23 @@ const OrganizationTabs: React.FC<OrganizationTabsProps> = ({
     canManageTask,
     onReposChange,
 }) => {
+    const enums = useEnumLabels();
+    const { t } = useTranslation("organization");
     // 仓库添加相关状态
     const [repoModalVisible, setRepoModalVisible] = React.useState(false);
     const [repoForm, setRepoForm] = React.useState({ name: "", url: "", token: "" });
 
     const handleAddRepo = async () => {
         if (!repoForm.name.trim()) {
-            message.warn("请输入仓库名称");
+            message.warn(t("tabs.message.repoNameRequired"));
             return;
         }
         if (!repoForm.url.trim()) {
-            message.warn("请输入仓库地址");
+            message.warn(t("tabs.message.repoUrlRequired"));
             return;
         }
         if (!repoForm.url.trim().startsWith("https://github.com/")) {
-            message.warn("暂仅支持 GitHub 仓库（https://github.com/...）");
+            message.warn(t("tabs.message.repoGithubOnly"));
             return;
         }
         try {
@@ -174,10 +178,10 @@ const OrganizationTabs: React.FC<OrganizationTabsProps> = ({
             });
             setRepoForm({ name: "", url: "", token: "" });
             setRepoModalVisible(false);
-            message.success("仓库添加成功");
+            message.success(t("tabs.message.repoAddSuccess"));
             onReposChange?.(1);
         } catch {
-            message.error("添加仓库失败");
+            message.error(t("tabs.message.repoAddFailed"));
         }
     };
 
@@ -190,14 +194,14 @@ const OrganizationTabs: React.FC<OrganizationTabsProps> = ({
                         className={`${styles.tabButton} ${!showPendingRequests && !showTasks && !showRepos ? styles.activeTab : ""}`}
                         onClick={() => onTabChange(false, false, false)}
                     >
-                        成员列表
+                        {t("tabs.tabs.members")}
                     </button>
                     {canManageOrg(userRole, currentUser?.role) && (
                         <button
                             className={`${styles.tabButton} ${showPendingRequests ? styles.activeTab : ""}`}
                             onClick={() => onTabChange(true, false)}
                         >
-                            待处理请求
+                            {t("tabs.tabs.pending")}
                         </button>
                     )}
                     {canManageOrg(userRole, currentUser?.role) && (
@@ -205,7 +209,7 @@ const OrganizationTabs: React.FC<OrganizationTabsProps> = ({
                             className={`${styles.tabButton} ${showTasks ? styles.activeTab : ""}`}
                             onClick={() => onTabChange(false, true)}
                         >
-                            任务列表
+                            {t("tabs.tabs.tasks")}
                         </button>
                     )}
                     {userRole != null && (
@@ -213,61 +217,65 @@ const OrganizationTabs: React.FC<OrganizationTabsProps> = ({
                             className={`${styles.tabButton} ${showRepos ? styles.activeTab : ""}`}
                             onClick={() => onTabChange(false, false, true)}
                         >
-                            仓库列表
+                            {t("tabs.tabs.repos")}
                         </button>
                     )}
                 </div>
                 <div className={styles.tabsActions}>
                     {!showPendingRequests && !showTasks && !showRepos && (
                         <>
-                            <span className={styles.tabsCount}>共 {membersTotal} 个成员</span>
+                            <span className={styles.tabsCount}>{t("tabs.members.count", { total: membersTotal })}</span>
                             <button
                                 className={`${styles.refreshButton} ${isRefreshing ? styles.loading : ""}`}
-                                title="刷新成员列表"
+                                title={t("tabs.members.refreshTitle")}
                                 onClick={onRefreshMembers}
                                 disabled={isRefreshing}
                             >
                                 <span className={styles.refreshIcon}>
                                     <FaSync />
                                 </span>
-                                刷新
+                                {t("tabs.actions.refresh")}
                             </button>
                         </>
                     )}
                     {showPendingRequests && canManageOrg(userRole, currentUser?.role) && (
                         <>
-                            <span className={styles.tabsCount}>共 {pendingRequests.length} 个请求</span>
+                            <span className={styles.tabsCount}>{t("tabs.pending.count", { total: pendingRequests.length })}</span>
                             <button
                                 className={`${styles.refreshButton} ${pendingRequestsLoading ? styles.loading : ""}`}
-                                title="刷新待处理请求"
+                                title={t("tabs.pending.refreshTitle")}
                                 onClick={onRefreshPending}
                                 disabled={pendingRequestsLoading}
                             >
                                 <span className={styles.refreshIcon}>
                                     <FaSync />
                                 </span>
-                                刷新
+                                {t("tabs.actions.refresh")}
                             </button>
                         </>
                     )}
                     {showTasks && canManageOrg(userRole, currentUser?.role) && (
                         <>
-                            <button className={styles.refreshButton} onClick={() => onRefreshTasks()} title="刷新任务列表">
+                            <button
+                                className={styles.refreshButton}
+                                onClick={() => onRefreshTasks()}
+                                title={t("tabs.tasks.refreshTitle")}
+                            >
                                 <span className={styles.refreshIcon}>
                                     <FaSync />
                                 </span>
-                                刷新
+                                {t("tabs.actions.refresh")}
                             </button>
                             <button className={styles.createButton} onClick={onCreateTask}>
                                 <FaPlus />
-                                创建任务
+                                {t("tabs.tasks.create")}
                             </button>
                         </>
                     )}
                     {showRepos && userRole != null && (
                         <button className={styles.createButton} onClick={() => setRepoModalVisible(true)}>
                             <FaPlus />
-                            添加仓库
+                            {t("tabs.repos.add")}
                         </button>
                     )}
                 </div>
@@ -284,11 +292,11 @@ const OrganizationTabs: React.FC<OrganizationTabsProps> = ({
                         <table className={styles.usersTable}>
                             <thead>
                                 <tr>
-                                    <th>用户信息</th>
-                                    <th>角色</th>
-                                    <th>状态</th>
-                                    <th>加入时间</th>
-                                    <th>操作</th>
+                                    <th>{t("tabs.members.colUser")}</th>
+                                    <th>{t("tabs.members.colRole")}</th>
+                                    <th>{t("tabs.members.colStatus")}</th>
+                                    <th>{t("tabs.members.colJoinTime")}</th>
+                                    <th>{t("tabs.members.colActions")}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -309,7 +317,7 @@ const OrganizationTabs: React.FC<OrganizationTabsProps> = ({
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td data-label="角色">
+                                            <td data-label={t("tabs.members.colRole")}>
                                                 <span
                                                     className={`${styles.roleBadge} ${member.role === OrgRole.ORG_ADMIN ? styles.admin : member.role === OrgRole.DEV_LEAD ? styles.moderator : styles.user}`}
                                                 >
@@ -328,23 +336,25 @@ const OrganizationTabs: React.FC<OrganizationTabsProps> = ({
                                                     {member.role === OrgRole.MEMBER && (
                                                         <FaUser style={{ color: "#2196f3", marginRight: 4 }} />
                                                     )}
-                                                    {OrgRoleLabel[member.role || OrgRole.MEMBER]}
+                                                    {enums.orgRole[member.role || OrgRole.MEMBER]}
                                                 </span>
                                             </td>
-                                            <td data-label="状态">
+                                            <td data-label={t("tabs.members.colStatus")}>
                                                 <span
                                                     className={`${styles.statusBadge} ${member.status === "active" ? styles.active : styles.inactive}`}
                                                 >
                                                     <span className={styles.statusIndicator}></span>
-                                                    {member.status === "active" ? "活跃" : "非活跃"}
+                                                    {member.status === "active"
+                                                        ? t("tabs.members.statusActive")
+                                                        : t("tabs.members.statusInactive")}
                                                 </span>
                                             </td>
-                                            <td data-label="加入时间">{member.joinTime || "-"}</td>
-                                            <td data-label="操作">
+                                            <td data-label={t("tabs.members.colJoinTime")}>{member.joinTime || "-"}</td>
+                                            <td data-label={t("tabs.members.colActions")}>
                                                 <div className={styles.actionButtons}>
                                                     <button
                                                         className={`${styles.actionButton} ${styles.viewButton}`}
-                                                        title="查看详情"
+                                                        title={t("tabs.members.viewTitle")}
                                                         onClick={() => onViewMember(member)}
                                                     >
                                                         <FaEye />
@@ -353,7 +363,7 @@ const OrganizationTabs: React.FC<OrganizationTabsProps> = ({
                                                         <>
                                                             <button
                                                                 className={`${styles.actionButton} ${styles.kickButton}`}
-                                                                title="踢出组织"
+                                                                title={t("tabs.members.kickTitle")}
                                                                 onClick={() => onKickMember(member)}
                                                             >
                                                                 <FaUserMinus />
@@ -361,7 +371,7 @@ const OrganizationTabs: React.FC<OrganizationTabsProps> = ({
                                                             {canSetRole(member) && (
                                                                 <button
                                                                     className={`${styles.actionButton} ${styles.roleButton}`}
-                                                                    title="设置角色"
+                                                                    title={t("tabs.members.setRoleTitle")}
                                                                     onClick={() => onSetMemberRole(member)}
                                                                 >
                                                                     <FaCog />
@@ -378,8 +388,8 @@ const OrganizationTabs: React.FC<OrganizationTabsProps> = ({
                                         <td colSpan={5} style={{ padding: 0 }}>
                                             <div className={styles.emptyState}>
                                                 <FaUser className={styles.emptyIcon} />
-                                                <h3 className={styles.emptyTitle}>暂无成员</h3>
-                                                <p className={styles.emptySubtext}>该组织还没有成员加入</p>
+                                                <h3 className={styles.emptyTitle}>{t("tabs.members.emptyTitle")}</h3>
+                                                <p className={styles.emptySubtext}>{t("tabs.members.emptySubtext")}</p>
                                             </div>
                                         </td>
                                     </tr>
@@ -391,8 +401,11 @@ const OrganizationTabs: React.FC<OrganizationTabsProps> = ({
                     {membersTotal > 0 && (
                         <div className={styles.pagination}>
                             <div className={styles.paginationInfo}>
-                                显示 {(page - 1) * PAGE_SIZE + 1} - {Math.min(page * PAGE_SIZE, membersTotal)} 条， 共 {membersTotal}{" "}
-                                条记录
+                                {t("tabs.pagination.info", {
+                                    start: (page - 1) * PAGE_SIZE + 1,
+                                    end: Math.min(page * PAGE_SIZE, membersTotal),
+                                    total: membersTotal,
+                                })}
                             </div>
                             <div className={styles.paginationControls}>
                                 <button
@@ -400,7 +413,7 @@ const OrganizationTabs: React.FC<OrganizationTabsProps> = ({
                                     disabled={page === 1}
                                     onClick={() => onPageChange(page - 1)}
                                 >
-                                    上一页
+                                    {t("tabs.pagination.prev")}
                                 </button>
                                 {Array.from({ length: Math.ceil(membersTotal / PAGE_SIZE) }, (_, i) => (
                                     <button
@@ -416,7 +429,7 @@ const OrganizationTabs: React.FC<OrganizationTabsProps> = ({
                                     disabled={page === Math.ceil(membersTotal / PAGE_SIZE)}
                                     onClick={() => onPageChange(page + 1)}
                                 >
-                                    下一页
+                                    {t("tabs.pagination.next")}
                                 </button>
                             </div>
                         </div>
@@ -435,9 +448,9 @@ const OrganizationTabs: React.FC<OrganizationTabsProps> = ({
                         <table className={styles.usersTable}>
                             <thead>
                                 <tr>
-                                    <th>用户信息</th>
-                                    <th>申请时间</th>
-                                    <th>操作</th>
+                                    <th>{t("tabs.pending.colUser")}</th>
+                                    <th>{t("tabs.pending.colApplyTime")}</th>
+                                    <th>{t("tabs.pending.colActions")}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -458,19 +471,19 @@ const OrganizationTabs: React.FC<OrganizationTabsProps> = ({
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td data-label="申请时间">{request.joinTime || "-"}</td>
-                                            <td data-label="操作">
+                                            <td data-label={t("tabs.pending.colApplyTime")}>{request.joinTime || "-"}</td>
+                                            <td data-label={t("tabs.pending.colActions")}>
                                                 <div className={styles.actionButtons}>
                                                     <button
                                                         className={`${styles.actionButton} ${styles.acceptButton}`}
-                                                        title="接受"
+                                                        title={t("tabs.pending.acceptTitle")}
                                                         onClick={() => onActionPendingRequest(request.id, "accept")}
                                                     >
                                                         <FaCheck />
                                                     </button>
                                                     <button
                                                         className={`${styles.actionButton} ${styles.rejectButton}`}
-                                                        title="拒绝"
+                                                        title={t("tabs.pending.rejectTitle")}
                                                         onClick={() => onActionPendingRequest(request.id, "reject")}
                                                     >
                                                         <FaTimes />
@@ -484,8 +497,8 @@ const OrganizationTabs: React.FC<OrganizationTabsProps> = ({
                                         <td colSpan={3} style={{ padding: 0 }}>
                                             <div className={styles.emptyState}>
                                                 <FaHourglassHalf className={styles.emptyIcon} />
-                                                <h3 className={styles.emptyTitle}>暂无待处理请求</h3>
-                                                <p className={styles.emptySubtext}>所有申请已处理完毕</p>
+                                                <h3 className={styles.emptyTitle}>{t("tabs.pending.emptyTitle")}</h3>
+                                                <p className={styles.emptySubtext}>{t("tabs.pending.emptySubtext")}</p>
                                             </div>
                                         </td>
                                     </tr>
@@ -497,8 +510,11 @@ const OrganizationTabs: React.FC<OrganizationTabsProps> = ({
                     {pendingRequestsTotal > 0 && (
                         <div className={styles.pagination}>
                             <div className={styles.paginationInfo}>
-                                显示 {(pendingRequestsPage - 1) * PAGE_SIZE + 1} -{" "}
-                                {Math.min(pendingRequestsPage * PAGE_SIZE, pendingRequestsTotal)} 条， 共 {pendingRequestsTotal} 条记录
+                                {t("tabs.pagination.info", {
+                                    start: (pendingRequestsPage - 1) * PAGE_SIZE + 1,
+                                    end: Math.min(pendingRequestsPage * PAGE_SIZE, pendingRequestsTotal),
+                                    total: pendingRequestsTotal,
+                                })}
                             </div>
                             <div className={styles.paginationControls}>
                                 <button
@@ -506,7 +522,7 @@ const OrganizationTabs: React.FC<OrganizationTabsProps> = ({
                                     disabled={pendingRequestsPage === 1}
                                     onClick={() => onPendingPageChange(pendingRequestsPage - 1)}
                                 >
-                                    上一页
+                                    {t("tabs.pagination.prev")}
                                 </button>
                                 {Array.from({ length: Math.ceil(pendingRequestsTotal / PAGE_SIZE) }, (_, i) => (
                                     <button
@@ -522,7 +538,7 @@ const OrganizationTabs: React.FC<OrganizationTabsProps> = ({
                                     disabled={pendingRequestsPage === Math.ceil(pendingRequestsTotal / PAGE_SIZE)}
                                     onClick={() => onPendingPageChange(pendingRequestsPage + 1)}
                                 >
-                                    下一页
+                                    {t("tabs.pagination.next")}
                                 </button>
                             </div>
                         </div>
@@ -540,23 +556,23 @@ const OrganizationTabs: React.FC<OrganizationTabsProps> = ({
                     ) : tasks.length === 0 ? (
                         <div className={styles.emptyState}>
                             <FaTasks className={styles.emptyIcon} />
-                            <h3 className={styles.emptyTitle}>暂无任务</h3>
+                            <h3 className={styles.emptyTitle}>{t("tabs.tasks.emptyTitle")}</h3>
                             <p className={styles.emptySubtext}>
                                 {canManageOrg(userRole, currentUser?.role)
-                                    ? '点击"创建任务"按钮来创建第一个任务'
-                                    : "当前组织还没有发布任何任务"}
+                                    ? t("tabs.tasks.emptyManageHint")
+                                    : t("tabs.tasks.emptySubtext")}
                             </p>
                         </div>
                     ) : (
                         <table className={styles.usersTable}>
                             <thead>
                                 <tr>
-                                    <th style={{ textAlign: "left" }}>任务信息</th>
-                                    <th>优先级</th>
-                                    <th>负责人</th>
-                                    <th>截止时间</th>
-                                    <th>状态</th>
-                                    <th>操作</th>
+                                    <th style={{ textAlign: "left" }}>{t("tabs.tasks.colTask")}</th>
+                                    <th>{t("tabs.tasks.colPriority")}</th>
+                                    <th>{t("tabs.tasks.colAssignee")}</th>
+                                    <th>{t("tabs.tasks.colDueDate")}</th>
+                                    <th>{t("tabs.tasks.colStatus")}</th>
+                                    <th>{t("tabs.tasks.colActions")}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -595,16 +611,16 @@ const OrganizationTabs: React.FC<OrganizationTabsProps> = ({
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td data-label="优先级" style={{ textAlign: "center" }}>
+                                            <td data-label={t("tabs.tasks.colPriority")} style={{ textAlign: "center" }}>
                                                 <span className={`${styles.priorityBadge} ${styles[task.priority]}`}>
                                                     <FaFlag />
-                                                    {task.priority === "low" && "低"}
-                                                    {task.priority === "medium" && "中"}
-                                                    {task.priority === "high" && "高"}
-                                                    {task.priority === "urgent" && "紧急"}
+                                                    {task.priority === "low" && t("tabs.tasks.priorityLow")}
+                                                    {task.priority === "medium" && t("tabs.tasks.priorityMedium")}
+                                                    {task.priority === "high" && t("tabs.tasks.priorityHigh")}
+                                                    {task.priority === "urgent" && t("tabs.tasks.priorityUrgent")}
                                                 </span>
                                             </td>
-                                            <td data-label="负责人" style={{ textAlign: "center" }}>
+                                            <td data-label={t("tabs.tasks.colAssignee")} style={{ textAlign: "center" }}>
                                                 {task.assignee_name || (
                                                     <span
                                                         style={{
@@ -612,11 +628,11 @@ const OrganizationTabs: React.FC<OrganizationTabsProps> = ({
                                                             fontStyle: "italic",
                                                         }}
                                                     >
-                                                        未分配
+                                                        {t("tabs.tasks.unassigned")}
                                                     </span>
                                                 )}
                                             </td>
-                                            <td data-label="截止时间" style={{ textAlign: "center" }}>
+                                            <td data-label={t("tabs.tasks.colDueDate")} style={{ textAlign: "center" }}>
                                                 {task.due_date ? (
                                                     <span
                                                         style={{
@@ -637,25 +653,25 @@ const OrganizationTabs: React.FC<OrganizationTabsProps> = ({
                                                             fontStyle: "italic",
                                                         }}
                                                     >
-                                                        无截止日期
+                                                        {t("tabs.tasks.noDueDate")}
                                                     </span>
                                                 )}
                                             </td>
-                                            <td data-label="状态" style={{ textAlign: "center" }}>
+                                            <td data-label={t("tabs.tasks.colStatus")} style={{ textAlign: "center" }}>
                                                 <span className={`${styles.statusBadge} ${styles[task.status]}`}>
                                                     {task.status === "draft" && <FaHourglassHalf />}
-                                                    {task.status === "draft" && "草稿"}
+                                                    {task.status === "draft" && t("tabs.tasks.statusDraft")}
                                                     {task.status === "active" && <FaPlayCircle />}
-                                                    {task.status === "active" && "进行中"}
+                                                    {task.status === "active" && t("tabs.tasks.statusActive")}
                                                     {task.status === "closed" && <FaStopCircle />}
-                                                    {task.status === "closed" && "已关闭"}
+                                                    {task.status === "closed" && t("tabs.tasks.statusClosed")}
                                                 </span>
                                             </td>
-                                            <td data-label="操作" style={{ textAlign: "center" }}>
+                                            <td data-label={t("tabs.tasks.colActions")} style={{ textAlign: "center" }}>
                                                 <div className={styles.actionButtons} style={{ justifyContent: "center" }}>
                                                     <button
                                                         className={styles.actionButton}
-                                                        title="查看详情"
+                                                        title={t("tabs.tasks.viewTitle")}
                                                         onClick={() => onViewTask(task)}
                                                     >
                                                         <FaEye />
@@ -664,14 +680,14 @@ const OrganizationTabs: React.FC<OrganizationTabsProps> = ({
                                                         <>
                                                             <button
                                                                 className={styles.actionButton}
-                                                                title="编辑任务"
+                                                                title={t("tabs.tasks.editTitle")}
                                                                 onClick={() => onEditTask(task)}
                                                             >
                                                                 <FaEdit />
                                                             </button>
                                                             <button
                                                                 className={`${styles.actionButton} ${styles.rejectButton}`}
-                                                                title="删除任务"
+                                                                title={t("tabs.tasks.deleteTitle")}
                                                                 onClick={() => onDeleteTask(task)}
                                                             >
                                                                 <FaTrash />
@@ -687,7 +703,7 @@ const OrganizationTabs: React.FC<OrganizationTabsProps> = ({
                                         <td colSpan={5} style={{ padding: 0 }}>
                                             <div className={styles.emptyState}>
                                                 <FaTasks className={styles.emptyIcon} />
-                                                <h3 className={styles.emptyTitle}>暂无任务</h3>
+                                                <h3 className={styles.emptyTitle}>{t("tabs.tasks.emptyTitle")}</h3>
                                             </div>
                                         </td>
                                     </tr>
@@ -699,8 +715,11 @@ const OrganizationTabs: React.FC<OrganizationTabsProps> = ({
                     {tasksTotal > 0 && (
                         <div className={styles.pagination}>
                             <div className={styles.paginationInfo}>
-                                显示 {(tasksPage - 1) * TASKS_PAGE_SIZE + 1} - {Math.min(tasksPage * TASKS_PAGE_SIZE, tasksTotal)} 条，
-                                共 {tasksTotal} 条记录
+                                {t("tabs.pagination.info", {
+                                    start: (tasksPage - 1) * TASKS_PAGE_SIZE + 1,
+                                    end: Math.min(tasksPage * TASKS_PAGE_SIZE, tasksTotal),
+                                    total: tasksTotal,
+                                })}
                             </div>
                             <div className={styles.paginationControls}>
                                 <button
@@ -708,7 +727,7 @@ const OrganizationTabs: React.FC<OrganizationTabsProps> = ({
                                     disabled={tasksPage === 1}
                                     onClick={() => onTasksPageChange(tasksPage - 1)}
                                 >
-                                    上一页
+                                    {t("tabs.pagination.prev")}
                                 </button>
                                 {Array.from({ length: Math.ceil(tasksTotal / TASKS_PAGE_SIZE) }, (_, i) => (
                                     <button
@@ -724,7 +743,7 @@ const OrganizationTabs: React.FC<OrganizationTabsProps> = ({
                                     disabled={tasksPage === Math.ceil(tasksTotal / TASKS_PAGE_SIZE)}
                                     onClick={() => onTasksPageChange(tasksPage + 1)}
                                 >
-                                    下一页
+                                    {t("tabs.pagination.next")}
                                 </button>
                             </div>
                         </div>
@@ -744,15 +763,15 @@ const OrganizationTabs: React.FC<OrganizationTabsProps> = ({
             {/* Role Selection Modal */}
             <Modal
                 visible={roleModalVisible}
-                title={`设置 ${selectedMember?.name} 的角色`}
+                title={t("tabs.roleModal.title", { name: selectedMember?.name ?? "" })}
                 onClose={onRoleModalClose}
                 footer={
                     <div style={{ display: "flex", gap: "12px", justifyContent: "flex-end" }}>
                         <button onClick={onRoleModalClose} className={styles.cancelButton}>
-                            取消
+                            {t("tabs.roleModal.cancel")}
                         </button>
                         <button onClick={onConfirmRole} className={styles.confirmButton}>
-                            确认
+                            {t("tabs.roleModal.confirm")}
                         </button>
                     </div>
                 }
@@ -760,7 +779,9 @@ const OrganizationTabs: React.FC<OrganizationTabsProps> = ({
                 size="small"
             >
                 <div className={styles.roleSelectionContainer}>
-                    <p className={styles.roleSelectionDescription}>请为 {selectedMember?.name} 选择合适的角色</p>
+                    <p className={styles.roleSelectionDescription}>
+                        {t("tabs.roleModal.description", { name: selectedMember?.name ?? "" })}
+                    </p>
                     <div className={styles.roleOptions}>
                         {getAvailableRoleOptions().map((role) => (
                             <label
@@ -794,78 +815,82 @@ const OrganizationTabs: React.FC<OrganizationTabsProps> = ({
             {/* 预览模态框 */}
             <Modal
                 visible={taskPreviewModalVisible}
-                title="任务详情预览"
+                title={t("tabs.taskModal.title")}
                 onClose={onTaskPreviewModalClose}
                 width={600}
                 footer={
                     <button className={`${styles.btn} ${styles.btnPrimary}`} onClick={onTaskPreviewModalClose}>
-                        关闭
+                        {t("tabs.taskModal.close")}
                     </button>
                 }
             >
                 {selectedTask ? (
                     <div>
                         <div className={styles.detailGroup}>
-                            <div className={styles.detailLabel}>任务标题</div>
+                            <div className={styles.detailLabel}>{t("tabs.taskModal.taskTitle")}</div>
                             <div className={styles.detailValue} style={{ fontSize: "18px", fontWeight: 600 }}>
                                 {selectedTask.title}
                             </div>
                         </div>
                         <div className={styles.detailRow}>
                             <div className={styles.detailGroup}>
-                                <div className={styles.detailLabel}>优先级</div>
+                                <div className={styles.detailLabel}>{t("tabs.taskModal.priority")}</div>
                                 <div className={styles.detailValue}>
                                     <span className={`${styles.priorityBadge} ${styles[selectedTask.priority]}`}>
                                         <FaFlag />
-                                        {selectedTask.priority === "low" && "低"}
-                                        {selectedTask.priority === "medium" && "中"}
-                                        {selectedTask.priority === "high" && "高"}
-                                        {selectedTask.priority === "urgent" && "紧急"}
+                                        {selectedTask.priority === "low" && t("tabs.tasks.priorityLow")}
+                                        {selectedTask.priority === "medium" && t("tabs.tasks.priorityMedium")}
+                                        {selectedTask.priority === "high" && t("tabs.tasks.priorityHigh")}
+                                        {selectedTask.priority === "urgent" && t("tabs.tasks.priorityUrgent")}
                                     </span>
                                 </div>
                             </div>
                             <div className={styles.detailGroup}>
-                                <div className={styles.detailLabel}>当前状态</div>
+                                <div className={styles.detailLabel}>{t("tabs.taskModal.currentStatus")}</div>
                                 <div className={styles.detailValue}>
                                     <span className={`${styles.statusBadge} ${statusClassMap[selectedTask.status] || ""}`}>
                                         {selectedTask.status === "draft" && <FaHourglassHalf />}
-                                        {selectedTask.status === "draft" && "草稿"}
+                                        {selectedTask.status === "draft" && t("tabs.tasks.statusDraft")}
                                         {selectedTask.status === "active" && <FaPlayCircle />}
-                                        {selectedTask.status === "active" && "进行中"}
+                                        {selectedTask.status === "active" && t("tabs.tasks.statusActive")}
                                         {selectedTask.status === "closed" && <FaStopCircle />}
-                                        {selectedTask.status === "closed" && "已关闭"}
+                                        {selectedTask.status === "closed" && t("tabs.tasks.statusClosed")}
                                     </span>
                                 </div>
                             </div>
                         </div>
                         <div className={styles.detailRow}>
                             <div className={styles.detailGroup}>
-                                <div className={styles.detailLabel}>负责人</div>
+                                <div className={styles.detailLabel}>{t("tabs.taskModal.assignee")}</div>
                                 <div className={styles.detailValue}>
-                                    {selectedTask.assignee_name || selectedTask.assignee || "未分配"}
+                                    {selectedTask.assignee_name || selectedTask.assignee || t("tabs.taskModal.unassigned")}
                                 </div>
                             </div>
                             <div className={styles.detailGroup}>
-                                <div className={styles.detailLabel}>截止时间</div>
+                                <div className={styles.detailLabel}>{t("tabs.taskModal.dueDate")}</div>
                                 <div className={styles.detailValue}>
-                                    {selectedTask.due_date ? new Date(selectedTask.due_date).toLocaleString() : "无截止日期"}
+                                    {selectedTask.due_date
+                                        ? new Date(selectedTask.due_date).toLocaleString()
+                                        : t("tabs.taskModal.noDueDate")}
                                 </div>
                             </div>
                         </div>
                         <div className={styles.detailRow}>
                             <div className={styles.detailGroup}>
-                                <div className={styles.detailLabel}>文件大小限制</div>
+                                <div className={styles.detailLabel}>{t("tabs.taskModal.maxFileSize")}</div>
                                 <div className={styles.detailValue}>
-                                    {selectedTask.maxFileSize ? `${selectedTask.maxFileSize} MB` : "未设置"}
+                                    {selectedTask.maxFileSize ? `${selectedTask.maxFileSize} MB` : t("tabs.taskModal.notSet")}
                                 </div>
                             </div>
                             <div className={styles.detailGroup}>
-                                <div className={styles.detailLabel}>允许文件格式</div>
-                                <div className={styles.detailValue}>{selectedTask.allowedTypes?.join(", ") || "不限"}</div>
+                                <div className={styles.detailLabel}>{t("tabs.taskModal.allowedTypes")}</div>
+                                <div className={styles.detailValue}>
+                                    {selectedTask.allowedTypes?.join(", ") || t("tabs.taskModal.unlimited")}
+                                </div>
                             </div>
                         </div>
                         <div className={styles.detailGroup}>
-                            <div className={styles.detailLabel}>任务描述</div>
+                            <div className={styles.detailLabel}>{t("tabs.taskModal.description")}</div>
                             <div
                                 className={styles.detailValue}
                                 style={{
@@ -875,7 +900,7 @@ const OrganizationTabs: React.FC<OrganizationTabsProps> = ({
                                     minHeight: "80px",
                                 }}
                             >
-                                {selectedTask.description || "暂无描述"}
+                                {selectedTask.description || t("tabs.taskModal.noDescription")}
                             </div>
                         </div>
                     </div>
@@ -887,7 +912,7 @@ const OrganizationTabs: React.FC<OrganizationTabsProps> = ({
                             padding: "40px",
                         }}
                     >
-                        未选择任务
+                        {t("tabs.taskModal.notSelected")}
                     </div>
                 )}
             </Modal>
@@ -895,12 +920,12 @@ const OrganizationTabs: React.FC<OrganizationTabsProps> = ({
             {/* 成员预览模态框 */}
             <Modal
                 visible={memberPreviewModalVisible}
-                title="成员详情预览"
+                title={t("tabs.memberModal.title")}
                 onClose={onMemberPreviewModalClose}
                 width={420}
                 footer={
                     <button className={`${styles.btn} ${styles.btnPrimary}`} onClick={onMemberPreviewModalClose}>
-                        关闭
+                        {t("tabs.memberModal.close")}
                     </button>
                 }
             >
@@ -919,7 +944,7 @@ const OrganizationTabs: React.FC<OrganizationTabsProps> = ({
                         </div>
                         <div className={styles.detailRow}>
                             <div className={styles.detailGroup}>
-                                <div className={styles.detailLabel}>角色</div>
+                                <div className={styles.detailLabel}>{t("tabs.memberModal.role")}</div>
                                 <div className={styles.detailValue}>
                                     <span
                                         className={`${styles.roleBadge} ${
@@ -945,24 +970,26 @@ const OrganizationTabs: React.FC<OrganizationTabsProps> = ({
                                         {selectedMember.role === OrgRole.MEMBER && (
                                             <FaUser style={{ color: "#2196f3", marginRight: 4 }} />
                                         )}
-                                        {OrgRoleLabel[selectedMember.role || OrgRole.MEMBER]}
+                                        {enums.orgRole[selectedMember.role || OrgRole.MEMBER]}
                                     </span>
                                 </div>
                             </div>
                             <div className={styles.detailGroup}>
-                                <div className={styles.detailLabel}>状态</div>
+                                <div className={styles.detailLabel}>{t("tabs.memberModal.status")}</div>
                                 <div className={styles.detailValue}>
                                     <span
                                         className={`${styles.statusBadge} ${selectedMember.status === "active" ? styles.active : styles.inactive}`}
                                     >
                                         <span className={styles.statusIndicator}></span>
-                                        {selectedMember.status === "active" ? "活跃" : "非活跃"}
+                                        {selectedMember.status === "active"
+                                            ? t("tabs.memberModal.statusActive")
+                                            : t("tabs.memberModal.statusInactive")}
                                     </span>
                                 </div>
                             </div>
                         </div>
                         <div className={styles.detailGroup}>
-                            <div className={styles.detailLabel}>加入时间</div>
+                            <div className={styles.detailLabel}>{t("tabs.memberModal.joinTime")}</div>
                             <div className={styles.detailValue}>{selectedMember.joinTime || "-"}</div>
                         </div>
                     </div>
@@ -974,7 +1001,7 @@ const OrganizationTabs: React.FC<OrganizationTabsProps> = ({
                             padding: "40px",
                         }}
                     >
-                        未选择成员
+                        {t("tabs.memberModal.notSelected")}
                     </div>
                 )}
             </Modal>
@@ -982,44 +1009,44 @@ const OrganizationTabs: React.FC<OrganizationTabsProps> = ({
             {/* 添加仓库 Modal */}
             <Modal
                 visible={repoModalVisible}
-                title="添加仓库"
+                title={t("tabs.repos.modalTitle")}
                 onClose={() => setRepoModalVisible(false)}
                 width={520}
                 footer={
                     <div style={{ display: "flex", gap: "12px", justifyContent: "flex-end" }}>
                         <button className={styles.cancelButton} onClick={() => setRepoModalVisible(false)}>
-                            取消
+                            {t("tabs.repos.cancel")}
                         </button>
                         <button className={styles.confirmButton} onClick={handleAddRepo}>
-                            添加
+                            {t("tabs.repos.confirm")}
                         </button>
                     </div>
                 }
             >
                 <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
                     <div>
-                        <label className={styles.formLabel}>仓库名称 *</label>
+                        <label className={styles.formLabel}>{t("tabs.repos.nameLabel")}</label>
                         <Input
-                            placeholder="如 frontend-web"
+                            placeholder={t("tabs.repos.namePlaceholder")}
                             value={repoForm.name}
                             onChange={(v) => setRepoForm((prev) => ({ ...prev, name: v }))}
                             size="large"
                         />
                     </div>
                     <div>
-                        <label className={styles.formLabel}>仓库地址 *</label>
+                        <label className={styles.formLabel}>{t("tabs.repos.urlLabel")}</label>
                         <Input
-                            placeholder="仅支持 GitHub：https://github.com/org/repo"
+                            placeholder={t("tabs.repos.urlPlaceholder")}
                             value={repoForm.url}
                             onChange={(v) => setRepoForm((prev) => ({ ...prev, url: v }))}
                             size="large"
                         />
                     </div>
                     <div>
-                        <label className={styles.formLabel}>GitHub Token（选填）</label>
+                        <label className={styles.formLabel}>{t("tabs.repos.tokenLabel")}</label>
                         <Input
                             type="password"
-                            placeholder="Personal Access Token，用于拉取仓库信息"
+                            placeholder={t("tabs.repos.tokenPlaceholder")}
                             value={repoForm.token}
                             onChange={(v) => setRepoForm((prev) => ({ ...prev, token: v }))}
                             size="large"

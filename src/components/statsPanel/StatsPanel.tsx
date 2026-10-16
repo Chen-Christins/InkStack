@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { FaUsers, FaEye, FaChartLine, FaUserCheck } from "react-icons/fa";
 import StatsService from "@/services/StatsService.ts";
 import { useOnlineCount } from "@/hooks/UseOnlineCount.ts";
@@ -7,6 +8,7 @@ import styles from "./StatsPanel.module.css";
 const POLL_INTERVAL = 30_000; // 30 秒轮询一次 HTTP 统计
 
 const StatsPanel: React.FC = () => {
+    const { t } = useTranslation("components");
     const [httpStats, setHttpStats] = useState<{
         todayVisits: number;
         totalVisits: number;
@@ -48,25 +50,25 @@ const StatsPanel: React.FC = () => {
 
     const statsItems = [
         {
-            title: "在线用户",
+            title: t("statsPanel.onlineUsers"),
             value: onlineUsers,
             icon: <FaUsers className={styles.statIcon} />,
             color: styles.online,
         },
         {
-            title: "今日访问",
+            title: t("statsPanel.todayVisits"),
             value: httpStats.todayVisits,
             icon: <FaChartLine className={styles.statIcon} />,
             color: styles.today,
         },
         {
-            title: "累计访问",
+            title: t("statsPanel.totalVisits"),
             value: httpStats.totalVisits.toLocaleString(),
             icon: <FaEye className={styles.statIcon} />,
             color: styles.total,
         },
         {
-            title: "累计访客",
+            title: t("statsPanel.totalVisitors"),
             value: httpStats.totalVisitors.toLocaleString(),
             icon: <FaUserCheck className={styles.statIcon} />,
             color: styles.visitors,
@@ -76,7 +78,7 @@ const StatsPanel: React.FC = () => {
     return (
         <div className={styles.statsPanel}>
             <h3 className={styles.panelTitle}>
-                <FaChartLine className={styles.titleIcon} /> 访问统计
+                <FaChartLine className={styles.titleIcon} /> {t("statsPanel.title")}
             </h3>
             <div className={styles.statsGrid}>
                 {statsItems.map((item, index) => (

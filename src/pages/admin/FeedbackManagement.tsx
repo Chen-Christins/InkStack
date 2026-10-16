@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import {
     FaPlus,
     FaTrash,
@@ -28,30 +29,32 @@ import { formatDateTime } from "@/utils/Utils.ts";
 import { HelpService, type FeedbackItem, type HelpFaq } from "@/services/HelpService.ts";
 import { OrganizationService } from "@/services/OrganizationService.ts";
 
-const TYPE_LABELS: Record<string, string> = {
-    bug: "问题反馈",
-    feature: "功能建议",
-    other: "其他",
-    "": "全部",
-};
-
-const FAQ_CATEGORY_OPTIONS: SelectOption[] = [
-    { id: "入门", name: "入门", color: "#3b82f6" },
-    { id: "账户安全", name: "账户安全", color: "#ef4444" },
-    { id: "组织协作", name: "组织协作", color: "#22c55e" },
-    { id: "研发平台", name: "研发平台", color: "#a855f7" },
-];
-
-const TYPE_OPTIONS: SelectOption[] = [
-    { id: "", name: "全部类型", color: "#6b7280" },
-    { id: "bug", name: "问题反馈", color: "#dc2626" },
-    { id: "feature", name: "功能建议", color: "#2563eb" },
-    { id: "other", name: "其他", color: "#6b7280" },
-];
-
 const PAGE_SIZE = 10;
 
 const FeedbackManagement: React.FC = () => {
+    const { t } = useTranslation("admin");
+
+    const typeLabels: Record<string, string> = {
+        bug: t("feedbacks.types.bug"),
+        feature: t("feedbacks.types.feature"),
+        other: t("feedbacks.types.other"),
+        "": t("feedbacks.types.all"),
+    };
+
+    const faqCategoryOptions: SelectOption[] = [
+        { id: "入门", name: t("feedbacks.categories.gettingStarted"), color: "#3b82f6" },
+        { id: "账户安全", name: t("feedbacks.categories.accountSecurity"), color: "#ef4444" },
+        { id: "组织协作", name: t("feedbacks.categories.organization"), color: "#22c55e" },
+        { id: "研发平台", name: t("feedbacks.categories.devPlatform"), color: "#a855f7" },
+    ];
+
+    const typeOptions: SelectOption[] = [
+        { id: "", name: t("feedbacks.types.allTypes"), color: "#6b7280" },
+        { id: "bug", name: t("feedbacks.types.bug"), color: "#dc2626" },
+        { id: "feature", name: t("feedbacks.types.feature"), color: "#2563eb" },
+        { id: "other", name: t("feedbacks.types.other"), color: "#6b7280" },
+    ];
+
     const [feedbacks, setFeedbacks] = useState<FeedbackItem[]>([]);
     const [total, setTotal] = useState(0);
     const [loading, setLoading] = useState(false);
@@ -117,15 +120,15 @@ const FeedbackManagement: React.FC = () => {
 
     const handleDeleteFaq = (id: string) => {
         confirm({
-            title: "删除常见问题",
-            content: "确定要删除这条常见问题吗？",
+            title: t("feedbacks.confirm.deleteFaqTitle"),
+            content: t("feedbacks.confirm.deleteFaqContent"),
             onConfirm: async () => {
                 try {
                     await HelpService.deleteFaq(id);
-                    message.success("已删除");
+                    message.success(t("feedbacks.messages.deleteSuccess"));
                     setFaqs((prev) => prev.filter((f) => f.id !== id));
                 } catch (err: any) {
-                    message.error(err?.message || "删除失败");
+                    message.error(err?.message || t("feedbacks.messages.deleteFailed"));
                 }
             },
         });
@@ -141,7 +144,7 @@ const FeedbackManagement: React.FC = () => {
             return;
         }
         if (!faqEditForm.q.trim() || !faqEditForm.a.trim()) {
-            message.error("问题和答案不能为空");
+            message.error(t("feedbacks.messages.qaRequired"));
             return;
         }
         setFaqSaving(true);
@@ -151,11 +154,11 @@ const FeedbackManagement: React.FC = () => {
                 a: faqEditForm.a.trim(),
                 cat: faqEditForm.cat,
             });
-            message.success("已保存");
+            message.success(t("feedbacks.messages.saveSuccess"));
             setFaqEditModal(null);
             fetchFaqs();
         } catch (err: any) {
-            message.error(err?.message || "保存失败");
+            message.error(err?.message || t("feedbacks.messages.saveFailed"));
         } finally {
             setFaqSaving(false);
         }
@@ -176,11 +179,11 @@ const FeedbackManagement: React.FC = () => {
             setFeedbacks(res.data.list || []);
             setTotal(res.data.total || 0);
         } catch (err: any) {
-            message.error(err?.message || "加载反馈列表失败");
+            message.error(err?.message || t("feedbacks.messages.loadFailed"));
         } finally {
             setLoading(false);
         }
-    }, [page, typeFilter]);
+    }, [page, typeFilter, t]);
 
     useEffect(() => {
         fetchData();
@@ -244,7 +247,7 @@ const FeedbackManagement: React.FC = () => {
             return;
         }
         if (!convertForm.title.trim()) {
-            message.error("请输入标题");
+            message.error(t("feedbacks.messages.titleRequired"));
             return;
         }
         setConverting(true);
@@ -261,7 +264,11 @@ const FeedbackManagement: React.FC = () => {
             }
             await HelpService.convertFeedback(convertModal.feedback.id, convertModal.target, payload);
             message.success(
-                convertModal.target === "faq" ? "已转为常见问题" : convertModal.target === "requirement" ? "已转为需求" : "已转为缺陷",
+                convertModal.target === "faq"
+                    ? t("feedbacks.convert.successFaq")
+                    : convertModal.target === "requirement"
+                      ? t("feedbacks.convert.successRequirement")
+                      : t("feedbacks.convert.successBug"),
             );
             setConvertModal(null);
             fetchData();
@@ -269,7 +276,7 @@ const FeedbackManagement: React.FC = () => {
                 fetchFaqs();
             }
         } catch (err: any) {
-            message.error(err?.message || "转换失败");
+            message.error(err?.message || t("feedbacks.messages.convertFailed"));
         } finally {
             setConverting(false);
         }
@@ -277,12 +284,12 @@ const FeedbackManagement: React.FC = () => {
 
     const handleDelete = (id: string) => {
         confirm({
-            title: "删除反馈",
-            content: "确定要删除这条反馈吗？此操作不可恢复。",
+            title: t("feedbacks.confirm.deleteFeedbackTitle"),
+            content: t("feedbacks.confirm.deleteFeedbackContent"),
             onConfirm: async () => {
                 try {
                     await HelpService.deleteFeedback(id);
-                    message.success("已删除");
+                    message.success(t("feedbacks.messages.deleteSuccess"));
                     // 如果当前页只剩一条且不是第一页，回到上一页
                     if (feedbacks.length === 1 && page > 1) {
                         setPage((p) => p - 1);
@@ -290,7 +297,7 @@ const FeedbackManagement: React.FC = () => {
                         fetchData();
                     }
                 } catch (err: any) {
-                    message.error(err?.message || "删除失败");
+                    message.error(err?.message || t("feedbacks.messages.deleteFailed"));
                 }
             },
         });
@@ -307,7 +314,7 @@ const FeedbackManagement: React.FC = () => {
             setFeedbacks(res.data.list || []);
             setTotal(res.data.total || 0);
         } catch (err: any) {
-            message.error(err?.message || "加载反馈列表失败");
+            message.error(err?.message || t("feedbacks.messages.loadFailed"));
         } finally {
             setLoading(false);
         }
@@ -315,18 +322,22 @@ const FeedbackManagement: React.FC = () => {
     };
 
     const convertTitle =
-        convertModal?.target === "faq" ? "转为常见问题" : convertModal?.target === "requirement" ? "转为需求" : "转为缺陷";
+        convertModal?.target === "faq"
+            ? t("feedbacks.convert.titleFaq")
+            : convertModal?.target === "requirement"
+              ? t("feedbacks.convert.titleRequirement")
+              : t("feedbacks.convert.titleBug");
 
     return (
         <div className={styles.feedbackManagement}>
             <div className={styles.pageHeader}>
                 <div>
-                    <h1 className={styles.pageTitle}>帮助运营</h1>
-                    <p className={styles.pageDescription}>管理用户反馈与常见问题（FAQ）</p>
+                    <h1 className={styles.pageTitle}>{t("feedbacks.pageTitle")}</h1>
+                    <p className={styles.pageDescription}>{t("feedbacks.pageDescription")}</p>
                 </div>
                 <div className={styles.headerActions}>
                     <button className={`${styles.btn} ${styles.btnPrimary}`} onClick={handleRefresh}>
-                        <FaSyncAlt /> 刷新
+                        <FaSyncAlt /> {t("feedbacks.refresh")}
                     </button>
                 </div>
             </div>
@@ -337,21 +348,21 @@ const FeedbackManagement: React.FC = () => {
                         <FaClipboardList />
                     </div>
                     <div className={styles.statValue}>{loading ? "..." : total}</div>
-                    <div className={styles.statLabel}>全部反馈</div>
+                    <div className={styles.statLabel}>{t("feedbacks.stats.all")}</div>
                 </div>
             </div>
 
             <div className={styles.filterSection}>
                 <div className={styles.filterHeader}>
                     <h3 className={styles.filterTitle}>
-                        <FaFilter /> 筛选条件
+                        <FaFilter /> {t("feedbacks.filter.title")}
                     </h3>
                 </div>
                 <div className={styles.filterForm}>
                     <div className={styles.filterGroup}>
-                        <label className={styles.filterLabel}>搜索反馈</label>
+                        <label className={styles.filterLabel}>{t("feedbacks.filter.searchLabel")}</label>
                         <Input
-                            placeholder="搜索反馈内容或联系方式..."
+                            placeholder={t("feedbacks.filter.searchPlaceholder")}
                             value={search}
                             onChange={setSearch}
                             prefix={<FaSearch />}
@@ -360,11 +371,11 @@ const FeedbackManagement: React.FC = () => {
                         />
                     </div>
                     <div className={styles.filterGroup}>
-                        <label className={styles.filterLabel}>反馈类型</label>
+                        <label className={styles.filterLabel}>{t("feedbacks.filter.typeLabel")}</label>
                         <CustomSelect
-                            name="类型"
-                            options={TYPE_OPTIONS}
-                            value={TYPE_OPTIONS.find((o) => o.id === typeFilter) || TYPE_OPTIONS[0]}
+                            name={t("feedbacks.types.label")}
+                            options={typeOptions}
+                            value={typeOptions.find((o) => o.id === typeFilter) || typeOptions[0]}
                             onChange={handleTypeFilterChange}
                             hideBadge={true}
                         />
@@ -375,75 +386,76 @@ const FeedbackManagement: React.FC = () => {
             <div className={styles.tableContainer}>
                 <div className={styles.tableHeader}>
                     <h3 className={styles.tableTitle}>
-                        <FaClipboardList /> 反馈列表
+                        <FaClipboardList /> {t("feedbacks.list.title")}
                     </h3>
                     <span style={{ fontSize: 14, color: "var(--text-secondary)" }}>
-                        共 {total} 条{typeFilter ? `（已筛选）` : ""}
+                        {t("feedbacks.list.total", { total })}
+                        {typeFilter ? t("feedbacks.list.filtered") : ""}
                     </span>
                 </div>
 
                 {loading ? (
-                    <div className={styles.empty}>加载中...</div>
+                    <div className={styles.empty}>{t("feedbacks.list.loading")}</div>
                 ) : filtered.length === 0 ? (
-                    <div className={styles.empty}>暂无反馈</div>
+                    <div className={styles.empty}>{t("feedbacks.list.empty")}</div>
                 ) : (
                     <>
                         <table className={styles.adminTable}>
                             <thead>
                                 <tr>
-                                    <th>反馈内容</th>
-                                    <th>类型</th>
-                                    <th>联系方式</th>
-                                    <th>时间</th>
-                                    <th>操作</th>
+                                    <th>{t("feedbacks.list.columns.content")}</th>
+                                    <th>{t("feedbacks.types.label")}</th>
+                                    <th>{t("feedbacks.list.columns.contact")}</th>
+                                    <th>{t("feedbacks.list.columns.time")}</th>
+                                    <th>{t("feedbacks.list.columns.actions")}</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {filtered.map((fb) => (
                                     <tr key={fb.id}>
-                                        <td className={styles.contentCell} data-label="反馈内容">
+                                        <td className={styles.contentCell} data-label={t("feedbacks.list.columns.content")}>
                                             {fb.content}
                                         </td>
-                                        <td data-label="类型">
+                                        <td data-label={t("feedbacks.types.label")}>
                                             <span
                                                 className={`${styles.typeBadge} ${styles[`type${fb.type.charAt(0).toUpperCase() + fb.type.slice(1)}` as keyof typeof styles] || ""}`}
                                             >
-                                                {TYPE_LABELS[fb.type]}
+                                                {typeLabels[fb.type]}
                                             </span>
                                         </td>
-                                        <td className={styles.contactCell} data-label="联系方式">
+                                        <td className={styles.contactCell} data-label={t("feedbacks.list.columns.contact")}>
                                             {fb.contact || "-"}
                                         </td>
-                                        <td className={styles.timeCell} data-label="时间">
+                                        <td className={styles.timeCell} data-label={t("feedbacks.list.columns.time")}>
                                             {formatDateTime(fb.created_at)}
                                         </td>
-                                        <td data-label="操作">
+                                        <td data-label={t("feedbacks.list.columns.actions")}>
                                             <div className={styles.actionButtons}>
                                                 <button
                                                     className={styles.actionButton}
                                                     onClick={() => openConvert(fb, "faq")}
-                                                    title="转为 FAQ"
+                                                    title={t("feedbacks.list.actions.convertFaq")}
                                                 >
                                                     <FaQuestionCircle />
                                                 </button>
                                                 <button
                                                     className={styles.actionButton}
                                                     onClick={() => openConvert(fb, "requirement")}
-                                                    title="转为需求"
+                                                    title={t("feedbacks.list.actions.convertRequirement")}
                                                 >
                                                     <FaLightbulb />
                                                 </button>
                                                 <button
                                                     className={styles.actionButton}
                                                     onClick={() => openConvert(fb, "bug")}
-                                                    title="转为缺陷"
+                                                    title={t("feedbacks.list.actions.convertBug")}
                                                 >
                                                     <FaBug />
                                                 </button>
                                                 <button
                                                     className={`${styles.actionButton} ${styles.delete}`}
                                                     onClick={() => handleDelete(fb.id)}
-                                                    title="删除"
+                                                    title={t("feedbacks.list.actions.delete")}
                                                 >
                                                     <FaTrash />
                                                 </button>
@@ -457,7 +469,11 @@ const FeedbackManagement: React.FC = () => {
                         {totalPages >= 1 && (
                             <div className={styles.pagination}>
                                 <span className={styles.pageInfo}>
-                                    显示 {(page - 1) * PAGE_SIZE + 1} - {Math.min(page * PAGE_SIZE, total)} 条，共 {total} 条记录
+                                    {t("feedbacks.list.pagination.info", {
+                                        start: (page - 1) * PAGE_SIZE + 1,
+                                        end: Math.min(page * PAGE_SIZE, total),
+                                        total,
+                                    })}
                                 </span>
                                 <div className={styles.pageButtons}>
                                     <button className={styles.pageBtn} disabled={page === 1} onClick={() => setPage(1)}>
@@ -505,13 +521,15 @@ const FeedbackManagement: React.FC = () => {
             <div className={styles.tableContainer} style={{ marginTop: 24 }}>
                 <div className={styles.tableHeader}>
                     <h3 className={styles.tableTitle}>
-                        <FaBook /> 常见问题 (FAQ)
+                        <FaBook /> {t("feedbacks.faq.title")}
                     </h3>
-                    <span style={{ fontSize: 14, color: "var(--text-secondary)" }}>共 {filteredFaqs.length} 条</span>
+                    <span style={{ fontSize: 14, color: "var(--text-secondary)" }}>
+                        {t("feedbacks.faq.total", { total: filteredFaqs.length })}
+                    </span>
                 </div>
                 <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border-primary)" }}>
                     <Input
-                        placeholder="搜索问题或答案..."
+                        placeholder={t("feedbacks.faq.searchPlaceholder")}
                         value={faqSearch}
                         onChange={setFaqSearch}
                         prefix={<FaSearch />}
@@ -521,45 +539,53 @@ const FeedbackManagement: React.FC = () => {
                 </div>
 
                 {faqLoading ? (
-                    <div className={styles.empty}>加载中...</div>
+                    <div className={styles.empty}>{t("feedbacks.faq.loading")}</div>
                 ) : filteredFaqs.length === 0 ? (
-                    <div className={styles.empty}>{faqSearch ? "无匹配结果" : "暂无常见问题"}</div>
+                    <div className={styles.empty}>{faqSearch ? t("feedbacks.faq.noMatch") : t("feedbacks.faq.empty")}</div>
                 ) : (
                     <table className={styles.adminTable}>
                         <thead>
                             <tr>
-                                <th>问题</th>
-                                <th>答案</th>
-                                <th>分类</th>
-                                <th>操作</th>
+                                <th>{t("feedbacks.faq.columns.question")}</th>
+                                <th>{t("feedbacks.faq.columns.answer")}</th>
+                                <th>{t("feedbacks.faq.columns.category")}</th>
+                                <th>{t("feedbacks.faq.columns.actions")}</th>
                             </tr>
                         </thead>
                         <tbody>
                             {filteredFaqs.map((faq) => (
                                 <tr key={faq.id}>
-                                    <td className={styles.contentCell} data-label="问题">
+                                    <td className={styles.contentCell} data-label={t("feedbacks.faq.columns.question")}>
                                         {faq.q}
                                     </td>
-                                    <td className={styles.contentCell} data-label="答案">
+                                    <td className={styles.contentCell} data-label={t("feedbacks.faq.columns.answer")}>
                                         {faq.a.length > 60 ? faq.a.slice(0, 60) + "..." : faq.a}
                                     </td>
-                                    <td data-label="分类">
+                                    <td data-label={t("feedbacks.faq.columns.category")}>
                                         <span className={styles.typeBadge} style={{ background: "#dbeafe", color: "#2563eb" }}>
                                             {faq.cat}
                                         </span>
                                     </td>
-                                    <td data-label="操作">
+                                    <td data-label={t("feedbacks.faq.columns.actions")}>
                                         <div className={styles.actionButtons}>
-                                            <button className={styles.actionButton} onClick={() => setFaqPreview(faq)} title="预览">
+                                            <button
+                                                className={styles.actionButton}
+                                                onClick={() => setFaqPreview(faq)}
+                                                title={t("feedbacks.faq.actions.preview")}
+                                            >
                                                 <FaEye />
                                             </button>
-                                            <button className={styles.actionButton} onClick={() => openFaqEdit(faq)} title="编辑">
+                                            <button
+                                                className={styles.actionButton}
+                                                onClick={() => openFaqEdit(faq)}
+                                                title={t("feedbacks.faq.actions.edit")}
+                                            >
                                                 <FaEdit />
                                             </button>
                                             <button
                                                 className={`${styles.actionButton} ${styles.delete}`}
                                                 onClick={() => handleDeleteFaq(faq.id)}
-                                                title="删除"
+                                                title={t("feedbacks.faq.actions.delete")}
                                             >
                                                 <FaTrash />
                                             </button>
@@ -575,7 +601,7 @@ const FeedbackManagement: React.FC = () => {
             {convertModal && (
                 <Modal visible onClose={() => setConvertModal(null)} title={convertTitle}>
                     <div className={styles.formGroup}>
-                        <label className={styles.formLabel}>标题</label>
+                        <label className={styles.formLabel}>{t("feedbacks.convert.form.title")}</label>
                         <Input
                             className={styles.formInput}
                             value={convertForm.title}
@@ -584,20 +610,20 @@ const FeedbackManagement: React.FC = () => {
                     </div>
                     {convertModal.target === "faq" && (
                         <div className={styles.formGroup}>
-                            <label className={styles.formLabel}>分类</label>
+                            <label className={styles.formLabel}>{t("feedbacks.convert.form.category")}</label>
                             <CustomSelect
-                                name="分类"
-                                options={FAQ_CATEGORY_OPTIONS}
-                                value={FAQ_CATEGORY_OPTIONS.find((o) => o.id === convertForm.cat) ?? null}
+                                name={t("feedbacks.convert.form.category")}
+                                options={faqCategoryOptions}
+                                value={faqCategoryOptions.find((o) => o.id === convertForm.cat) ?? null}
                                 onChange={(option) => setConvertForm((f) => ({ ...f, cat: String(option?.id ?? "") }))}
-                                placeholder="选择 FAQ 分类"
+                                placeholder={t("feedbacks.convert.form.categoryPlaceholder")}
                                 hideBadge={true}
                             />
                         </div>
                     )}
                     {(convertModal.target === "requirement" || convertModal.target === "bug") && (
                         <div className={styles.formGroup}>
-                            <label className={styles.formLabel}>指派组织</label>
+                            <label className={styles.formLabel}>{t("feedbacks.convert.form.org")}</label>
                             <CustomSelect
                                 name="org"
                                 options={orgOptions}
@@ -609,13 +635,13 @@ const FeedbackManagement: React.FC = () => {
                                         orgName: option?.name ?? "",
                                     }))
                                 }
-                                placeholder="选择目标组织（可选）"
+                                placeholder={t("feedbacks.convert.form.orgPlaceholder")}
                                 hideBadge={true}
                             />
                         </div>
                     )}
                     <div className={styles.formGroup}>
-                        <label className={styles.formLabel}>内容</label>
+                        <label className={styles.formLabel}>{t("feedbacks.convert.form.content")}</label>
                         <textarea
                             className={styles.formTextarea}
                             value={convertForm.content}
@@ -624,14 +650,14 @@ const FeedbackManagement: React.FC = () => {
                     </div>
                     <div style={{ display: "flex", gap: 12, justifyContent: "flex-end", marginTop: 20 }}>
                         <button className={`${styles.btn} ${styles.btnSecondary}`} onClick={() => setConvertModal(null)}>
-                            取消
+                            {t("feedbacks.convert.cancel")}
                         </button>
                         <button className={`${styles.btn} ${styles.btnPrimary}`} onClick={handleConvert} disabled={converting}>
                             {converting ? (
-                                "处理中..."
+                                t("feedbacks.convert.processing")
                             ) : (
                                 <>
-                                    <FaPlus /> 确认{convertTitle}
+                                    <FaPlus /> {t("feedbacks.convert.confirm", { title: convertTitle })}
                                 </>
                             )}
                         </button>
@@ -640,9 +666,9 @@ const FeedbackManagement: React.FC = () => {
             )}
 
             {faqEditModal && (
-                <Modal visible onClose={() => setFaqEditModal(null)} title="编辑常见问题">
+                <Modal visible onClose={() => setFaqEditModal(null)} title={t("feedbacks.faq.edit.title")}>
                     <div className={styles.formGroup}>
-                        <label className={styles.formLabel}>问题</label>
+                        <label className={styles.formLabel}>{t("feedbacks.faq.edit.question")}</label>
                         <Input
                             className={styles.formInput}
                             value={faqEditForm.q}
@@ -650,7 +676,7 @@ const FeedbackManagement: React.FC = () => {
                         />
                     </div>
                     <div className={styles.formGroup}>
-                        <label className={styles.formLabel}>答案</label>
+                        <label className={styles.formLabel}>{t("feedbacks.faq.edit.answer")}</label>
                         <textarea
                             className={styles.formTextarea}
                             value={faqEditForm.a}
@@ -659,29 +685,29 @@ const FeedbackManagement: React.FC = () => {
                         />
                     </div>
                     <div className={styles.formGroup}>
-                        <label className={styles.formLabel}>分类</label>
+                        <label className={styles.formLabel}>{t("feedbacks.faq.edit.category")}</label>
                         <CustomSelect
-                            name="分类"
-                            options={FAQ_CATEGORY_OPTIONS}
-                            value={FAQ_CATEGORY_OPTIONS.find((o) => o.id === faqEditForm.cat) ?? null}
+                            name={t("feedbacks.faq.edit.category")}
+                            options={faqCategoryOptions}
+                            value={faqCategoryOptions.find((o) => o.id === faqEditForm.cat) ?? null}
                             onChange={(option) => setFaqEditForm((f) => ({ ...f, cat: String(option?.id ?? "") }))}
-                            placeholder="选择分类"
+                            placeholder={t("feedbacks.faq.edit.categoryPlaceholder")}
                             hideBadge={true}
                         />
                     </div>
                     <div style={{ display: "flex", gap: 12, justifyContent: "flex-end", marginTop: 20 }}>
                         <button className={`${styles.btn} ${styles.btnSecondary}`} onClick={() => setFaqEditModal(null)}>
-                            取消
+                            {t("feedbacks.faq.edit.cancel")}
                         </button>
                         <button className={`${styles.btn} ${styles.btnPrimary}`} onClick={handleFaqEdit} disabled={faqSaving}>
-                            {faqSaving ? "保存中..." : "保存"}
+                            {faqSaving ? t("feedbacks.faq.edit.saving") : t("feedbacks.faq.edit.save")}
                         </button>
                     </div>
                 </Modal>
             )}
 
             {faqPreview && (
-                <Modal visible onClose={() => setFaqPreview(null)} title="预览常见问题" size="large">
+                <Modal visible onClose={() => setFaqPreview(null)} title={t("feedbacks.faq.preview.title")} size="large">
                     <div style={{ marginBottom: 16 }}>
                         <span
                             className={styles.typeBadge}

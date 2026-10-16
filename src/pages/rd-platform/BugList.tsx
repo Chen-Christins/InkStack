@@ -1,6 +1,9 @@
 import { useRdList } from "@/hooks/UseRdList.ts";
 import { useOrgMemberOptions } from "@/hooks/UseOrgMemberOptions.ts";
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
+import i18n from "@/i18n";
+import { useEnumLabels } from "@/i18n/UseEnumLabels";
 import { useRdNavigate } from "@/hooks/UseRdNavigate.ts";
 import { formatDateTime } from "@/utils/Utils.ts";
 import { encodeId } from "@/utils/HashId.ts";
@@ -33,44 +36,6 @@ import type { Bug } from "@/types/RdPlatform.ts";
 import { OrgPermission } from "@/types/RdPlatform.ts";
 
 // ---- constants ----
-const statusOptions: SelectOption[] = [
-    { id: "", name: "全部状态", color: "#6c757d" },
-    { id: "new", name: "新建", color: "#3b82f6" },
-    { id: "processing", name: "处理中", color: "#a855f7" },
-    { id: "verified", name: "已验证", color: "#22c55e" },
-    { id: "closed", name: "已关闭", color: "#6b7280" },
-    { id: "reopened", name: "已重开", color: "#ef4444" },
-];
-
-const severityOptions: SelectOption[] = [
-    { id: "", name: "全部严重程度", color: "#6c757d" },
-    { id: "fatal", name: "致命", color: "#dc2626" },
-    { id: "serious", name: "严重", color: "#ea580c" },
-    { id: "normal", name: "一般", color: "#f59e0b" },
-    { id: "minor", name: "轻微", color: "#22c55e" },
-];
-
-const priorityOptions: SelectOption[] = [
-    { id: "", name: "全部优先级", color: "#6c757d" },
-    { id: "urgent", name: "紧急", color: "#dc2626" },
-    { id: "high", name: "高", color: "#ef4444" },
-    { id: "medium", name: "中", color: "#f59e0b" },
-    { id: "low", name: "低", color: "#22c55e" },
-];
-
-const formSeverityOptions = severityOptions.filter((o) => o.id !== "");
-const formPriorityOptions = priorityOptions.filter((o) => o.id !== "");
-const formStatusOptions = statusOptions.filter((o) => o.id !== "");
-
-const statusText: Record<string, string> = {
-    new: "新建",
-    processing: "处理中",
-    verified: "已验证",
-    closed: "已关闭",
-    reopened: "已重开",
-};
-const severityText: Record<string, string> = { fatal: "致命", serious: "严重", normal: "一般", minor: "轻微" };
-const priorityText: Record<string, string> = { urgent: "紧急", high: "高", medium: "中", low: "低" };
 const PAGE_SIZE = 10;
 
 interface FormData {
@@ -103,11 +68,62 @@ const emptyForm: FormData = {
 
 // ---- component ----
 const BugList: React.FC = () => {
+    const { t } = useTranslation("rd");
+    const enums = useEnumLabels();
     const navigate = useRdNavigate();
     const { user } = useAuth();
     const { isAdmin, userOrgIds, orgs, orgNameMap, maxOrgRole, selectedOrgId } = useRdOrg();
     const [currentPage, setCurrentPage] = useState(1);
     const [filters, setFilters] = useState({ search: "", status: "", severity: "", priority: "" });
+
+    const statusOptions: SelectOption[] = [
+        { id: "", name: t("bugs.filters.allStatus"), color: "#6c757d" },
+        { id: "new", name: enums.bugStatus.new, color: "#3b82f6" },
+        { id: "processing", name: enums.bugStatus.processing, color: "#a855f7" },
+        { id: "verified", name: enums.bugStatus.verified, color: "#22c55e" },
+        { id: "closed", name: enums.bugStatus.closed, color: "#6b7280" },
+        { id: "reopened", name: enums.bugStatus.reopened, color: "#ef4444" },
+    ];
+
+    const severityOptions: SelectOption[] = [
+        { id: "", name: t("bugs.filters.allSeverity"), color: "#6c757d" },
+        { id: "fatal", name: enums.severity.fatal, color: "#dc2626" },
+        { id: "serious", name: enums.severity.serious, color: "#ea580c" },
+        { id: "normal", name: enums.severity.normal, color: "#f59e0b" },
+        { id: "minor", name: enums.severity.minor, color: "#22c55e" },
+    ];
+
+    const priorityOptions: SelectOption[] = [
+        { id: "", name: t("bugs.filters.allPriority"), color: "#6c757d" },
+        { id: "urgent", name: enums.rdPriority.urgent, color: "#dc2626" },
+        { id: "high", name: enums.rdPriority.high, color: "#ef4444" },
+        { id: "medium", name: enums.rdPriority.medium, color: "#f59e0b" },
+        { id: "low", name: enums.rdPriority.low, color: "#22c55e" },
+    ];
+
+    const formSeverityOptions = severityOptions.filter((o) => o.id !== "");
+    const formPriorityOptions = priorityOptions.filter((o) => o.id !== "");
+    const formStatusOptions = statusOptions.filter((o) => o.id !== "");
+
+    const statusText: Record<string, string> = {
+        new: enums.bugStatus.new,
+        processing: enums.bugStatus.processing,
+        verified: enums.bugStatus.verified,
+        closed: enums.bugStatus.closed,
+        reopened: enums.bugStatus.reopened,
+    };
+    const severityText: Record<string, string> = {
+        fatal: enums.severity.fatal,
+        serious: enums.severity.serious,
+        normal: enums.severity.normal,
+        minor: enums.severity.minor,
+    };
+    const priorityText: Record<string, string> = {
+        urgent: enums.rdPriority.urgent,
+        high: enums.rdPriority.high,
+        medium: enums.rdPriority.medium,
+        low: enums.rdPriority.low,
+    };
 
     // modal
     const [modalVisible, setModalVisible] = useState(false);
@@ -167,11 +183,11 @@ const BugList: React.FC = () => {
 
     const handleSubmit = async () => {
         if (!form.title.trim()) {
-            message.warn("请输入缺陷标题");
+            message.warn(t("bugs.messages.titleRequired"));
             return;
         }
         if (!isAdmin && !form.organizationId) {
-            message.warn("请选择所属组织");
+            message.warn(t("bugs.messages.orgRequired"));
             return;
         }
         const data = {
@@ -190,35 +206,37 @@ const BugList: React.FC = () => {
         try {
             if (modalMode === "edit" && selectedBug) {
                 await RdAPI.updateBug(selectedBug.id, data);
-                message.success("缺陷更新成功");
+                message.success(t("bugs.messages.updateSuccess"));
             } else {
-                await RdAPI.createBug({ ...data, status: "new", creator: user?.name || user?.account || "未知" });
-                message.success("缺陷提交成功");
+                await RdAPI.createBug({ ...data, status: "new", creator: user?.name || user?.account || i18n.t("common:unknown") });
+                message.success(t("bugs.messages.createSuccess"));
             }
             closeModal();
             fetchData();
         } catch (err: any) {
-            message.error(err?.message || "操作失败，请稍后重试");
+            message.error(err?.message || t("bugs.messages.operationFailed"));
         }
     };
 
     const handleDelete = async (bug: Bug) => {
         await confirm({
-            title: "确认删除",
+            title: t("bugs.messages.deleteTitle"),
             content: (
                 <div>
-                    确定要删除缺陷 "<strong>{bug.title}</strong>" 吗？删除后无法恢复。
+                    {t("bugs.messages.deleteContentPrefix")}
+                    <strong>{bug.title}</strong>
+                    {t("bugs.messages.deleteContentSuffix")}
                 </div>
             ),
-            confirmText: "删除",
-            cancelText: "取消",
+            confirmText: t("bugs.messages.deleteConfirm"),
+            cancelText: t("bugs.messages.deleteCancel"),
             onConfirm: async () => {
                 try {
                     await RdAPI.deleteBug(bug.id, bug.organizationId);
-                    message.success("缺陷已删除");
+                    message.success(t("bugs.messages.deleteSuccess"));
                     fetchData();
                 } catch (err: any) {
-                    message.error(err?.message || "删除失败");
+                    message.error(err?.message || t("bugs.messages.deleteFailed"));
                 }
             },
         });
@@ -264,12 +282,12 @@ const BugList: React.FC = () => {
         <div className={styles.listPage}>
             <div className={styles.pageHeader}>
                 <div>
-                    <h1 className={styles.pageTitle}>缺陷管理</h1>
-                    <p className={styles.pageDescription}>管理项目缺陷，跟踪修复进度</p>
+                    <h1 className={styles.pageTitle}>{t("bugs.pageTitle")}</h1>
+                    <p className={styles.pageDescription}>{t("bugs.pageDescription")}</p>
                 </div>
                 {OrgPermission.canCreate(maxOrgRole) && (
                     <button className={styles.createBtn} onClick={openCreate}>
-                        <FaPlus /> 提交缺陷
+                        <FaPlus /> {t("bugs.createButton")}
                     </button>
                 )}
             </div>
@@ -277,7 +295,7 @@ const BugList: React.FC = () => {
             <div className={styles.filterSection}>
                 <div className={styles.filterHeader}>
                     <h3 className={styles.filterTitle}>
-                        <FaFilter /> 筛选条件
+                        <FaFilter /> {t("bugs.filters.title")}
                     </h3>
                     <button
                         className={styles.clearBtn}
@@ -286,14 +304,14 @@ const BugList: React.FC = () => {
                             setCurrentPage(1);
                         }}
                     >
-                        清除筛选
+                        {t("bugs.filters.clear")}
                     </button>
                 </div>
                 <div className={styles.filterForm}>
                     <div className={styles.filterGroup}>
-                        <label className={styles.filterLabel}>搜索</label>
+                        <label className={styles.filterLabel}>{t("bugs.filters.searchLabel")}</label>
                         <Input
-                            placeholder="标题、描述或创建人"
+                            placeholder={t("bugs.filters.searchPlaceholder")}
                             value={filters.search}
                             onChange={(val) => handleFilterChange("search", val)}
                             allowClear
@@ -301,9 +319,9 @@ const BugList: React.FC = () => {
                         />
                     </div>
                     <div className={styles.filterGroup}>
-                        <label className={styles.filterLabel}>状态</label>
+                        <label className={styles.filterLabel}>{t("bugs.filters.statusLabel")}</label>
                         <CustomSelect
-                            name="状态"
+                            name={t("bugs.filters.statusLabel")}
                             options={statusOptions}
                             value={statusOptions.find((o) => o.id === filters.status) || null}
                             onChange={(o) => handleFilterChange("status", (o?.id as string) || "")}
@@ -311,9 +329,9 @@ const BugList: React.FC = () => {
                         />
                     </div>
                     <div className={styles.filterGroup}>
-                        <label className={styles.filterLabel}>严重程度</label>
+                        <label className={styles.filterLabel}>{t("bugs.filters.severityLabel")}</label>
                         <CustomSelect
-                            name="严重程度"
+                            name={t("bugs.filters.severityLabel")}
                             options={severityOptions}
                             value={severityOptions.find((o) => o.id === filters.severity) || null}
                             onChange={(o) => handleFilterChange("severity", (o?.id as string) || "")}
@@ -321,9 +339,9 @@ const BugList: React.FC = () => {
                         />
                     </div>
                     <div className={styles.filterGroup}>
-                        <label className={styles.filterLabel}>优先级</label>
+                        <label className={styles.filterLabel}>{t("bugs.filters.priorityLabel")}</label>
                         <CustomSelect
-                            name="优先级"
+                            name={t("bugs.filters.priorityLabel")}
                             options={priorityOptions}
                             value={priorityOptions.find((o) => o.id === filters.priority) || null}
                             onChange={(o) => handleFilterChange("priority", (o?.id as string) || "")}
@@ -337,15 +355,15 @@ const BugList: React.FC = () => {
                 <table className={styles.table}>
                     <thead>
                         <tr>
-                            <th>标题</th>
-                            <th>严重程度</th>
-                            <th>优先级</th>
-                            <th>状态</th>
-                            <th>负责人</th>
-                            <th>模块</th>
-                            <th>创建人</th>
-                            <th>创建时间</th>
-                            <th>操作</th>
+                            <th>{t("bugs.table.title")}</th>
+                            <th>{t("bugs.table.severity")}</th>
+                            <th>{t("bugs.table.priority")}</th>
+                            <th>{t("bugs.table.status")}</th>
+                            <th>{t("bugs.table.assignee")}</th>
+                            <th>{t("bugs.table.module")}</th>
+                            <th>{t("bugs.table.creator")}</th>
+                            <th>{t("bugs.table.createdAt")}</th>
+                            <th>{t("bugs.table.actions")}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -353,35 +371,35 @@ const BugList: React.FC = () => {
                             <tr key={b.id}>
                                 <td
                                     className={styles.titleCell}
-                                    data-label="标题"
+                                    data-label={t("bugs.table.title")}
                                     onClick={() => navigate(`/rd/bugs/${encodeId(b.id, "bug")}`)}
                                 >
                                     {b.title}
                                 </td>
-                                <td data-label="严重程度">
+                                <td data-label={t("bugs.table.severity")}>
                                     <span className={`${styles.badge} ${styles[`severity_${b.severity}`]}`}>
                                         {severityText[b.severity]}
                                     </span>
                                 </td>
-                                <td data-label="优先级">
+                                <td data-label={t("bugs.table.priority")}>
                                     <span className={`${styles.badge} ${styles[`priority_${b.priority}`]}`}>
                                         {priorityText[b.priority]}
                                     </span>
                                 </td>
-                                <td data-label="状态">
+                                <td data-label={t("bugs.table.status")}>
                                     <span className={`${styles.badge} ${styles[`status_${b.status}`]}`}>{statusText[b.status]}</span>
                                 </td>
-                                <td data-label="负责人">
+                                <td data-label={t("bugs.table.assignee")}>
                                     <AssigneeDisplay name={b.assignee} avatar={b.assigneeAvatar} />
                                 </td>
-                                <td data-label="模块">{b.module || "-"}</td>
-                                <td data-label="创建人">{b.creator}</td>
-                                <td data-label="创建时间">{formatDateTime(b.createdAt)}</td>
-                                <td data-label="操作">
+                                <td data-label={t("bugs.table.module")}>{b.module || "-"}</td>
+                                <td data-label={t("bugs.table.creator")}>{b.creator}</td>
+                                <td data-label={t("bugs.table.createdAt")}>{formatDateTime(b.createdAt)}</td>
+                                <td data-label={t("bugs.table.actions")}>
                                     <div className={styles.actionButtons}>
                                         <button
                                             className={`${styles.actionBtn} ${styles.view}`}
-                                            title="查看"
+                                            title={t("bugs.table.view")}
                                             onClick={() => navigate(`/rd/bugs/${encodeId(b.id, "bug")}`)}
                                         >
                                             <FaEye />
@@ -389,7 +407,7 @@ const BugList: React.FC = () => {
                                         {OrgPermission.canEdit(maxOrgRole) && (
                                             <button
                                                 className={`${styles.actionBtn} ${styles.edit}`}
-                                                title="编辑"
+                                                title={t("bugs.table.edit")}
                                                 onClick={() => openEdit(b)}
                                             >
                                                 <FaEdit />
@@ -398,7 +416,7 @@ const BugList: React.FC = () => {
                                         {OrgPermission.canDelete(maxOrgRole) && (
                                             <button
                                                 className={`${styles.actionBtn} ${styles.delete}`}
-                                                title="删除"
+                                                title={t("bugs.table.delete")}
                                                 onClick={() => handleDelete(b)}
                                             >
                                                 <FaTrash />
@@ -414,7 +432,7 @@ const BugList: React.FC = () => {
                                     <div className={styles.emptyCellIcon}>
                                         <FaBug />
                                     </div>
-                                    <div className={styles.emptyCellText}>暂无缺陷数据</div>
+                                    <div className={styles.emptyCellText}>{t("bugs.table.empty")}</div>
                                 </td>
                             </tr>
                         )}
@@ -424,7 +442,7 @@ const BugList: React.FC = () => {
 
             {
                 <div className={styles.pagination}>
-                    <span className={styles.paginationInfo}>共 {total} 条记录</span>
+                    <span className={styles.paginationInfo}>{t("bugs.pagination.total", { total })}</span>
                     <div className={styles.paginationControls}>
                         <button disabled={currentPage === 1} onClick={() => setCurrentPage(1)}>
                             <FaAngleDoubleLeft />
@@ -463,17 +481,23 @@ const BugList: React.FC = () => {
             {/* ============ MODAL ============ */}
             <Modal
                 visible={modalVisible}
-                title={modalMode === "create" ? "提交缺陷" : modalMode === "edit" ? "编辑缺陷" : selectedBug?.title || "缺陷详情"}
+                title={
+                    modalMode === "create"
+                        ? t("bugs.modal.createTitle")
+                        : modalMode === "edit"
+                          ? t("bugs.modal.editTitle")
+                          : selectedBug?.title || t("bugs.modal.detailTitle")
+                }
                 onClose={closeModal}
                 width={760}
                 footer={
                     modalMode === "view" ? null : (
                         <div className={bugStyles.modalFooter}>
                             <button onClick={closeModal} className={bugStyles.modalCancelBtn}>
-                                取消
+                                {t("bugs.modal.cancel")}
                             </button>
                             <button onClick={handleSubmit} className={bugStyles.modalSubmitBtn}>
-                                {modalMode === "edit" ? "保存修改" : "提交缺陷"}
+                                {modalMode === "edit" ? t("bugs.modal.save") : t("bugs.modal.create")}
                             </button>
                         </div>
                     )
@@ -495,24 +519,29 @@ const BugList: React.FC = () => {
                         </div>
                         <div className={bugStyles.detailGrid}>
                             {renderField(
-                                "负责人",
+                                t("bugs.modal.detail.assignee"),
                                 <AssigneeDisplay name={selectedBug.assignee} avatar={selectedBug.assigneeAvatar} />,
                             )}
-                            {renderField("创建人", selectedBug.creator)}
-                            {renderField("所属组织", orgNameMap[selectedBug.organizationId] || selectedBug.organizationId)}
-                            {renderField("所属模块", selectedBug.module)}
-                            {renderField("关联需求", selectedBug.relatedRequirementId)}
-                            {renderField("运行环境", selectedBug.environment)}
-                            {renderField("创建时间", formatDateTime(selectedBug.createdAt))}
-                            {renderField("更新时间", formatDateTime(selectedBug.updatedAt))}
+                            {renderField(t("bugs.modal.detail.creator"), selectedBug.creator)}
+                            {renderField(
+                                t("bugs.modal.detail.organization"),
+                                orgNameMap[selectedBug.organizationId] || selectedBug.organizationId,
+                            )}
+                            {renderField(t("bugs.modal.detail.module"), selectedBug.module)}
+                            {renderField(t("bugs.modal.detail.relatedRequirement"), selectedBug.relatedRequirementId)}
+                            {renderField(t("bugs.modal.detail.environment"), selectedBug.environment)}
+                            {renderField(t("bugs.modal.detail.createdAt"), formatDateTime(selectedBug.createdAt))}
+                            {renderField(t("bugs.modal.detail.updatedAt"), formatDateTime(selectedBug.updatedAt))}
                         </div>
                         <div className={selectedBug.stepsToReproduce ? bugStyles.detailSection : bugStyles.detailSectionLast}>
-                            <h4 className={bugStyles.detailSectionTitle}>描述</h4>
-                            <div className={bugStyles.detailDescription}>{selectedBug.description || "暂无描述"}</div>
+                            <h4 className={bugStyles.detailSectionTitle}>{t("bugs.modal.description")}</h4>
+                            <div className={bugStyles.detailDescription}>
+                                {selectedBug.description || t("bugs.modal.noDescription")}
+                            </div>
                         </div>
                         {selectedBug.stepsToReproduce && (
                             <div>
-                                <h4 className={bugStyles.detailSectionTitle}>复现步骤</h4>
+                                <h4 className={bugStyles.detailSectionTitle}>{t("bugs.modal.stepsToReproduce")}</h4>
                                 <div className={bugStyles.detailDescription}>{selectedBug.stepsToReproduce}</div>
                             </div>
                         )}
@@ -522,10 +551,10 @@ const BugList: React.FC = () => {
                     <div className={bugStyles.formContainer}>
                         <div>
                             <label className={bugStyles.formLabel}>
-                                标题 <span className={bugStyles.formLabelRequired}>*</span>
+                                {t("bugs.modal.form.title")} <span className={bugStyles.formLabelRequired}>*</span>
                             </label>
                             <Input
-                                placeholder="请输入缺陷标题"
+                                placeholder={t("bugs.modal.form.titlePlaceholder")}
                                 value={form.title}
                                 onChange={(v) => setFormField("title", v)}
                                 size="large"
@@ -534,10 +563,11 @@ const BugList: React.FC = () => {
                         {(isAdmin || orgs.length > 1) && (
                             <div>
                                 <label className={bugStyles.formLabel}>
-                                    所属组织 {!isAdmin && <span className={bugStyles.formLabelRequired}>*</span>}
+                                    {t("bugs.modal.form.organization")}{" "}
+                                    {!isAdmin && <span className={bugStyles.formLabelRequired}>*</span>}
                                 </label>
                                 <CustomSelect
-                                    name="所属组织"
+                                    name={t("bugs.modal.form.organization")}
                                     options={orgs.map((o) => ({ id: o.orgId, name: o.orgName, color: "#6c757d" }))}
                                     value={
                                         orgs.find((o) => o.orgId === form.organizationId)
@@ -556,9 +586,9 @@ const BugList: React.FC = () => {
                         )}
                         <div className={bugStyles.formRow}>
                             <div className={bugStyles.formField}>
-                                <label className={bugStyles.formLabel}>严重程度</label>
+                                <label className={bugStyles.formLabel}>{t("bugs.modal.form.severity")}</label>
                                 <CustomSelect
-                                    name="严重程度"
+                                    name={t("bugs.modal.form.severity")}
                                     options={formSeverityOptions}
                                     value={formSeverityOptions.find((o) => o.id === form.severity) || null}
                                     onChange={(o) => setFormField("severity", (o?.id as string) || "normal")}
@@ -566,9 +596,9 @@ const BugList: React.FC = () => {
                                 />
                             </div>
                             <div className={bugStyles.formField}>
-                                <label className={bugStyles.formLabel}>优先级</label>
+                                <label className={bugStyles.formLabel}>{t("bugs.modal.form.priority")}</label>
                                 <CustomSelect
-                                    name="优先级"
+                                    name={t("bugs.modal.form.priority")}
                                     options={formPriorityOptions}
                                     value={formPriorityOptions.find((o) => o.id === form.priority) || null}
                                     onChange={(o) => setFormField("priority", (o?.id as string) || "high")}
@@ -577,9 +607,9 @@ const BugList: React.FC = () => {
                             </div>
                             {modalMode === "edit" && (
                                 <div className={bugStyles.formField}>
-                                    <label className={bugStyles.formLabel}>状态</label>
+                                    <label className={bugStyles.formLabel}>{t("bugs.modal.form.status")}</label>
                                     <CustomSelect
-                                        name="状态"
+                                        name={t("bugs.modal.form.status")}
                                         options={formStatusOptions}
                                         value={formStatusOptions.find((o) => o.id === form.status) || null}
                                         onChange={(o) => setFormField("status", (o?.id as string) || "new")}
@@ -590,9 +620,9 @@ const BugList: React.FC = () => {
                         </div>
                         <div className={bugStyles.formRow}>
                             <div className={bugStyles.formField}>
-                                <label className={bugStyles.formLabel}>负责人</label>
+                                <label className={bugStyles.formLabel}>{t("bugs.modal.form.assignee")}</label>
                                 <CustomSelect
-                                    name="负责人"
+                                    name={t("bugs.modal.form.assignee")}
                                     options={memberOptions}
                                     value={
                                         memberOptions.find((o) => o.id === form.assignee) ||
@@ -603,18 +633,18 @@ const BugList: React.FC = () => {
                                 />
                             </div>
                             <div className={bugStyles.formField}>
-                                <label className={bugStyles.formLabel}>关联需求 ID</label>
+                                <label className={bugStyles.formLabel}>{t("bugs.modal.form.relatedRequirementId")}</label>
                                 <Input
-                                    placeholder="选填"
+                                    placeholder={t("bugs.modal.form.optional")}
                                     value={form.relatedRequirementId}
                                     onChange={(v) => setFormField("relatedRequirementId", v)}
                                     size="large"
                                 />
                             </div>
                             <div className={bugStyles.formField}>
-                                <label className={bugStyles.formLabel}>所属模块</label>
+                                <label className={bugStyles.formLabel}>{t("bugs.modal.form.module")}</label>
                                 <Input
-                                    placeholder="如 用户模块"
+                                    placeholder={t("bugs.modal.form.modulePlaceholder")}
                                     value={form.module}
                                     onChange={(v) => setFormField("module", v)}
                                     size="large"
@@ -622,9 +652,9 @@ const BugList: React.FC = () => {
                             </div>
                         </div>
                         <div>
-                            <label className={bugStyles.formLabel}>描述</label>
+                            <label className={bugStyles.formLabel}>{t("bugs.modal.form.description")}</label>
                             <textarea
-                                placeholder="请输入缺陷详细描述..."
+                                placeholder={t("bugs.modal.form.descriptionPlaceholder")}
                                 value={form.description}
                                 onChange={(e) => setFormField("description", e.target.value)}
                                 rows={5}
@@ -632,9 +662,9 @@ const BugList: React.FC = () => {
                             />
                         </div>
                         <div>
-                            <label className={bugStyles.formLabel}>复现步骤</label>
+                            <label className={bugStyles.formLabel}>{t("bugs.modal.form.stepsToReproduce")}</label>
                             <textarea
-                                placeholder={"1. 打开页面\n2. 点击按钮\n3. 观察结果"}
+                                placeholder={t("bugs.modal.form.stepsToReproducePlaceholder")}
                                 value={form.stepsToReproduce}
                                 onChange={(e) => setFormField("stepsToReproduce", e.target.value)}
                                 rows={4}
@@ -642,9 +672,9 @@ const BugList: React.FC = () => {
                             />
                         </div>
                         <div>
-                            <label className={bugStyles.formLabel}>运行环境</label>
+                            <label className={bugStyles.formLabel}>{t("bugs.modal.form.environment")}</label>
                             <Input
-                                placeholder="如 Chrome 120 / iOS 18 Safari"
+                                placeholder={t("bugs.modal.form.environmentPlaceholder")}
                                 value={form.environment}
                                 onChange={(v) => setFormField("environment", v)}
                                 size="large"

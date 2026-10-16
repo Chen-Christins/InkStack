@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, type ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import styles from "./Confirm.module.css";
 import { createPortal } from "react-dom";
 
@@ -32,14 +33,17 @@ const Confirm = ({
     visible,
     title,
     content,
-    confirmText = "确认",
-    cancelText = "取消",
+    confirmText,
+    cancelText,
     onConfirm,
     onCancel,
     closeOnMaskClick = true,
     showCancel = true,
     onClose,
 }: ConfirmState & { onClose: (id: string) => void }) => {
+    const { t } = useTranslation("components");
+    const resolvedConfirmText = confirmText ?? t("confirm.confirmText");
+    const resolvedCancelText = cancelText ?? t("confirm.cancelText");
     const [isConfirming, setIsConfirming] = useState(false);
 
     // 点击确认按钮
@@ -112,11 +116,11 @@ const Confirm = ({
                     <div className={styles.footer}>
                         {showCancel && (
                             <button className={styles.cancelBtn} onClick={handleCancel} disabled={isConfirming}>
-                                {cancelText}
+                                {resolvedCancelText}
                             </button>
                         )}
                         <button className={styles.confirmBtn} onClick={handleConfirm} disabled={isConfirming}>
-                            {isConfirming ? "处理中..." : confirmText}
+                            {isConfirming ? t("confirm.processing") : resolvedConfirmText}
                         </button>
                     </div>
                 </div>

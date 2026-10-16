@@ -9,6 +9,7 @@
  * 当前从研发平台统一入口 `/rd/agent` 访问；真实写入仍受生产 BFF 集成门禁保护。
  */
 import React, { useEffect, useRef, useState, type ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import { useSearchParams } from "react-router-dom";
 import SimpleBar from "simplebar-react";
 import { FaBolt, FaCheckCircle, FaCog, FaInfoCircle, FaRedo, FaShieldAlt, FaTimesCircle, FaWrench } from "react-icons/fa";
@@ -18,11 +19,12 @@ import Loading from "@/components/loading/Loading";
 import Modal from "@/components/modal/Modal";
 import Skeleton from "@/components/skeleton/Skeleton";
 import message from "@/components/message/Message";
+import { useEnumLabels } from "@/i18n/UseEnumLabels";
 import AgentApiConfigCard from "./AgentApiConfigCard";
 import { createGatewaySession } from "@/services/agentSession/Gateway.ts";
 import { createMockSession } from "@/services/agentSession/Mock.ts";
 import type { SessionHandle, PermissionDecision } from "@/services/agentSession/Types.ts";
-import type { EngineEvent as SharedEngineEvent, ProposalStatus, SessionStatus as SharedSessionStatus } from "../../contracts/agent";
+import type { EngineEvent as SharedEngineEvent, SessionStatus as SharedSessionStatus } from "../../contracts/agent";
 import styles from "./AgentSessionPanel.module.css";
 
 /** UI and drivers consume the shared event contract. */
@@ -39,30 +41,14 @@ const STATUS_TONE: Record<SessionStatus, "neutral" | "running" | "warning" | "su
     cancelled: "danger",
 };
 
-const STATUS_LABEL: Record<SessionStatus, string> = {
-    queued: "排队中",
-    running: "运行中",
-    awaiting_permission: "待审批",
-    succeeded: "已成功",
-    failed: "已失败",
-    cancelled: "已取消",
-};
-
-const PROPOSAL_LABEL: Record<ProposalStatus, string> = {
-    pending: "待产品审批",
-    approved: "已批准，等待应用",
-    applying: "正在应用，不可撤回",
-    rejected: "已拒绝",
-    applied: "已应用",
-    expired: "已过期",
-};
-
 const formatTime = (ts: string) => {
     const date = new Date(ts);
     return Number.isNaN(date.getTime()) ? "--:--:--" : date.toLocaleTimeString("zh-CN", { hour12: false });
 };
 
 const AgentSessionPanel: React.FC = () => {
+    const { t } = useTranslation("rd");
+    const enums = useEnumLabels();
     const [searchParams, setSearchParams] = useSearchParams();
     const isGatewayDriver = searchParams.get("driver") === "gateway";
     // runId 变化时重开一场 mock 会话（重新演示）
@@ -131,9 +117,9 @@ const AgentSessionPanel: React.FC = () => {
         sessionRef.current?.answerPermission(requestId, decision);
         setDecisions((prev) => ({ ...prev, [requestId]: decision }));
         if (decision === "approve") {
-            message.success("已批准工具调用，会话继续执行");
+            message.success(t("agent.message.approvedToolCall"));
         } else {
-            message.warn("已拒绝工具调用，会话即将取消");
+            message.warn(t("agent.message.rejectedToolCall"));
         }
     };
 
@@ -142,10 +128,10 @@ const AgentSessionPanel: React.FC = () => {
         try {
             await sessionRef.current?.decideProposal(proposalId, decision);
             if (decision === "approve") {
-                message.success("产品写提案已批准，等待 MCP worker 重新校验并应用");
-            } else message.warn("产品写提案已拒绝，工单状态不会改变");
+                message.success(t("agent.message.proposalApproved"));
+            } else message.warn(t("agent.message.proposalRejected"));
         } catch {
-            message.error("产品写提案审批失败，请查看事件流中的错误信息");
+            message.error(t("agent.message.proposalFailed"));
         } finally {
             setProposalBusy((prev) => ({ ...prev, [proposalId]: false }));
         }
@@ -179,7 +165,7 @@ const AgentSessionPanel: React.FC = () => {
                     <div className={styles.toolCard}>
                         <div className={styles.toolHead}>
                             <FaWrench aria-hidden="true" />
-                            <span>工具调用</span>
+                            <span>{t("agent.event.toolCall")}</span>
                             <span className={styles.toolName}>{event.tool}</span>
                             <span className={styles.toolTime}>{formatTime(event.ts)}</span>
                         </div>
@@ -195,7 +181,7 @@ const AgentSessionPanel: React.FC = () => {
                             ) : (
                                 <FaTimesCircle className={styles.toolIconFail} aria-hidden="true" />
                             )}
-                            <span>{event.ok ? "工具执行成功" : "工具执行失败"}</span>
+                            <span>{event.ok ? t("agent.event.toolSuccess") : t("agent.event.toolFailed")}</span>
                             <span className={styles.toolName}>{event.tool}</span>
                             <span className={styles.toolTime}>{formatTime(event.ts)}</span>
                         </div>
@@ -206,15 +192,15 @@ const AgentSessionPanel: React.FC = () => {
                 const decision = decisions[event.requestId];
                 return (
                     <div className={styles.permissionCard}>
-                        <div className={styles.permEyebrow}>Runner 执行权限</div>
+                        <div className={styles.permEyebrow}>{t("agent.permission.eyebrow")}</div>
                         <div className={styles.permTitle}>
                             <FaShieldAlt aria-hidden="true" />
-                            <span>是否允许引擎发起工具调用</span>
+                            <span>{t("agent.permission.question")}</span>
                             <span className={styles.toolName}>{event.tool}</span>
                             <span className={styles.toolTime}>{formatTime(event.ts)}</span>
                         </div>
                         {event.reason && <p className={styles.permReason}>{event.reason}</p>}
-                        <p className={styles.permHint}>这里只控制 runner 执行权限；产品数据写入仍需经过下方独立的产品提案审批。</p>
+                        <p className={styles.permHint}>{t("agent.permission.hint")}</p>
                         {decision ? (
                             <div
                                 className={`${styles.permDecision} ${decision === "approve" ? styles.permDecisionOk : styles.permDecisionNo}`}
@@ -223,9 +209,9 @@ const AgentSessionPanel: React.FC = () => {
                                 <span>
                                     {decision === "approve"
                                         ? isGatewayDriver
-                                            ? "已批准 · Gateway 会话继续"
-                                            : "已批准 · 本地会话继续"
-                                        : "已拒绝 Runner 权限 · 会话已取消"}
+                                            ? t("agent.permission.approvedGateway")
+                                            : t("agent.permission.approvedLocal")
+                                        : t("agent.permission.rejected")}
                                 </span>
                             </div>
                         ) : (
@@ -236,7 +222,7 @@ const AgentSessionPanel: React.FC = () => {
                                     size="small"
                                     onClick={() => handleDecision(event.requestId, "approve")}
                                 >
-                                    允许 Runner 调用
+                                    {t("agent.permission.allow")}
                                 </Button>
                                 <Button
                                     className={styles.actionButton}
@@ -245,7 +231,7 @@ const AgentSessionPanel: React.FC = () => {
                                     size="small"
                                     onClick={() => handleDecision(event.requestId, "reject")}
                                 >
-                                    拒绝 Runner 调用
+                                    {t("agent.permission.deny")}
                                 </Button>
                             </div>
                         )}
@@ -264,7 +250,7 @@ const AgentSessionPanel: React.FC = () => {
                           : styles.proposalResultPending;
                 return (
                     <div className={styles.proposalCard} data-proposal-status={proposal.status}>
-                        <div className={styles.proposalEyebrow}>产品写提案 · 服务端权威</div>
+                        <div className={styles.proposalEyebrow}>{t("agent.proposal.eyebrow")}</div>
                         <div className={styles.proposalTitleRow}>
                             <FaShieldAlt aria-hidden="true" />
                             <strong>{proposal.subjectHashId}</strong>
@@ -277,7 +263,9 @@ const AgentSessionPanel: React.FC = () => {
                         <div className={styles.proposalMeta}>
                             <span>{proposal.tool}</span>
                             <span>{proposal.subjectType}</span>
-                            <span title={proposal.expiresAt}>到期 {formatTime(proposal.expiresAt)}</span>
+                            <span title={proposal.expiresAt}>
+                                {t("agent.proposal.expires", { time: formatTime(proposal.expiresAt) })}
+                            </span>
                         </div>
                         {proposal.note && <p className={styles.proposalNote}>{proposal.note}</p>}
                         {pending ? (
@@ -290,7 +278,7 @@ const AgentSessionPanel: React.FC = () => {
                                     disabled={busy}
                                     onClick={() => void handleProposalDecision(proposal.id, "approve")}
                                 >
-                                    批准产品写入
+                                    {t("agent.proposal.approve")}
                                 </Button>
                                 <Button
                                     className={styles.actionButton}
@@ -300,7 +288,7 @@ const AgentSessionPanel: React.FC = () => {
                                     disabled={busy}
                                     onClick={() => void handleProposalDecision(proposal.id, "reject")}
                                 >
-                                    拒绝产品写入
+                                    {t("agent.proposal.reject")}
                                 </Button>
                             </div>
                         ) : (
@@ -310,13 +298,11 @@ const AgentSessionPanel: React.FC = () => {
                                 ) : (
                                     <FaInfoCircle aria-hidden="true" />
                                 )}
-                                <span>{PROPOSAL_LABEL[proposal.status]}</span>
+                                <span>{enums.proposalStatus[proposal.status]}</span>
                                 {proposal.status === "approved" && <Loading size="small" text="" />}
                             </div>
                         )}
-                        <p className={styles.permHint}>
-                            批准只推进 proposal；实际写入仍由 MCP worker 重新读取域状态、校验状态机并幂等执行。
-                        </p>
+                        <p className={styles.permHint}>{t("agent.proposal.hint")}</p>
                     </div>
                 );
             }
@@ -324,7 +310,9 @@ const AgentSessionPanel: React.FC = () => {
                 return (
                     <div className={styles.statusRow}>
                         <span className={styles.statusLine} />
-                        <span className={styles.statusName}>状态迁移 → {STATUS_LABEL[event.status]}</span>
+                        <span className={styles.statusName}>
+                            {t("agent.status.transition", { status: enums.agentSessionStatus[event.status] })}
+                        </span>
                         {event.detail && <span className={styles.statusDetail}>{event.detail}</span>}
                         <span className={styles.toolTime}>{formatTime(event.ts)}</span>
                         <span className={styles.statusLine} />
@@ -348,13 +336,11 @@ const AgentSessionPanel: React.FC = () => {
                     <span className={styles.eyebrowDot} aria-hidden="true" />
                     Agent Control Plane · R1
                 </div>
-                <h1 className={styles.title}>每一次执行，都清晰可控。</h1>
-                <p className={styles.desc}>
-                    分开观察 Runner 执行权限与产品写提案，在真实写入前完成服务端审批，并保留可回放的生命周期轨迹。
-                </p>
+                <h1 className={styles.title}>{t("agent.hero.title")}</h1>
+                <p className={styles.desc}>{t("agent.hero.description")}</p>
                 <div className={styles.heroControls}>
-                    <div className={styles.modePicker} role="group" aria-label="选择 Agent 运行模式">
-                        <span className={styles.modeLabel}>运行模式</span>
+                    <div className={styles.modePicker} role="group" aria-label={t("agent.hero.modeAria")}>
+                        <span className={styles.modeLabel}>{t("agent.hero.modeLabel")}</span>
                         <div className={styles.modeActions}>
                             <Button
                                 className={styles.modeButton}
@@ -364,7 +350,7 @@ const AgentSessionPanel: React.FC = () => {
                                 aria-pressed={!isGatewayDriver}
                                 onClick={() => handleDriverChange("mock")}
                             >
-                                本地演示
+                                {t("agent.hero.modeMock")}
                             </Button>
                             <Button
                                 className={styles.modeButton}
@@ -374,18 +360,18 @@ const AgentSessionPanel: React.FC = () => {
                                 aria-pressed={isGatewayDriver}
                                 onClick={() => handleDriverChange("gateway")}
                             >
-                                Gateway 联调
+                                {t("agent.hero.modeGateway")}
                             </Button>
                         </div>
                     </div>
                     <Button className={styles.configButton} color="secondary" variant="light" onClick={() => setConfigOpen(true)}>
                         <FaCog aria-hidden="true" />
-                        API 配置
+                        {t("agent.hero.apiConfig")}
                     </Button>
                 </div>
             </header>
 
-            <section className={styles.panel} aria-label="Agent 会话运行面板">
+            <section className={styles.panel} aria-label={t("agent.panel.ariaLabel")}>
                 <header className={styles.header}>
                     <div className={styles.sessionIdentity}>
                         <div className={styles.agentMark} aria-hidden="true">
@@ -393,43 +379,43 @@ const AgentSessionPanel: React.FC = () => {
                         </div>
                         <div className={styles.sessionCopy}>
                             <div className={styles.sessionTitleRow}>
-                                <h2 className={styles.sessionTitle}>工单协作会话</h2>
+                                <h2 className={styles.sessionTitle}>{t("agent.session.title")}</h2>
                                 <span className={`${styles.badge} ${styles[`badge--${STATUS_TONE[status]}`]}`} role="status">
                                     <span className={`${styles.badgeDot} ${status === "running" ? styles.badgeDotPulse : ""}`} />
-                                    {STATUS_LABEL[status]}
+                                    {enums.agentSessionStatus[status]}
                                 </span>
                             </div>
                             <span className={styles.sid} title={sid}>
-                                {sid || "正在创建会话…"}
+                                {sid || t("agent.session.sidPlaceholder")}
                             </span>
                         </div>
                     </div>
                     <Button className={styles.restartButton} color="secondary" variant="light" size="small" onClick={handleRestart}>
                         <FaRedo aria-hidden="true" />
-                        重新运行
+                        {t("agent.session.restart")}
                     </Button>
                 </header>
 
-                <div className={styles.contextBar} aria-label="会话概况">
+                <div className={styles.contextBar} aria-label={t("agent.context.ariaLabel")}>
                     <div className={styles.contextItem}>
-                        <span className={styles.contextLabel}>运行驱动</span>
+                        <span className={styles.contextLabel}>{t("agent.context.driverLabel")}</span>
                         <strong>{isGatewayDriver ? "Gateway" : "Local Mock"}</strong>
                     </div>
                     <div className={styles.contextDivider} aria-hidden="true" />
                     <div className={styles.contextItem}>
-                        <span className={styles.contextLabel}>事件数量</span>
+                        <span className={styles.contextLabel}>{t("agent.context.eventCount")}</span>
                         <strong>{events.length}</strong>
                     </div>
                     <div className={styles.contextDivider} aria-hidden="true" />
                     <div className={styles.contextItem}>
-                        <span className={styles.contextLabel}>最后更新</span>
-                        <strong>{events.length > 0 ? formatTime(events[events.length - 1].ts) : "等待中"}</strong>
+                        <span className={styles.contextLabel}>{t("agent.context.lastUpdated")}</span>
+                        <strong>{events.length > 0 ? formatTime(events[events.length - 1].ts) : t("agent.context.waiting")}</strong>
                     </div>
                 </div>
 
                 <div className={styles.stream}>
                     <SimpleBar scrollableNodeProps={{ ref: scrollBodyRef }} style={{ maxHeight: 440 }} autoHide={false}>
-                        <div className={styles.timeline} aria-live="polite" aria-label="会话事件流">
+                        <div className={styles.timeline} aria-live="polite" aria-label={t("agent.stream.ariaLabel")}>
                             {events.length === 0 && (
                                 <div className={styles.streamSkeleton}>
                                     <Skeleton variant="text" lines={3} height={14} />
@@ -441,7 +427,7 @@ const AgentSessionPanel: React.FC = () => {
                             {status === "running" && (
                                 <div className={styles.streamLoadingRow}>
                                     <Loading size="small" text="" />
-                                    <span>{isGatewayDriver ? "Gateway 正在返回事件…" : "本地引擎正在输出…"}</span>
+                                    <span>{isGatewayDriver ? t("agent.stream.gatewayLoading") : t("agent.stream.localLoading")}</span>
                                 </div>
                             )}
                         </div>
@@ -451,25 +437,18 @@ const AgentSessionPanel: React.FC = () => {
                 <footer className={styles.footer}>
                     <div className={styles.footerNote}>
                         <FaInfoCircle aria-hidden="true" />
-                        <span>
-                            {isGatewayDriver
-                                ? "Gateway 验证模式：BFF/开发代理注入管理凭据与可信 actor；浏览器不持有 token。"
-                                : "演示模式：分别模拟 Runner 权限和产品 proposal，不会对真实工单写入。追加 ?driver=gateway 可切换本机 Gateway。"}
-                        </span>
+                        <span>{isGatewayDriver ? t("agent.footer.gatewayNote") : t("agent.footer.localNote")}</span>
                     </div>
                     <span className={styles.footerMono}>SSE · versioned envelope · staged approval</span>
                 </footer>
             </section>
 
-            <Modal visible={configOpen} title="Agent API 配置" onClose={() => setConfigOpen(false)} width={720} footer={null}>
+            <Modal visible={configOpen} title={t("agent.config.title")} onClose={() => setConfigOpen(false)} width={720} footer={null}>
                 <div className={styles.configNotice} role="note">
                     <FaShieldAlt aria-hidden="true" />
                     <div>
-                        <strong>密钥由站点后端保存</strong>
-                        <p>
-                            这里复用个人 AI 接口配置，不写入浏览器存储。部署启用用户配置解析后，Gateway
-                            会按当前用户在服务端注入隔离的运行凭据；浏览器不会获得供应商密钥或 Gateway 管理令牌。
-                        </p>
+                        <strong>{t("agent.config.noticeTitle")}</strong>
+                        <p>{t("agent.config.noticeBody")}</p>
                     </div>
                 </div>
                 <AgentApiConfigCard />

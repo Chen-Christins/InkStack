@@ -1,6 +1,9 @@
+import { useTranslation } from "react-i18next";
 import Button from "../components/button/Button";
 
 function SampleButton() {
+    const { t } = useTranslation("sample");
+
     return (
         <>
             <div
@@ -11,49 +14,49 @@ function SampleButton() {
                     padding: "20px",
                 }}
             >
-                <h2>按钮示例</h2>
+                <h2>{t("button.title")}</h2>
                 <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
                     <Button size="small" color="primary" variant="solid">
-                        主要按钮
+                        {t("button.primary")}
                     </Button>
                     <Button size="small" color="secondary" variant="solid">
-                        次要按钮
+                        {t("button.secondary")}
                     </Button>
                     <Button size="small" color="success" variant="solid">
-                        成功按钮
+                        {t("button.success")}
                     </Button>
                     <Button size="small" color="warning" variant="solid">
-                        警告按钮
+                        {t("button.warning")}
                     </Button>
                     <Button size="small" color="error" variant="solid">
-                        错误按钮
+                        {t("button.error")}
                     </Button>
                     <Button size="small" color="info" variant="solid">
-                        信息按钮
+                        {t("button.info")}
                     </Button>
                 </div>
 
                 <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
                     <Button size="small" color="warning" variant="solid">
-                        实心警告
+                        {t("button.solidWarning")}
                     </Button>
                     <Button size="small" color="warning" variant="outline">
-                        描边警告
+                        {t("button.outlineWarning")}
                     </Button>
                     <Button size="small" color="warning" variant="ghost">
-                        幽灵警告
+                        {t("button.ghostWarning")}
                     </Button>
                 </div>
 
                 <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
                     <Button size="small" disabled>
-                        禁用按钮
+                        {t("button.disabled")}
                     </Button>
                     <Button size="small" loading>
-                        加载中...
+                        {t("button.loading")}
                     </Button>
                     <Button size="small" color="error" disabled>
-                        禁用错误按钮
+                        {t("button.disabledError")}
                     </Button>
                 </div>
             </div>

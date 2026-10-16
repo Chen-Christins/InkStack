@@ -1,3 +1,5 @@
+import i18n from "@/i18n";
+
 export interface DailyQuote {
     content: string;
     source: string;
@@ -21,7 +23,7 @@ export const getDailyQuote = async (signal?: AbortSignal): Promise<DailyQuote> =
     });
 
     if (!response.ok) {
-        throw new Error(`获取名言失败 (HTTP ${response.status})`);
+        throw new Error(i18n.t("services:quote.fetchFailed", { status: response.status }));
     }
 
     const data = (await response.json()) as HitokotoResponse;

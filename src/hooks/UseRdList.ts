@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import message from "../components/message/Message";
+import i18n from "@/i18n";
 
 interface PageQuery {
     page: number;
@@ -32,7 +33,7 @@ export function useRdList<T, F extends object>(
             setTotal(result.total);
         } catch (error) {
             if (id === requestId.current) {
-                message.error(error instanceof Error ? error.message : "列表加载失败，请重试");
+                message.error(error instanceof Error ? error.message : i18n.t("services:rdList.loadFailed"));
             }
         } finally {
             if (id === requestId.current) {

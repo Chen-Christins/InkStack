@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import NotFound404 from "../pages/error/NotFound404";
 import { Routes, Route, Navigate } from "react-router-dom";
 import AuthPage from "../pages/auth/AuthPage";
@@ -44,6 +45,8 @@ import HelpCenter from "../pages/user/HelpCenter";
 import Messages from "../pages/user/Messages";
 
 const RouterConfig: React.FC = () => {
+    const { t } = useTranslation("auth");
+
     return (
         <Routes>
             {/* 默认路由重定向到主页 */}
@@ -106,7 +109,7 @@ const RouterConfig: React.FC = () => {
                     <Route
                         path="/messages"
                         element={
-                            <AuthRequired fill title="登录后查看私信" message="私信会话仅对已登录用户开放。">
+                            <AuthRequired fill title={t("pageRequired.messagesTitle")} message={t("pageRequired.messagesMessage")}>
                                 <Messages />
                             </AuthRequired>
                         }
@@ -137,7 +140,7 @@ const RouterConfig: React.FC = () => {
                         <Route
                             path="agent"
                             element={
-                                <AuthRequired title="登录后使用 Agent" message="请先登录。">
+                                <AuthRequired title={t("pageRequired.agentTitle")} message={t("pageRequired.agentMessage")}>
                                     <AgentSessionPanel />
                                 </AuthRequired>
                             }

@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { encodeId } from "@/utils/HashId.ts";
 import { FaUserSlash } from "react-icons/fa";
@@ -43,6 +44,7 @@ function getPageNumbers(current: number, total: number): (number | string)[] {
 }
 
 const FollowerTab: React.FC = () => {
+    const { t } = useTranslation("personal");
     const navigate = useNavigate();
     const [currentPage, setCurrentPage] = useState(1);
     const { data, loading } = useAsyncResource<{ list: FollowUser[]; total: number }>(
@@ -58,18 +60,18 @@ const FollowerTab: React.FC = () => {
     return (
         <div className={styles.contentSection}>
             <div className={styles.sectionHeader}>
-                <h2>我的粉丝</h2>
-                {total > 0 && <span className={styles.unreadBadge}>{total} 人</span>}
+                <h2>{t("follower.title")}</h2>
+                {total > 0 && <span className={styles.unreadBadge}>{t("follower.peopleCount", { value: total })}</span>}
             </div>
 
             {loading ? (
                 <div className={styles.notifEmpty}>
-                    <span>加载中...</span>
+                    <span>{t("follower.loading")}</span>
                 </div>
             ) : list.length === 0 ? (
                 <div className={styles.notifEmpty}>
                     <FaUserSlash className={styles.notifEmptyIcon} />
-                    <span>暂无粉丝</span>
+                    <span>{t("follower.empty")}</span>
                 </div>
             ) : (
                 <div className={styles.followList}>
@@ -85,11 +87,11 @@ const FollowerTab: React.FC = () => {
                                     <div className={styles.followItemName}>{user.name}</div>
                                     {user.bio && <div className={styles.followItemBio}>{user.bio}</div>}
                                     <div className={styles.followItemTime}>
-                                        @{user.account} · {formatDate(user.create_time)} 加入
+                                        {t("follower.joinedAt", { account: user.account, date: formatDate(user.create_time) })}
                                     </div>
                                     <div className={styles.followItemStats}>
-                                        <span>{user.following_count ?? 0} 关注</span>
-                                        <span>{user.follower_count ?? 0} 粉丝</span>
+                                        <span>{t("follower.followingCount", { value: user.following_count ?? 0 })}</span>
+                                        <span>{t("follower.followerCount", { value: user.follower_count ?? 0 })}</span>
                                     </div>
                                 </div>
                             </div>
@@ -102,18 +104,22 @@ const FollowerTab: React.FC = () => {
             {totalPages > 1 && (
                 <div className={styles.pagination}>
                     <div className={styles.paginationInfo}>
-                        显示 {startIndex + 1} - {Math.min(startIndex + PAGE_SIZE, total)} 条，共 {total} 条
+                        {t("follower.paginationInfo", {
+                            start: startIndex + 1,
+                            end: Math.min(startIndex + PAGE_SIZE, total),
+                            total,
+                        })}
                     </div>
                     <div className={styles.paginationControls}>
                         <button className={styles.paginationButton} onClick={() => setCurrentPage(1)} disabled={currentPage === 1}>
-                            首页
+                            {t("follower.firstPage")}
                         </button>
                         <button
                             className={styles.paginationButton}
                             onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                             disabled={currentPage === 1}
                         >
-                            上一页
+                            {t("follower.prevPage")}
                         </button>
                         {getPageNumbers(currentPage, totalPages).map((page, i) => (
                             <button
@@ -130,14 +136,14 @@ const FollowerTab: React.FC = () => {
                             onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                             disabled={currentPage === totalPages}
                         >
-                            下一页
+                            {t("follower.nextPage")}
                         </button>
                         <button
                             className={styles.paginationButton}
                             onClick={() => setCurrentPage(totalPages)}
                             disabled={currentPage === totalPages}
                         >
-                            末页
+                            {t("follower.lastPage")}
                         </button>
                     </div>
                 </div>

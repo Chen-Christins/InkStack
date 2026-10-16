@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { createPortal } from "react-dom";
 import { FaBuilding, FaTimes, FaCheck } from "react-icons/fa";
 import styles from "./OrgSelector.module.css";
@@ -12,6 +13,7 @@ interface OrgSelectorProps {
 }
 
 const OrgSelector: React.FC<OrgSelectorProps> = ({ orgs, selectedOrgId, onChange, collapsed }) => {
+    const { t } = useTranslation("components");
     const [open, setOpen] = useState(false);
     const isSingle = orgs.length === 1;
 
@@ -67,7 +69,7 @@ const OrgSelector: React.FC<OrgSelectorProps> = ({ orgs, selectedOrgId, onChange
                     {/* 右侧滑出面板 */}
                     <div className={`${styles.panel} ${open ? styles.panelOpen : ""}`}>
                         <div className={styles.panelHeader}>
-                            <h3 className={styles.panelTitle}>选择组织</h3>
+                            <h3 className={styles.panelTitle}>{t("orgSelector.title")}</h3>
                             <button className={styles.closeBtn} onClick={() => setOpen(false)}>
                                 <FaTimes />
                             </button>

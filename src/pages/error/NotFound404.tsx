@@ -1,11 +1,13 @@
 import React, { useEffect, useRef, useState } from "react";
 import styles from "./NotFound404.module.css";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 const UFO_SOUND = "https://cdn.pixabay.com/audio/2022/10/16/audio_12b2b7e2b2.mp3";
 
 const NotFound404: React.FC = () => {
     const navigate = useNavigate();
+    const { t } = useTranslation("error");
     const [blink, setBlink] = useState(false);
     const [showUfo, setShowUfo] = useState(false);
     const audioRef = useRef<HTMLAudioElement>(null);
@@ -90,14 +92,14 @@ const NotFound404: React.FC = () => {
                 )}
                 <audio ref={audioRef} src={UFO_SOUND} preload="auto" />
             </div>
-            <div className={styles.title}>哎呀，页面迷路了！</div>
+            <div className={styles.title}>{t("notFound.title")}</div>
             <div className={styles.desc}>
-                你访问的页面不在地球上，可能被外星人带走了。
+                {t("notFound.descriptionLine1")}
                 <br />
-                别担心，带你回家！
+                {t("notFound.descriptionLine2")}
             </div>
             <button className={styles.homeBtn} onClick={() => navigate("/index")}>
-                返回首页
+                {t("notFound.backHome")}
             </button>
         </div>
     );

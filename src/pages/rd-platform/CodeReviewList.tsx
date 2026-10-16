@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { useSearchParams } from "react-router-dom";
 import { encodeId, decodeId } from "@/utils/HashId.ts";
 import { formatDateTime, formatRelativeTime } from "@/utils/Utils.ts";
@@ -57,32 +58,42 @@ interface RepoItem {
     prSyncStatus: string;
 }
 
-const stateOptions: SelectOption[] = [
-    { id: "", name: "全部状态", color: "#6c757d" },
-    { id: "open", name: "开启中", color: "#22c55e" },
-    { id: "closed", name: "已关闭", color: "#6b7280" },
-    { id: "merged", name: "已合并", color: "#a855f7" },
-];
-
-const stateText: Record<string, string> = { open: "开启中", closed: "已关闭", merged: "已合并" };
-const reviewStatusText: Record<string, string> = {
-    pending: "待审查",
-    reviewing: "审查中",
-    approved: "已通过",
-    rejected: "已拒绝",
-    changes_requested: "需修改",
-};
-const priorityText: Record<string, string> = {
-    critical: "紧急",
-    high: "高",
-    medium: "中",
-    low: "低",
-};
 const PAGE_SIZE = 10;
 
 // ---- component ----
 const CodeReviewList: React.FC = () => {
+    const { t } = useTranslation("rd");
     const { selectedOrgId } = useRdOrg();
+    const stateOptions: SelectOption[] = [
+        { id: "", name: t("reviews.state.all"), color: "#6c757d" },
+        { id: "open", name: t("reviews.state.open"), color: "#22c55e" },
+        { id: "closed", name: t("reviews.state.closed"), color: "#6b7280" },
+        { id: "merged", name: t("reviews.state.merged"), color: "#a855f7" },
+    ];
+    const stateText: Record<string, string> = {
+        open: t("reviews.state.open"),
+        closed: t("reviews.state.closed"),
+        merged: t("reviews.state.merged"),
+    };
+    const reviewStatusText: Record<string, string> = {
+        pending: t("reviews.review.pending"),
+        reviewing: t("reviews.review.reviewing"),
+        approved: t("reviews.review.approved"),
+        rejected: t("reviews.review.rejected"),
+        changes_requested: t("reviews.review.changesRequested"),
+    };
+    const priorityText: Record<string, string> = {
+        critical: t("reviews.priority.critical"),
+        high: t("reviews.priority.high"),
+        medium: t("reviews.priority.medium"),
+        low: t("reviews.priority.low"),
+    };
+    const repoStatusText: Record<string, string> = {
+        success: t("reviews.repo.synced"),
+        failed: t("reviews.repo.failed"),
+        syncing: t("reviews.repo.syncing"),
+        idle: t("reviews.repo.idle"),
+    };
     const [prs, setPrs] = useState<PR[]>([]);
     const [total, setTotal] = useState(0);
     const [initialLoading, setInitialLoading] = useState(true);
@@ -256,7 +267,7 @@ const CodeReviewList: React.FC = () => {
                 await fetchPrs(selectedRepoId);
             } catch {
                 if (!cancelled) {
-                    message.error("获取数据失败");
+                    message.error(t("reviews.message.fetchFailed"));
                 }
             } finally {
                 if (!cancelled) {
@@ -301,7 +312,7 @@ const CodeReviewList: React.FC = () => {
             await OrganizationService.syncPrs({ repo_id: repo.id });
         } catch (err: any) {
             setRepos((prev) => prev.map((r) => (r.id === repo.id ? { ...r, prSyncStatus: "failed" } : r)));
-            message.error(`同步 ${repo.name} 失败`);
+            message.error(t("reviews.message.syncRepoFailed", { name: repo.name }));
         } finally {
             setSyncingRepos((prev) => {
                 const next = new Set(prev);
@@ -319,10 +330,10 @@ const CodeReviewList: React.FC = () => {
         setSyncingPrs((prev) => new Set(prev).add(pr.id));
         try {
             await OrganizationService.syncPr({ id: pr.id });
-            message.success("PR 同步成功");
+            message.success(t("reviews.message.syncPrSuccess"));
             fetchPrs();
         } catch (err: any) {
-            message.error(err?.message || "同步失败");
+            message.error(err?.message || t("reviews.message.syncFailed"));
         } finally {
             setSyncingPrs((prev) => {
                 const next = new Set(prev);
@@ -335,21 +346,23 @@ const CodeReviewList: React.FC = () => {
     // ---- 删除 PR ----
     const handleDeletePr = async (pr: PR) => {
         await confirm({
-            title: "确认删除",
+            title: t("reviews.confirm.deleteTitle"),
             content: (
                 <div>
-                    确定要删除 PR "<strong>{pr.title}</strong>" 吗？仅删除本地记录，不影响 GitHub。
+                    {t("reviews.confirm.deleteContentPrefix")}
+                    <strong>{pr.title}</strong>
+                    {t("reviews.confirm.deleteContentSuffix")}
                 </div>
             ),
-            confirmText: "删除",
-            cancelText: "取消",
+            confirmText: t("reviews.confirm.delete"),
+            cancelText: t("reviews.confirm.cancel"),
             onConfirm: async () => {
                 try {
                     await OrganizationService.deletePr({ id: pr.id });
-                    message.success("PR 已删除");
+                    message.success(t("reviews.message.deleteSuccess"));
                     fetchPrs();
                 } catch (err: any) {
-                    message.error(err?.message || "删除失败");
+                    message.error(err?.message || t("reviews.message.deleteFailed"));
                 }
             },
         });
@@ -381,7 +394,7 @@ const CodeReviewList: React.FC = () => {
                     parsed
                         .map((item) => (typeof item === "string" ? item : item?.name || item?.login || item?.username || ""))
                         .filter(Boolean)
-                        .join("、") || "-"
+                        .join(t("reviews.reviewersSeparator")) || "-"
                 );
             }
         } catch {
@@ -420,7 +433,7 @@ const CodeReviewList: React.FC = () => {
     const renderChangeStats = (pr: PR) =>
         pr.changedFiles != null ? (
             <span className={crStyles.changeFiles}>
-                {pr.changedFiles} 文件
+                {t("reviews.detail.files", { value: pr.changedFiles })}
                 {pr.additions != null && pr.additions > 0 && <span className={crStyles.changeAdditions}>+{pr.additions}</span>}
                 {pr.deletions != null && pr.deletions > 0 && <span className={crStyles.changeDeletions}>-{pr.deletions}</span>}
             </span>
@@ -430,12 +443,12 @@ const CodeReviewList: React.FC = () => {
 
     const renderPrActions = (pr: PR) => (
         <>
-            <button className={`${styles.actionBtn} ${styles.view}`} title="查看详情" onClick={() => openView(pr)}>
+            <button className={`${styles.actionBtn} ${styles.view}`} title={t("reviews.action.view")} onClick={() => openView(pr)}>
                 <FaEye />
             </button>
             <button
                 className={`${styles.actionBtn} ${styles.sync}`}
-                title="同步此 PR"
+                title={t("reviews.action.syncPr")}
                 disabled={syncingPrs.has(pr.id)}
                 onClick={(e) => {
                     e.stopPropagation();
@@ -447,7 +460,7 @@ const CodeReviewList: React.FC = () => {
             {getPrUrl(pr) && (
                 <button
                     className={`${styles.actionBtn} ${styles.ghBtn}`}
-                    title="在 GitHub 查看"
+                    title={t("reviews.action.viewOnGithub")}
                     onClick={(e) => {
                         e.stopPropagation();
                         window.open(getPrUrl(pr)!, "_blank", "noopener,noreferrer");
@@ -456,7 +469,11 @@ const CodeReviewList: React.FC = () => {
                     <FaGithub />
                 </button>
             )}
-            <button className={`${styles.actionBtn} ${styles.delete}`} title="删除" onClick={() => handleDeletePr(pr)}>
+            <button
+                className={`${styles.actionBtn} ${styles.delete}`}
+                title={t("reviews.action.delete")}
+                onClick={() => handleDeletePr(pr)}
+            >
                 <FaTrash />
             </button>
         </>
@@ -495,8 +512,8 @@ const CodeReviewList: React.FC = () => {
         <div className={styles.listPage}>
             <div className={styles.pageHeader}>
                 <div>
-                    <h1 className={styles.pageTitle}>代码审查</h1>
-                    <p className={styles.pageDescription}>查看从 GitHub 同步的 Pull Request 数据</p>
+                    <h1 className={styles.pageTitle}>{t("reviews.page.title")}</h1>
+                    <p className={styles.pageDescription}>{t("reviews.page.description")}</p>
                 </div>
             </div>
 
@@ -528,13 +545,7 @@ const CodeReviewList: React.FC = () => {
                                                 : ""
                                     }`}
                                 >
-                                    {repo.prSyncStatus === "success"
-                                        ? "已同步"
-                                        : repo.prSyncStatus === "failed"
-                                          ? "失败"
-                                          : repo.prSyncStatus === "syncing"
-                                            ? "同步中"
-                                            : "未同步"}
+                                    {repoStatusText[repo.prSyncStatus] || repoStatusText.idle}
                                 </span>
                                 <button
                                     className={styles.repoBarSyncBtn}
@@ -555,7 +566,7 @@ const CodeReviewList: React.FC = () => {
             <div className={styles.filterSection}>
                 <div className={styles.filterHeader}>
                     <h3 className={styles.filterTitle}>
-                        <FaFilter /> 筛选条件
+                        <FaFilter /> {t("reviews.filters.title")}
                     </h3>
                     <button
                         className={styles.clearBtn}
@@ -564,14 +575,14 @@ const CodeReviewList: React.FC = () => {
                             setCurrentPage(1);
                         }}
                     >
-                        清除筛选
+                        {t("reviews.filters.clear")}
                     </button>
                 </div>
                 <div className={styles.filterForm}>
                     <div className={styles.filterGroup}>
-                        <label className={styles.filterLabel}>搜索</label>
+                        <label className={styles.filterLabel}>{t("reviews.filters.searchLabel")}</label>
                         <Input
-                            placeholder="标题、作者或分支名"
+                            placeholder={t("reviews.filters.searchPlaceholder")}
                             value={filters.search}
                             onChange={(val) => handleFilterChange("search", val)}
                             allowClear
@@ -579,9 +590,9 @@ const CodeReviewList: React.FC = () => {
                         />
                     </div>
                     <div className={styles.filterGroup}>
-                        <label className={styles.filterLabel}>状态</label>
+                        <label className={styles.filterLabel}>{t("reviews.filters.stateLabel")}</label>
                         <CustomSelect
-                            name="状态"
+                            name={t("reviews.filters.stateLabel")}
                             options={stateOptions}
                             value={stateOptions.find((o) => o.id === filters.state) || null}
                             onChange={(o) => handleFilterChange("state", (o?.id as string) || "")}
@@ -595,20 +606,20 @@ const CodeReviewList: React.FC = () => {
                 <table className={styles.table}>
                     <thead>
                         <tr>
-                            <th>标题</th>
-                            <th>状态</th>
-                            <th>作者</th>
-                            <th>分支</th>
-                            <th>变更</th>
-                            <th>创建时间</th>
-                            <th>操作</th>
+                            <th>{t("reviews.table.title")}</th>
+                            <th>{t("reviews.table.state")}</th>
+                            <th>{t("reviews.table.author")}</th>
+                            <th>{t("reviews.table.branch")}</th>
+                            <th>{t("reviews.table.change")}</th>
+                            <th>{t("reviews.table.createdAt")}</th>
+                            <th>{t("reviews.table.actions")}</th>
                         </tr>
                     </thead>
                     <tbody>
                         {tableLoading ? (
                             <tr>
                                 <td colSpan={7} className={styles.emptyCell}>
-                                    <Loading size="small" text="加载中..." />
+                                    <Loading size="small" text={t("reviews.loading")} />
                                 </td>
                             </tr>
                         ) : prs.length === 0 ? (
@@ -618,7 +629,7 @@ const CodeReviewList: React.FC = () => {
                                         <FaGithub />
                                     </div>
                                     <div className={styles.emptyCellText}>
-                                        {selectedRepoId ? "暂无 PR 数据" : "请点击上方仓库查看 PR"}
+                                        {selectedRepoId ? t("reviews.empty.noPr") : t("reviews.empty.selectRepo")}
                                     </div>
                                 </td>
                             </tr>
@@ -626,31 +637,35 @@ const CodeReviewList: React.FC = () => {
                             prs.map((pr) => {
                                 return (
                                     <tr key={pr.id}>
-                                        <td className={styles.titleCell} data-label="标题" onClick={() => openView(pr)}>
+                                        <td
+                                            className={styles.titleCell}
+                                            data-label={t("reviews.table.title")}
+                                            onClick={() => openView(pr)}
+                                        >
                                             {pr.title}
                                         </td>
-                                        <td data-label="状态">
+                                        <td data-label={t("reviews.table.state")}>
                                             <span
                                                 className={`${styles.badge} ${pr.state === "closed" ? styles.pr_closed : styles[`status_${pr.state}`]}`}
                                             >
                                                 {stateText[pr.state]}
                                             </span>
                                         </td>
-                                        <td className={crStyles.cellCenter} data-label="作者">
+                                        <td className={crStyles.cellCenter} data-label={t("reviews.table.author")}>
                                             {pr.author}
                                         </td>
-                                        <td className={crStyles.branchCell} data-label="分支">
+                                        <td className={crStyles.branchCell} data-label={t("reviews.table.branch")}>
                                             <span className={crStyles.branchRoute}>
                                                 <span className={crStyles.branchHead}>{pr.headBranch}</span>
                                                 <span className={crStyles.branchArrow}>→</span>
                                                 <span className={crStyles.branchBase}>{pr.baseBranch}</span>
                                             </span>
                                         </td>
-                                        <td className={crStyles.changeCell} data-label="变更">
+                                        <td className={crStyles.changeCell} data-label={t("reviews.table.change")}>
                                             {renderChangeStats(pr)}
                                         </td>
-                                        <td data-label="创建时间">{formatRelativeTime(pr.createdAt)}</td>
-                                        <td data-label="操作">
+                                        <td data-label={t("reviews.table.createdAt")}>{formatRelativeTime(pr.createdAt)}</td>
+                                        <td data-label={t("reviews.table.actions")}>
                                             <div className={styles.actionButtons}>{renderPrActions(pr)}</div>
                                         </td>
                                     </tr>
@@ -664,14 +679,16 @@ const CodeReviewList: React.FC = () => {
             <div className={crStyles.mobilePrList}>
                 {tableLoading ? (
                     <div className={crStyles.mobileEmpty}>
-                        <Loading size="small" text="加载中..." />
+                        <Loading size="small" text={t("reviews.loading")} />
                     </div>
                 ) : prs.length === 0 ? (
                     <div className={crStyles.mobileEmpty}>
                         <div className={styles.emptyCellIcon}>
                             <FaGithub />
                         </div>
-                        <div className={styles.emptyCellText}>{selectedRepoId ? "暂无 PR 数据" : "请点击上方仓库查看 PR"}</div>
+                        <div className={styles.emptyCellText}>
+                            {selectedRepoId ? t("reviews.empty.noPr") : t("reviews.empty.selectRepo")}
+                        </div>
                     </div>
                 ) : (
                     prs.map((pr) => (
@@ -682,7 +699,7 @@ const CodeReviewList: React.FC = () => {
                                         <div className={crStyles.mobileTitle}>{pr.title || "-"}</div>
                                         <div className={crStyles.mobileSubtitle}>
                                             <span>{getRepoName(pr.repoId)}</span>
-                                            <span>{pr.githubPrId ? `#${pr.githubPrId}` : "无 PR 编号"}</span>
+                                            <span>{pr.githubPrId ? `#${pr.githubPrId}` : t("reviews.action.noPrId")}</span>
                                         </div>
                                     </div>
                                     <span
@@ -694,45 +711,45 @@ const CodeReviewList: React.FC = () => {
 
                                 <div className={crStyles.mobileMetaGrid}>
                                     <div className={crStyles.mobileMetaItem}>
-                                        <span className={crStyles.mobileMetaLabel}>作者</span>
+                                        <span className={crStyles.mobileMetaLabel}>{t("reviews.mobile.author")}</span>
                                         <span className={crStyles.mobileMetaValue}>{pr.author || "-"}</span>
                                     </div>
                                     <div className={crStyles.mobileMetaItem}>
-                                        <span className={crStyles.mobileMetaLabel}>审查状态</span>
+                                        <span className={crStyles.mobileMetaLabel}>{t("reviews.mobile.reviewStatus")}</span>
                                         <span className={crStyles.mobileMetaValue}>
                                             {reviewStatusText[pr.reviewStatus] || pr.reviewStatus || "-"}
                                         </span>
                                     </div>
                                     <div className={crStyles.mobileMetaItem}>
-                                        <span className={crStyles.mobileMetaLabel}>优先级</span>
+                                        <span className={crStyles.mobileMetaLabel}>{t("reviews.mobile.priority")}</span>
                                         <span className={crStyles.mobileMetaValue}>
                                             {priorityText[pr.priority] || pr.priority || "-"}
                                         </span>
                                     </div>
                                     <div className={crStyles.mobileMetaItem}>
-                                        <span className={crStyles.mobileMetaLabel}>变更</span>
+                                        <span className={crStyles.mobileMetaLabel}>{t("reviews.mobile.change")}</span>
                                         <span className={crStyles.mobileMetaValue}>{renderChangeStats(pr)}</span>
                                     </div>
                                     <div className={crStyles.mobileMetaItem}>
-                                        <span className={crStyles.mobileMetaLabel}>评审人</span>
+                                        <span className={crStyles.mobileMetaLabel}>{t("reviews.mobile.reviewers")}</span>
                                         <span className={crStyles.mobileMetaValue}>{formatReviewers(pr.reviewers)}</span>
                                     </div>
                                     <div className={crStyles.mobileMetaItem}>
-                                        <span className={crStyles.mobileMetaLabel}>Commit</span>
+                                        <span className={crStyles.mobileMetaLabel}>{t("reviews.mobile.commit")}</span>
                                         <span className={crStyles.mobileMetaValue}>{formatCommit(pr.commitSha)}</span>
                                     </div>
                                     <div className={crStyles.mobileMetaItem}>
-                                        <span className={crStyles.mobileMetaLabel}>创建</span>
+                                        <span className={crStyles.mobileMetaLabel}>{t("reviews.mobile.createdAt")}</span>
                                         <span className={crStyles.mobileMetaValue}>{formatRelativeTime(pr.createdAt)}</span>
                                     </div>
                                     <div className={crStyles.mobileMetaItem}>
-                                        <span className={crStyles.mobileMetaLabel}>同步</span>
+                                        <span className={crStyles.mobileMetaLabel}>{t("reviews.mobile.syncedAt")}</span>
                                         <span className={crStyles.mobileMetaValue}>{formatRelativeTime(pr.updatedAt)}</span>
                                     </div>
                                 </div>
 
                                 <div className={crStyles.mobileBranchBlock}>
-                                    <span className={crStyles.mobileMetaLabel}>分支</span>
+                                    <span className={crStyles.mobileMetaLabel}>{t("reviews.mobile.branch")}</span>
                                     <span className={crStyles.branchRoute}>
                                         <span className={crStyles.branchHead}>{pr.headBranch || "-"}</span>
                                         <span className={crStyles.branchArrow}>→</span>
@@ -741,7 +758,7 @@ const CodeReviewList: React.FC = () => {
                                 </div>
 
                                 <div className={crStyles.mobileDescription}>
-                                    <span className={crStyles.mobileMetaLabel}>描述</span>
+                                    <span className={crStyles.mobileMetaLabel}>{t("reviews.mobile.description")}</span>
                                     <span>{getDescriptionSummary(pr.description)}</span>
                                 </div>
                             </button>
@@ -754,7 +771,7 @@ const CodeReviewList: React.FC = () => {
 
             {total > 0 && (
                 <div className={styles.pagination}>
-                    <span className={styles.paginationInfo}>共 {total} 条记录</span>
+                    <span className={styles.paginationInfo}>{t("reviews.pagination.total", { total })}</span>
                     <div className={styles.paginationControls}>
                         <button disabled={currentPage === 1} onClick={() => setCurrentPage(1)}>
                             <FaAngleDoubleLeft />
@@ -791,7 +808,13 @@ const CodeReviewList: React.FC = () => {
             )}
 
             {/* ============ VIEW MODAL ============ */}
-            <Modal visible={viewModalVisible} title={selectedPR?.title || "PR 详情"} onClose={closeView} width={800} footer={null}>
+            <Modal
+                visible={viewModalVisible}
+                title={selectedPR?.title || t("reviews.detail.prDetail")}
+                onClose={closeView}
+                width={800}
+                footer={null}
+            >
                 {selectedPR && (
                     <div data-allow-copy="true">
                         <div className={crStyles.detailBadges}>
@@ -802,15 +825,7 @@ const CodeReviewList: React.FC = () => {
                             </span>
                             {selectedPR.priority && (
                                 <span className={`${styles.badge} ${styles[`priority_${selectedPR.priority}`]}`}>
-                                    {selectedPR.priority === "high"
-                                        ? "高"
-                                        : selectedPR.priority === "medium"
-                                          ? "中"
-                                          : selectedPR.priority === "low"
-                                            ? "低"
-                                            : selectedPR.priority === "critical"
-                                              ? "紧急"
-                                              : selectedPR.priority}
+                                    {priorityText[selectedPR.priority] || selectedPR.priority}
                                 </span>
                             )}
                             {getPrUrl(selectedPR) && (
@@ -819,38 +834,41 @@ const CodeReviewList: React.FC = () => {
                                     href={getPrUrl(selectedPR)!}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    title="在 GitHub 查看此 PR"
+                                    title={t("reviews.action.viewPrOnGithub")}
                                 >
                                     <FaGithub size={14} />
-                                    <span>前往 GitHub</span>
+                                    <span>{t("reviews.action.goToGithub")}</span>
                                     <FaExternalLinkAlt size={10} />
                                 </a>
                             )}
                             <button
                                 className={crStyles.syncLink}
                                 type="button"
-                                title="同步此 PR"
+                                title={t("reviews.action.syncPr")}
                                 disabled={syncingPrs.has(selectedPR.id)}
                                 onClick={() => handleSyncPr(selectedPR)}
                             >
                                 <FaSync className={syncingPrs.has(selectedPR.id) ? styles.repoSpin : ""} size={12} />
-                                <span>同步此 PR</span>
+                                <span>{t("reviews.action.syncPr")}</span>
                             </button>
                         </div>
                         <div className={crStyles.detailGrid}>
-                            {renderField("仓库", getRepoName(selectedPR.repoId))}
-                            {renderField("PR 编号", selectedPR.githubPrId ? `#${selectedPR.githubPrId}` : "-")}
-                            {renderField("作者", selectedPR.author)}
-                            {renderField("评审人", formatReviewers(selectedPR.reviewers))}
-                            {renderField("审查状态", reviewStatusText[selectedPR.reviewStatus] || selectedPR.reviewStatus)}
-                            {renderField("源分支", selectedPR.headBranch)}
-                            {renderField("目标分支", selectedPR.baseBranch)}
-                            {renderField("Commit", selectedPR.commitSha)}
+                            {renderField(t("reviews.detail.repo"), getRepoName(selectedPR.repoId))}
+                            {renderField(t("reviews.detail.prNumber"), selectedPR.githubPrId ? `#${selectedPR.githubPrId}` : "-")}
+                            {renderField(t("reviews.detail.author"), selectedPR.author)}
+                            {renderField(t("reviews.detail.reviewers"), formatReviewers(selectedPR.reviewers))}
                             {renderField(
-                                "变更统计",
+                                t("reviews.detail.reviewStatus"),
+                                reviewStatusText[selectedPR.reviewStatus] || selectedPR.reviewStatus,
+                            )}
+                            {renderField(t("reviews.detail.sourceBranch"), selectedPR.headBranch)}
+                            {renderField(t("reviews.detail.targetBranch"), selectedPR.baseBranch)}
+                            {renderField(t("reviews.detail.commit"), selectedPR.commitSha)}
+                            {renderField(
+                                t("reviews.detail.changeStats"),
                                 selectedPR.changedFiles != null ? (
                                     <span>
-                                        {selectedPR.changedFiles} 文件
+                                        {t("reviews.detail.files", { value: selectedPR.changedFiles })}
                                         {selectedPR.additions != null && selectedPR.additions > 0 && (
                                             <span className={crStyles.changeAdditions}>+{selectedPR.additions}</span>
                                         )}
@@ -862,13 +880,15 @@ const CodeReviewList: React.FC = () => {
                                     "-"
                                 ),
                             )}
-                            {renderField("创建时间", formatDateTime(selectedPR.createdAt))}
-                            {renderField("同步时间", formatDateTime(selectedPR.updatedAt))}
+                            {renderField(t("reviews.detail.createdAt"), formatDateTime(selectedPR.createdAt))}
+                            {renderField(t("reviews.detail.syncedAt"), formatDateTime(selectedPR.updatedAt))}
                         </div>
                         <div>
-                            <h4 className={crStyles.detailSectionTitle}>描述</h4>
+                            <h4 className={crStyles.detailSectionTitle}>{t("reviews.detail.description")}</h4>
                             <div className={styles.markdownPreview}>
-                                <ReactMarkdown remarkPlugins={[remarkGfm]}>{selectedPR.description || "暂无描述"}</ReactMarkdown>
+                                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                    {selectedPR.description || t("reviews.detail.noDescription")}
+                                </ReactMarkdown>
                             </div>
                         </div>
                     </div>

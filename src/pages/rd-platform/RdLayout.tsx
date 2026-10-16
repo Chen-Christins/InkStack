@@ -1,6 +1,7 @@
 import { AGENT_ENABLED } from "@/config/Features";
 import { FaRobot } from "react-icons/fa";
 import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { useLocation, Outlet, useSearchParams } from "react-router-dom";
 import { useRdNavigate } from "@/hooks/UseRdNavigate.ts";
 import { encodeId, decodeId } from "@/utils/HashId.ts";
@@ -38,6 +39,7 @@ interface NavItem {
 
 const RdLayout: React.FC = () => {
     const navigate = useRdNavigate();
+    const { t } = useTranslation("rd");
     const [searchParams] = useSearchParams();
     const rawOrg = searchParams.get("org");
     const urlOrgId = rawOrg ? decodeId(rawOrg, "organization")?.toString() || "" : "";
@@ -76,7 +78,7 @@ const RdLayout: React.FC = () => {
                     color: "var(--text-secondary)",
                 }}
             >
-                加载中...
+                {t("layout.loading")}
             </div>
         );
     }
@@ -101,7 +103,7 @@ const RdLayout: React.FC = () => {
                         padding: "2rem 1.8rem",
                     }}
                 >
-                    <AuthRequired message="您需要登录后才能访问研发平台。">{null}</AuthRequired>
+                    <AuthRequired message={t("layout.authRequired")}>{null}</AuthRequired>
                 </div>
                 <Footer startYear={2025} />
             </div>
@@ -120,7 +122,7 @@ const RdLayout: React.FC = () => {
                     color: "var(--text-secondary)",
                 }}
             >
-                正在验证权限...
+                {t("layout.checkingAccess")}
             </div>
         );
     }
@@ -157,7 +159,7 @@ const RdLayout: React.FC = () => {
                         color: "var(--text-primary)",
                     }}
                 >
-                    需要加入组织
+                    {t("layout.needOrgTitle")}
                 </h1>
                 <p
                     style={{
@@ -169,9 +171,9 @@ const RdLayout: React.FC = () => {
                         lineHeight: "1.6",
                     }}
                 >
-                    研发平台需要您加入一个组织，并在组织中具有报告者及以上角色才能访问。
+                    {t("layout.needOrgLine1")}
                     <br />
-                    请前往组织页面查找并申请加入您所属的团队，或联系组织管理员为您开通权限。
+                    {t("layout.needOrgLine2")}
                 </p>
                 <div style={{ display: "flex", gap: "16px", flexWrap: "wrap", justifyContent: "center" }}>
                     <button
@@ -191,7 +193,7 @@ const RdLayout: React.FC = () => {
                             gap: "8px",
                         }}
                     >
-                        <FaBuilding /> 加入组织
+                        <FaBuilding /> {t("layout.joinOrg")}
                     </button>
                     <button
                         onClick={() => navigate("/")}
@@ -209,7 +211,7 @@ const RdLayout: React.FC = () => {
                             gap: "8px",
                         }}
                     >
-                        <FaHome /> 返回首页
+                        <FaHome /> {t("layout.backHome")}
                     </button>
                     <button
                         onClick={() => logout()}
@@ -224,7 +226,7 @@ const RdLayout: React.FC = () => {
                             fontWeight: "500",
                         }}
                     >
-                        切换账号
+                        {t("layout.switchAccount")}
                     </button>
                 </div>
             </div>
@@ -241,37 +243,42 @@ const RdLayout: React.FC = () => {
 
     const navSections: { title: string; items: NavItem[] }[] = [
         {
-            title: "总览",
-            items: [{ id: "dashboard", label: "仪表盘", icon: <FaHome />, path: "/rd" }],
+            title: t("layout.sections.overview"),
+            items: [{ id: "dashboard", label: t("layout.nav.dashboard"), icon: <FaHome />, path: "/rd" }],
         },
         {
-            title: "研发管理",
+            title: t("layout.sections.rdManagement"),
             items: [
-                { id: "requirements", label: "需求管理", icon: <FaClipboardList />, path: "/rd/requirements" },
-                { id: "bugs", label: "缺陷管理", icon: <FaBug />, path: "/rd/bugs" },
-                { id: "tasks", label: "任务管理", icon: <FaTasks />, path: "/rd/tasks" },
-                { id: "reviews", label: "代码审查", icon: <FaCode />, path: "/rd/reviews" },
+                { id: "requirements", label: t("layout.nav.requirements"), icon: <FaClipboardList />, path: "/rd/requirements" },
+                { id: "bugs", label: t("layout.nav.bugs"), icon: <FaBug />, path: "/rd/bugs" },
+                { id: "tasks", label: t("layout.nav.tasks"), icon: <FaTasks />, path: "/rd/tasks" },
+                { id: "reviews", label: t("layout.nav.reviews"), icon: <FaCode />, path: "/rd/reviews" },
             ],
         },
         ...(AGENT_ENABLED
-            ? [{ title: "智能协作", items: [{ id: "agent", label: "Agent 助手", icon: <FaRobot />, path: "/rd/agent" }] }]
+            ? [
+                  {
+                      title: t("layout.sections.smartCollab"),
+                      items: [{ id: "agent", label: t("layout.nav.agent"), icon: <FaRobot />, path: "/rd/agent" }],
+                  },
+              ]
             : []),
         {
-            title: "分析洞察",
-            items: [{ id: "trends", label: "趋势分析", icon: <FaChartLine />, path: "/rd/trends" }],
+            title: t("layout.sections.analytics"),
+            items: [{ id: "trends", label: t("layout.nav.trends"), icon: <FaChartLine />, path: "/rd/trends" }],
         },
         {
-            title: "与我相关",
-            items: [{ id: "myTickets", label: "我的工单", icon: <FaTicketAlt />, path: "/rd/my-tickets" }],
+            title: t("layout.sections.myRelated"),
+            items: [{ id: "myTickets", label: t("layout.nav.myTickets"), icon: <FaTicketAlt />, path: "/rd/my-tickets" }],
         },
     ];
 
     const orgRoleNames: Record<number, string> = {
-        1: "普通成员",
-        2: "报告者",
-        3: "开发者",
-        4: "研发主管",
-        5: "组织管理员",
+        1: t("layout.roles.member"),
+        2: t("layout.roles.reporter"),
+        3: t("layout.roles.developer"),
+        4: t("layout.roles.rdLead"),
+        5: t("layout.roles.orgAdmin"),
     };
 
     const RdHeaderActions: React.FC = () => {
@@ -359,7 +366,7 @@ const RdLayout: React.FC = () => {
 
     const getBreadcrumbs = () => {
         const pathSegments = location.pathname.split("/").filter(Boolean);
-        const breadcrumbs = [{ label: "研发平台", path: "/rd" }];
+        const breadcrumbs: { label: string; path: string }[] = [{ label: t("layout.breadcrumbHome"), path: "/rd" }];
 
         if (pathSegments.length >= 2) {
             const navItems = navSections.flatMap((section) => section.items);
@@ -375,11 +382,11 @@ const RdLayout: React.FC = () => {
 
             // Add context-specific breadcrumb
             if (location.pathname.includes("/create")) {
-                breadcrumbs.push({ label: "新建", path: location.pathname });
+                breadcrumbs.push({ label: t("layout.breadcrumb.create"), path: location.pathname });
             } else if (location.pathname.includes("/edit")) {
-                breadcrumbs.push({ label: "编辑", path: location.pathname });
+                breadcrumbs.push({ label: t("layout.breadcrumb.edit"), path: location.pathname });
             } else if (pathSegments.length >= 3 && !location.pathname.includes("/create") && !location.pathname.includes("/edit")) {
-                breadcrumbs.push({ label: "详情", path: location.pathname });
+                breadcrumbs.push({ label: t("layout.breadcrumb.detail"), path: location.pathname });
             }
         }
 
@@ -403,12 +410,12 @@ const RdLayout: React.FC = () => {
                         <div className={styles.rdSidebarHeader}>
                             <div onClick={() => navigate("/rd")} className={styles.rdLogo}>
                                 <span className={styles.rdLogoIcon}>⚙</span>
-                                <span className={styles.rdLogoText}>研发平台</span>
+                                <span className={styles.rdLogoText}>{t("layout.brand")}</span>
                             </div>
                             <button
                                 className={styles.toggleSidebarBtn}
                                 onClick={toggleSidebar}
-                                title={sidebarCollapsed ? "展开侧边栏" : "收起侧边栏"}
+                                title={sidebarCollapsed ? t("layout.expandSidebar") : t("layout.collapseSidebar")}
                             >
                                 {sidebarCollapsed ? <FaBars /> : <FaTimes />}
                             </button>
@@ -444,7 +451,7 @@ const RdLayout: React.FC = () => {
                     <main className={`${styles.rdMainContent} ${sidebarCollapsed ? styles.expanded : ""}`}>
                         <header className={styles.rdTopBar}>
                             <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-                                <button className={styles.mobileMenuBtn} onClick={toggleMobileMenu} aria-label="打开菜单">
+                                <button className={styles.mobileMenuBtn} onClick={toggleMobileMenu} aria-label={t("layout.openMenu")}>
                                     <FaBars />
                                 </button>
 

@@ -1,0 +1,35 @@
+const section = {
+    loading: "加载中...",
+    accessDenied: "访问被拒绝",
+    deniedLine1: "抱歉，您没有权限访问此页面。该区域仅限管理员访问。",
+    deniedLine2: "如果您认为这是一个错误，请联系系统管理员或尝试重新登录。",
+    backHome: "返回首页",
+    switchAccount: "切换账号",
+    brand: "管理后台",
+    openMenu: "打开菜单",
+    expandSidebar: "展开侧边栏",
+    collapseSidebar: "收起侧边栏",
+    breadcrumbHome: "首页",
+    sections: {
+        main: "主要功能",
+        content: "内容管理",
+        system: "系统设置",
+        operation: "运营管理",
+    },
+    nav: {
+        dashboard: "仪表盘",
+        users: "用户管理",
+        articles: "文章管理",
+        assignments: "任务管理",
+        organizations: "组织管理",
+        comments: "评论管理",
+        notifications: "发送通知",
+        categories: "分类管理",
+        media: "媒体库",
+        database: "数据管理",
+        settings: "系统设置",
+        feedbacks: "帮助运营",
+    },
+} as const;
+
+export default section;

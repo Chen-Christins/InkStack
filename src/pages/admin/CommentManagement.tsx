@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import {
     FaFilter,
     FaReply,
@@ -25,7 +26,8 @@ import { confirm } from "@/components/confirm/Confirm";
 import CommentService from "@/services/CommentService.ts";
 import type { AdminComment } from "@/types/Comment.ts";
 import type { SelectOption } from "@/types";
-import { CommentStatusLabel, type CommentStatus } from "@/types/Enums.ts";
+import type { CommentStatus } from "@/types/Enums.ts";
+import { useEnumLabels } from "@/i18n/UseEnumLabels";
 import styles from "./CommentManagement.module.css";
 
 interface FilterOptions {
@@ -39,6 +41,8 @@ interface FilterOptions {
 const PAGE_SIZE = 10;
 
 const CommentManagement: React.FC = () => {
+    const { t } = useTranslation("admin");
+    const enums = useEnumLabels();
     const [comments, setComments] = useState<AdminComment[]>([]);
     const [total, setTotal] = useState(0);
     const [filters, setFilters] = useState<FilterOptions>({
@@ -108,17 +112,17 @@ const CommentManagement: React.FC = () => {
 
     // 筛选选项数据
     const statusOptions: SelectOption[] = [
-        { id: "", name: "全部状态", color: "#6c757d" },
-        { id: "approved", name: "已通过", color: "#28a745" },
-        { id: "pending", name: "待审核", color: "#ffc107" },
-        { id: "rejected", name: "已拒绝", color: "#dc3545" },
-        { id: "spam", name: "垃圾评论", color: "#dc3545" },
+        { id: "", name: t("comments.filter.statusOptions.all"), color: "#6c757d" },
+        { id: "approved", name: t("comments.filter.statusOptions.approved"), color: "#28a745" },
+        { id: "pending", name: t("comments.filter.statusOptions.pending"), color: "#ffc107" },
+        { id: "rejected", name: t("comments.filter.statusOptions.rejected"), color: "#dc3545" },
+        { id: "spam", name: t("comments.filter.statusOptions.spam"), color: "#dc3545" },
     ];
 
     const reportedOptions: SelectOption[] = [
-        { id: "", name: "全部", color: "#6c757d" },
-        { id: "true", name: "被举报", color: "#dc3545" },
-        { id: "false", name: "正常", color: "#28a745" },
+        { id: "", name: t("comments.filter.reportedOptions.all"), color: "#6c757d" },
+        { id: "true", name: t("comments.filter.reportedOptions.reported"), color: "#dc3545" },
+        { id: "false", name: t("comments.filter.reportedOptions.normal"), color: "#28a745" },
     ];
 
     const handleSelectChange = (field: keyof FilterOptions) => {
@@ -155,10 +159,10 @@ const CommentManagement: React.FC = () => {
     // 批准评论
     const approveComments = async (commentIds: string[]) => {
         await confirm({
-            title: "批准评论",
-            content: `确定要批准选中的 ${commentIds.length} 条评论吗？`,
-            confirmText: "确认批准",
-            cancelText: "取消",
+            title: t("comments.confirm.approveTitle"),
+            content: t("comments.confirm.approveContent", { total: commentIds.length }),
+            confirmText: t("comments.confirm.approveConfirm"),
+            cancelText: t("comments.confirm.cancel"),
             onConfirm: async () => {
                 await CommentService.approve(commentIds);
                 setSelectedComments([]);
@@ -170,10 +174,10 @@ const CommentManagement: React.FC = () => {
     // 拒绝评论
     const rejectComments = async (commentIds: string[]) => {
         await confirm({
-            title: "拒绝评论",
-            content: `确定要拒绝选中的 ${commentIds.length} 条评论吗？`,
-            confirmText: "确认拒绝",
-            cancelText: "取消",
+            title: t("comments.confirm.rejectTitle"),
+            content: t("comments.confirm.rejectContent", { total: commentIds.length }),
+            confirmText: t("comments.confirm.rejectConfirm"),
+            cancelText: t("comments.confirm.cancel"),
             onConfirm: async () => {
                 await CommentService.reject(commentIds);
                 setSelectedComments([]);
@@ -185,10 +189,10 @@ const CommentManagement: React.FC = () => {
     // 标记为垃圾评论
     const markAsSpam = async (commentIds: string[]) => {
         await confirm({
-            title: "标记垃圾评论",
-            content: `确定要将选中的 ${commentIds.length} 条评论标记为垃圾评论吗？`,
-            confirmText: "确认标记",
-            cancelText: "取消",
+            title: t("comments.confirm.spamTitle"),
+            content: t("comments.confirm.spamContent", { total: commentIds.length }),
+            confirmText: t("comments.confirm.spamConfirm"),
+            cancelText: t("comments.confirm.cancel"),
             onConfirm: async () => {
                 await CommentService.markSpam(commentIds);
                 setSelectedComments([]);
@@ -200,10 +204,10 @@ const CommentManagement: React.FC = () => {
     // 删除评论
     const deleteComments = async (commentIds: string[]) => {
         await confirm({
-            title: "删除评论",
-            content: `确定要删除选中的 ${commentIds.length} 条评论吗？删除后无法恢复。`,
-            confirmText: "确认删除",
-            cancelText: "取消",
+            title: t("comments.confirm.deleteTitle"),
+            content: t("comments.confirm.deleteContent", { total: commentIds.length }),
+            confirmText: t("comments.confirm.deleteConfirm"),
+            cancelText: t("comments.confirm.cancel"),
             onConfirm: async () => {
                 await CommentService.batchDelete(commentIds);
                 setSelectedComments([]);
@@ -272,7 +276,7 @@ const CommentManagement: React.FC = () => {
     if (loading) {
         return (
             <div className={styles.commentManagement}>
-                <Loading text="加载评论管理中..." size="large" />
+                <Loading text={t("comments.loading")} size="large" />
             </div>
         );
     }
@@ -282,8 +286,8 @@ const CommentManagement: React.FC = () => {
             {/* 页面头部 */}
             <div className={styles.pageHeader}>
                 <div>
-                    <h1 className={styles.pageTitle}>评论管理</h1>
-                    <p className={styles.pageDescription}>管理用户评论、审核内容和处理举报</p>
+                    <h1 className={styles.pageTitle}>{t("comments.title")}</h1>
+                    <p className={styles.pageDescription}>{t("comments.description")}</p>
                 </div>
                 <div className={styles.headerActions}>
                     <span
@@ -293,7 +297,7 @@ const CommentManagement: React.FC = () => {
                             marginRight: "12px",
                         }}
                     >
-                        共 {total} 条评论
+                        {t("comments.totalComments", { total })}
                     </span>
                 </div>
             </div>
@@ -303,19 +307,19 @@ const CommentManagement: React.FC = () => {
                 <div className={styles.filterHeader}>
                     <h3 className={styles.filterTitle}>
                         <FaFilter />
-                        筛选条件
+                        {t("comments.filter.title")}
                     </h3>
                     <div className={styles.filterActions}>
                         <button className={`${styles.btn} ${styles.btnOutline} ${styles.btnSm}`} onClick={clearFilters}>
-                            清除筛选
+                            {t("comments.filter.clear")}
                         </button>
                     </div>
                 </div>
                 <div className={styles.filterForm}>
                     <div className={styles.filterGroup}>
-                        <label className={styles.filterLabel}>搜索评论</label>
+                        <label className={styles.filterLabel}>{t("comments.filter.searchLabel")}</label>
                         <Input
-                            placeholder="评论内容、作者或文章标题"
+                            placeholder={t("comments.filter.searchPlaceholder")}
                             value={filters.search}
                             onChange={(value) => handleFilterChange("search", value)}
                             allowClear={true}
@@ -324,25 +328,25 @@ const CommentManagement: React.FC = () => {
                         />
                     </div>
                     <div className={styles.filterGroup}>
-                        <label className={styles.filterLabel}>状态</label>
+                        <label className={styles.filterLabel}>{t("comments.filter.statusLabel")}</label>
                         <CustomSelect
-                            name="状态"
+                            name={t("comments.filter.statusLabel")}
                             options={statusOptions}
                             value={statusOptions.find((option) => option.id === filters.status) || null}
                             onChange={handleSelectChange("status")}
-                            placeholder="选择状态..."
+                            placeholder={t("comments.filter.statusPlaceholder")}
                             className="adminCustomSelect"
                             hideBadge={true}
                         />
                     </div>
                     <div className={styles.filterGroup}>
-                        <label className={styles.filterLabel}>举报状态</label>
+                        <label className={styles.filterLabel}>{t("comments.filter.reportedLabel")}</label>
                         <CustomSelect
-                            name="举报状态"
+                            name={t("comments.filter.reportedLabel")}
                             options={reportedOptions}
                             value={reportedOptions.find((option) => option.id === filters.isReported) || null}
                             onChange={handleSelectChange("isReported")}
-                            placeholder="选择举报状态..."
+                            placeholder={t("comments.filter.reportedPlaceholder")}
                             className="adminCustomSelect"
                             hideBadge={true}
                         />
@@ -353,35 +357,35 @@ const CommentManagement: React.FC = () => {
             {/* 批量操作栏 */}
             {selectedComments.length > 0 && (
                 <div className={styles.batchActions}>
-                    <div className={styles.batchInfo}>已选择 {selectedComments.length} 条评论</div>
+                    <div className={styles.batchInfo}>{t("comments.batch.selected", { total: selectedComments.length })}</div>
                     <div className={styles.batchButtons}>
                         <button
                             className={`${styles.btn} ${styles.btnSuccess} ${styles.btnSm}`}
                             onClick={() => approveComments(selectedComments)}
                         >
                             <FaCheck />
-                            批准
+                            {t("comments.batch.approve")}
                         </button>
                         <button
                             className={`${styles.btn} ${styles.btnWarning} ${styles.btnSm}`}
                             onClick={() => rejectComments(selectedComments)}
                         >
                             <FaBan />
-                            拒绝
+                            {t("comments.batch.reject")}
                         </button>
                         <button
                             className={`${styles.btn} ${styles.btnDanger} ${styles.btnSm}`}
                             onClick={() => markAsSpam(selectedComments)}
                         >
                             <FaExclamationTriangle />
-                            标记垃圾
+                            {t("comments.batch.markSpam")}
                         </button>
                         <button
                             className={`${styles.btn} ${styles.btnOutline} ${styles.btnSm}`}
                             onClick={() => deleteComments(selectedComments)}
                         >
                             <FaTrash />
-                            删除
+                            {t("comments.batch.delete")}
                         </button>
                     </div>
                 </div>
@@ -414,12 +418,12 @@ const CommentManagement: React.FC = () => {
                                         </div>
                                         <div className={styles.commentInfo}>
                                             <span className={`${styles.statusBadge} ${styles[comment.status]}`}>
-                                                {CommentStatusLabel[comment.status as CommentStatus] || comment.status}
+                                                {enums.commentStatus[comment.status as CommentStatus] || comment.status}
                                             </span>
                                             {comment.is_reported && (
                                                 <span className={styles.reportedBadge}>
                                                     <FaFlag />
-                                                    举报 {comment.report_count}
+                                                    {t("comments.card.report", { value: comment.report_count })}
                                                 </span>
                                             )}
                                             <span className={styles.commentTime}>
@@ -433,14 +437,14 @@ const CommentManagement: React.FC = () => {
                                             <>
                                                 <button
                                                     className={`${styles.actionButton} ${styles.approve}`}
-                                                    title="批准"
+                                                    title={t("comments.actions.approve")}
                                                     onClick={() => approveComments([comment.id])}
                                                 >
                                                     <FaCheck />
                                                 </button>
                                                 <button
                                                     className={`${styles.actionButton} ${styles.reject}`}
-                                                    title="拒绝"
+                                                    title={t("comments.actions.reject")}
                                                     onClick={() => rejectComments([comment.id])}
                                                 >
                                                     <FaBan />
@@ -449,14 +453,14 @@ const CommentManagement: React.FC = () => {
                                         )}
                                         <button
                                             className={`${styles.actionButton} ${styles.spam}`}
-                                            title="标记垃圾"
+                                            title={t("comments.actions.markSpam")}
                                             onClick={() => markAsSpam([comment.id])}
                                         >
                                             <FaExclamationTriangle />
                                         </button>
                                         <button
                                             className={`${styles.actionButton} ${styles.delete}`}
-                                            title="删除"
+                                            title={t("comments.actions.delete")}
                                             onClick={() => deleteComments([comment.id])}
                                         >
                                             <FaTrash />
@@ -467,18 +471,18 @@ const CommentManagement: React.FC = () => {
                                 <div className={styles.commentContent}>
                                     <div className={styles.articleLink}>
                                         <FaFileAlt />
-                                        文章：{comment.article.title}
+                                        {t("comments.card.article", { value: comment.article.title })}
                                     </div>
                                     <div className={styles.contentText}>{comment.content}</div>
                                     <div className={styles.commentStats}>
                                         <span className={styles.statItem}>
                                             <FaStar />
-                                            {comment.likes} 赞
+                                            {t("comments.card.likes", { value: comment.likes })}
                                         </span>
                                         {hasReplies && (
                                             <button className={styles.statItem} onClick={() => toggleReplies(comment.id)}>
                                                 <FaReply />
-                                                {replies.length} 回复
+                                                {t("comments.card.replies", { value: replies.length })}
                                                 {showReplyList ? <FaEyeSlash /> : <FaEye />}
                                             </button>
                                         )}
@@ -499,14 +503,14 @@ const CommentManagement: React.FC = () => {
                                                             <span
                                                                 className={`${styles.statusBadge} ${styles[reply.status]} ${styles.small}`}
                                                             >
-                                                                {CommentStatusLabel[reply.status as CommentStatus] || reply.status}
+                                                                {enums.commentStatus[reply.status as CommentStatus] || reply.status}
                                                             </span>
                                                         </div>
                                                     </div>
                                                     <div className={styles.replyActions}>
                                                         <button
                                                             className={`${styles.actionButton} ${styles.small}`}
-                                                            title="删除"
+                                                            title={t("comments.actions.delete")}
                                                             onClick={() => deleteComments([reply.id])}
                                                         >
                                                             <FaTrash />
@@ -529,7 +533,7 @@ const CommentManagement: React.FC = () => {
                             color: "var(--text-secondary)",
                         }}
                     >
-                        暂无数据
+                        {t("comments.empty")}
                     </div>
                 )}
             </div>
@@ -538,7 +542,7 @@ const CommentManagement: React.FC = () => {
             {totalPages >= 1 && (
                 <div className={styles.paginationContainer}>
                     <div className={styles.paginationInfo}>
-                        显示 {startIndex} - {endIndex} 条， 共 {total} 条评论
+                        {t("comments.pagination.info", { start: startIndex, end: endIndex, total })}
                     </div>
                     <div className={styles.paginationControls}>
                         <button className={styles.paginationButton} onClick={() => setCurrentPage(1)} disabled={currentPage === 1}>

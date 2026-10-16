@@ -1,6 +1,9 @@
 import { useRdList } from "@/hooks/UseRdList.ts";
 import { useOrgMemberOptions } from "@/hooks/UseOrgMemberOptions.ts";
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
+import i18n from "@/i18n";
+import { useEnumLabels } from "@/i18n/UseEnumLabels";
 import { useRdNavigate } from "@/hooks/UseRdNavigate.ts";
 import { formatDateTime } from "@/utils/Utils.ts";
 import { encodeId } from "@/utils/HashId.ts";
@@ -33,27 +36,6 @@ import type { Requirement } from "@/types/RdPlatform.ts";
 import { OrgPermission } from "@/types/RdPlatform.ts";
 
 // ---- constants ----
-const statusOptions: SelectOption[] = [
-    { id: "", name: "全部状态", color: "#6c757d" },
-    { id: "new", name: "新建", color: "#3b82f6" },
-    { id: "developing", name: "开发中", color: "#eab308" },
-    { id: "testing", name: "测试中", color: "#a855f7" },
-    { id: "done", name: "已完成", color: "#22c55e" },
-    { id: "closed", name: "已关闭", color: "#6b7280" },
-];
-
-const priorityOptions: SelectOption[] = [
-    { id: "", name: "全部优先级", color: "#6c757d" },
-    { id: "high", name: "高", color: "#ef4444" },
-    { id: "medium", name: "中", color: "#f59e0b" },
-    { id: "low", name: "低", color: "#22c55e" },
-];
-
-const formPriorityOptions = priorityOptions.filter((o) => o.id !== "");
-const formStatusOptions = statusOptions.filter((o) => o.id !== "");
-
-const statusText: Record<string, string> = { new: "新建", developing: "开发中", testing: "测试中", done: "已完成", closed: "已关闭" };
-const priorityText: Record<string, string> = { high: "高", medium: "中", low: "低" };
 const PAGE_SIZE = 10;
 
 interface FormData {
@@ -83,10 +65,31 @@ const emptyForm: FormData = {
 // ---- component ----
 const RequirementList: React.FC = () => {
     const navigate = useRdNavigate();
+    const { t } = useTranslation("rd");
+    const labels = useEnumLabels();
     const { user } = useAuth();
     const { isAdmin, userOrgIds, orgs, orgNameMap, maxOrgRole, selectedOrgId } = useRdOrg();
     const [currentPage, setCurrentPage] = useState(1);
     const [filters, setFilters] = useState({ search: "", status: "", priority: "" });
+
+    const statusOptions: SelectOption[] = [
+        { id: "", name: t("requirements.filters.allStatus"), color: "#6c757d" },
+        { id: "new", name: labels.reqStatus.new, color: "#3b82f6" },
+        { id: "developing", name: labels.reqStatus.developing, color: "#eab308" },
+        { id: "testing", name: labels.reqStatus.testing, color: "#a855f7" },
+        { id: "done", name: labels.reqStatus.done, color: "#22c55e" },
+        { id: "closed", name: labels.reqStatus.closed, color: "#6b7280" },
+    ];
+
+    const priorityOptions: SelectOption[] = [
+        { id: "", name: t("requirements.filters.allPriority"), color: "#6c757d" },
+        { id: "high", name: labels.rdPriority.high, color: "#ef4444" },
+        { id: "medium", name: labels.rdPriority.medium, color: "#f59e0b" },
+        { id: "low", name: labels.rdPriority.low, color: "#22c55e" },
+    ];
+
+    const formPriorityOptions = priorityOptions.filter((o) => o.id !== "");
+    const formStatusOptions = statusOptions.filter((o) => o.id !== "");
 
     // modal
     const [modalVisible, setModalVisible] = useState(false);
@@ -149,11 +152,11 @@ const RequirementList: React.FC = () => {
 
     const handleSubmit = async () => {
         if (!form.title.trim()) {
-            message.warn("请输入需求标题");
+            message.warn(t("requirements.messages.titleRequired"));
             return;
         }
         if (!isAdmin && !form.organizationId) {
-            message.warn("请选择所属组织");
+            message.warn(t("requirements.messages.orgRequired"));
             return;
         }
         const data = {
@@ -170,35 +173,41 @@ const RequirementList: React.FC = () => {
         try {
             if (modalMode === "edit" && selectedReq) {
                 await RdAPI.updateRequirement(selectedReq.id, data);
-                message.success("需求更新成功");
+                message.success(t("requirements.messages.updateSuccess"));
             } else {
-                await RdAPI.createRequirement({ ...data, status: "new", creator: user?.name || user?.account || "未知" });
-                message.success("需求创建成功");
+                await RdAPI.createRequirement({
+                    ...data,
+                    status: "new",
+                    creator: user?.name || user?.account || i18n.t("common:unknown"),
+                });
+                message.success(t("requirements.messages.createSuccess"));
             }
             closeModal();
             fetchData();
         } catch (err: any) {
-            message.error(err?.message || "操作失败，请稍后重试");
+            message.error(err?.message || t("requirements.messages.actionFailed"));
         }
     };
 
     const handleDelete = async (req: Requirement) => {
         await confirm({
-            title: "确认删除",
+            title: t("requirements.messages.deleteTitle"),
             content: (
                 <div>
-                    确定要删除需求 "<strong>{req.title}</strong>" 吗？删除后无法恢复。
+                    {t("requirements.messages.deleteContentPrefix")}
+                    <strong>{req.title}</strong>
+                    {t("requirements.messages.deleteContentSuffix")}
                 </div>
             ),
-            confirmText: "删除",
-            cancelText: "取消",
+            confirmText: t("requirements.messages.deleteConfirm"),
+            cancelText: t("requirements.messages.deleteCancel"),
             onConfirm: async () => {
                 try {
                     await RdAPI.deleteRequirement(req.id, req.organizationId);
-                    message.success("需求已删除");
+                    message.success(t("requirements.messages.deleteSuccess"));
                     fetchData();
                 } catch (err: any) {
-                    message.error(err?.message || "删除失败");
+                    message.error(err?.message || t("requirements.messages.deleteFailed"));
                 }
             },
         });
@@ -246,12 +255,12 @@ const RequirementList: React.FC = () => {
             {/* header */}
             <div className={styles.pageHeader}>
                 <div>
-                    <h1 className={styles.pageTitle}>需求管理</h1>
-                    <p className={styles.pageDescription}>管理产品需求，跟踪开发进度</p>
+                    <h1 className={styles.pageTitle}>{t("requirements.pageTitle")}</h1>
+                    <p className={styles.pageDescription}>{t("requirements.pageDescription")}</p>
                 </div>
                 {OrgPermission.canCreate(maxOrgRole) && (
                     <button className={styles.createBtn} onClick={openCreate}>
-                        <FaPlus /> 新建需求
+                        <FaPlus /> {t("requirements.createButton")}
                     </button>
                 )}
             </div>
@@ -260,7 +269,7 @@ const RequirementList: React.FC = () => {
             <div className={styles.filterSection}>
                 <div className={styles.filterHeader}>
                     <h3 className={styles.filterTitle}>
-                        <FaFilter /> 筛选条件
+                        <FaFilter /> {t("requirements.filters.title")}
                     </h3>
                     <button
                         className={styles.clearBtn}
@@ -269,14 +278,14 @@ const RequirementList: React.FC = () => {
                             setCurrentPage(1);
                         }}
                     >
-                        清除筛选
+                        {t("requirements.filters.clear")}
                     </button>
                 </div>
                 <div className={styles.filterForm}>
                     <div className={styles.filterGroup}>
-                        <label className={styles.filterLabel}>搜索</label>
+                        <label className={styles.filterLabel}>{t("requirements.filters.searchLabel")}</label>
                         <Input
-                            placeholder="标题、描述或创建人"
+                            placeholder={t("requirements.filters.searchPlaceholder")}
                             value={filters.search}
                             onChange={(val) => handleFilterChange("search", val)}
                             allowClear
@@ -284,9 +293,9 @@ const RequirementList: React.FC = () => {
                         />
                     </div>
                     <div className={styles.filterGroup}>
-                        <label className={styles.filterLabel}>状态</label>
+                        <label className={styles.filterLabel}>{t("requirements.filters.statusLabel")}</label>
                         <CustomSelect
-                            name="状态"
+                            name={t("requirements.filters.statusLabel")}
                             options={statusOptions}
                             value={statusOptions.find((o) => o.id === filters.status) || null}
                             onChange={(o) => handleFilterChange("status", (o?.id as string) || "")}
@@ -294,9 +303,9 @@ const RequirementList: React.FC = () => {
                         />
                     </div>
                     <div className={styles.filterGroup}>
-                        <label className={styles.filterLabel}>优先级</label>
+                        <label className={styles.filterLabel}>{t("requirements.filters.priorityLabel")}</label>
                         <CustomSelect
-                            name="优先级"
+                            name={t("requirements.filters.priorityLabel")}
                             options={priorityOptions}
                             value={priorityOptions.find((o) => o.id === filters.priority) || null}
                             onChange={(o) => handleFilterChange("priority", (o?.id as string) || "")}
@@ -311,14 +320,14 @@ const RequirementList: React.FC = () => {
                 <table className={styles.table}>
                     <thead>
                         <tr>
-                            <th>标题</th>
-                            <th>优先级</th>
-                            <th>状态</th>
-                            <th>负责人</th>
-                            <th>迭代</th>
-                            <th>创建人</th>
-                            <th>创建时间</th>
-                            <th>操作</th>
+                            <th>{t("requirements.table.title")}</th>
+                            <th>{t("requirements.table.priority")}</th>
+                            <th>{t("requirements.table.status")}</th>
+                            <th>{t("requirements.table.assignee")}</th>
+                            <th>{t("requirements.table.iteration")}</th>
+                            <th>{t("requirements.table.creator")}</th>
+                            <th>{t("requirements.table.createdAt")}</th>
+                            <th>{t("requirements.table.actions")}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -326,30 +335,32 @@ const RequirementList: React.FC = () => {
                             <tr key={r.id}>
                                 <td
                                     className={styles.titleCell}
-                                    data-label="标题"
+                                    data-label={t("requirements.table.title")}
                                     onClick={() => navigate(`/rd/requirements/${encodeId(r.id, "requirement")}`)}
                                 >
                                     {r.title}
                                 </td>
-                                <td data-label="优先级">
+                                <td data-label={t("requirements.table.priority")}>
                                     <span className={`${styles.badge} ${styles[`priority_${r.priority}`]}`}>
-                                        {priorityText[r.priority]}
+                                        {labels.rdPriority[r.priority]}
                                     </span>
                                 </td>
-                                <td data-label="状态">
-                                    <span className={`${styles.badge} ${styles[`status_${r.status}`]}`}>{statusText[r.status]}</span>
+                                <td data-label={t("requirements.table.status")}>
+                                    <span className={`${styles.badge} ${styles[`status_${r.status}`]}`}>
+                                        {labels.reqStatus[r.status]}
+                                    </span>
                                 </td>
-                                <td data-label="负责人">
+                                <td data-label={t("requirements.table.assignee")}>
                                     <AssigneeDisplay name={r.assignee} avatar={r.assigneeAvatar} />
                                 </td>
-                                <td data-label="迭代">{r.iteration || "-"}</td>
-                                <td data-label="创建人">{r.creator}</td>
-                                <td data-label="创建时间">{formatDateTime(r.createdAt)}</td>
-                                <td data-label="操作">
+                                <td data-label={t("requirements.table.iteration")}>{r.iteration || "-"}</td>
+                                <td data-label={t("requirements.table.creator")}>{r.creator}</td>
+                                <td data-label={t("requirements.table.createdAt")}>{formatDateTime(r.createdAt)}</td>
+                                <td data-label={t("requirements.table.actions")}>
                                     <div className={styles.actionButtons}>
                                         <button
                                             className={`${styles.actionBtn} ${styles.view}`}
-                                            title="查看"
+                                            title={t("requirements.table.view")}
                                             onClick={() => navigate(`/rd/requirements/${encodeId(r.id, "requirement")}`)}
                                         >
                                             <FaEye />
@@ -357,7 +368,7 @@ const RequirementList: React.FC = () => {
                                         {OrgPermission.canEdit(maxOrgRole) && (
                                             <button
                                                 className={`${styles.actionBtn} ${styles.edit}`}
-                                                title="编辑"
+                                                title={t("requirements.table.edit")}
                                                 onClick={() => openEdit(r)}
                                             >
                                                 <FaEdit />
@@ -366,7 +377,7 @@ const RequirementList: React.FC = () => {
                                         {OrgPermission.canDelete(maxOrgRole) && (
                                             <button
                                                 className={`${styles.actionBtn} ${styles.delete}`}
-                                                title="删除"
+                                                title={t("requirements.table.delete")}
                                                 onClick={() => handleDelete(r)}
                                             >
                                                 <FaTrash />
@@ -382,7 +393,7 @@ const RequirementList: React.FC = () => {
                                     <div className={styles.emptyCellIcon}>
                                         <FaClipboardList />
                                     </div>
-                                    <div className={styles.emptyCellText}>暂无需求数据</div>
+                                    <div className={styles.emptyCellText}>{t("requirements.table.empty")}</div>
                                 </td>
                             </tr>
                         )}
@@ -393,7 +404,7 @@ const RequirementList: React.FC = () => {
             {/* pagination */}
             {
                 <div className={styles.pagination}>
-                    <span className={styles.paginationInfo}>共 {total} 条记录</span>
+                    <span className={styles.paginationInfo}>{t("requirements.pagination.total", { total })}</span>
                     <div className={styles.paginationControls}>
                         <button disabled={currentPage === 1} onClick={() => setCurrentPage(1)}>
                             <FaAngleDoubleLeft />
@@ -432,17 +443,23 @@ const RequirementList: React.FC = () => {
             {/* ============ MODAL ============ */}
             <Modal
                 visible={modalVisible}
-                title={modalMode === "create" ? "新建需求" : modalMode === "edit" ? "编辑需求" : selectedReq?.title || "需求详情"}
+                title={
+                    modalMode === "create"
+                        ? t("requirements.modal.createTitle")
+                        : modalMode === "edit"
+                          ? t("requirements.modal.editTitle")
+                          : selectedReq?.title || t("requirements.modal.detailTitle")
+                }
                 onClose={closeModal}
                 width={720}
                 footer={
                     modalMode === "view" ? null : (
                         <div className={reqStyles.modalFooter}>
                             <button onClick={closeModal} className={reqStyles.modalCancelBtn}>
-                                取消
+                                {t("requirements.modal.cancel")}
                             </button>
                             <button onClick={handleSubmit} className={reqStyles.modalSubmitBtn}>
-                                {modalMode === "edit" ? "保存修改" : "创建需求"}
+                                {modalMode === "edit" ? t("requirements.modal.save") : t("requirements.modal.create")}
                             </button>
                         </div>
                     )
@@ -453,28 +470,33 @@ const RequirementList: React.FC = () => {
                     <div data-allow-copy="true">
                         <div className={reqStyles.detailBadges}>
                             <span className={`${styles.badge} ${styles[`priority_${selectedReq.priority}`]}`}>
-                                {priorityText[selectedReq.priority]}
+                                {labels.rdPriority[selectedReq.priority]}
                             </span>
                             <span className={`${styles.badge} ${styles[`status_${selectedReq.status}`]}`}>
-                                {statusText[selectedReq.status]}
+                                {labels.reqStatus[selectedReq.status]}
                             </span>
                         </div>
                         <div className={reqStyles.detailGrid}>
                             {renderField(
-                                "负责人",
+                                t("requirements.modal.detail.assignee"),
                                 <AssigneeDisplay name={selectedReq.assignee} avatar={selectedReq.assigneeAvatar} />,
                             )}
-                            {renderField("创建人", selectedReq.creator)}
-                            {renderField("所属组织", orgNameMap[selectedReq.organizationId] || selectedReq.organizationId)}
-                            {renderField("迭代", selectedReq.iteration)}
-                            {renderField("分类", selectedReq.category)}
-                            {renderField("来源", selectedReq.source)}
-                            {renderField("创建时间", formatDateTime(selectedReq.createdAt))}
-                            {renderField("更新时间", formatDateTime(selectedReq.updatedAt))}
+                            {renderField(t("requirements.modal.detail.creator"), selectedReq.creator)}
+                            {renderField(
+                                t("requirements.modal.detail.organization"),
+                                orgNameMap[selectedReq.organizationId] || selectedReq.organizationId,
+                            )}
+                            {renderField(t("requirements.modal.detail.iteration"), selectedReq.iteration)}
+                            {renderField(t("requirements.modal.detail.category"), selectedReq.category)}
+                            {renderField(t("requirements.modal.detail.source"), selectedReq.source)}
+                            {renderField(t("requirements.modal.detail.createdAt"), formatDateTime(selectedReq.createdAt))}
+                            {renderField(t("requirements.modal.detail.updatedAt"), formatDateTime(selectedReq.updatedAt))}
                         </div>
                         <div>
-                            <h4 className={reqStyles.detailSectionTitle}>描述</h4>
-                            <div className={reqStyles.detailDescription}>{selectedReq.description || "暂无描述"}</div>
+                            <h4 className={reqStyles.detailSectionTitle}>{t("requirements.modal.description")}</h4>
+                            <div className={reqStyles.detailDescription}>
+                                {selectedReq.description || t("requirements.modal.noDescription")}
+                            </div>
                         </div>
                     </div>
                 ) : (
@@ -482,10 +504,10 @@ const RequirementList: React.FC = () => {
                     <div className={reqStyles.formContainer}>
                         <div>
                             <label className={reqStyles.formLabel}>
-                                标题 <span className={reqStyles.formLabelRequired}>*</span>
+                                {t("requirements.modal.form.title")} <span className={reqStyles.formLabelRequired}>*</span>
                             </label>
                             <Input
-                                placeholder="请输入需求标题"
+                                placeholder={t("requirements.modal.form.titlePlaceholder")}
                                 value={form.title}
                                 onChange={(v) => setFormField("title", v)}
                                 size="large"
@@ -494,10 +516,11 @@ const RequirementList: React.FC = () => {
                         {(isAdmin || orgs.length > 1) && (
                             <div>
                                 <label className={reqStyles.formLabel}>
-                                    所属组织 {!isAdmin && <span className={reqStyles.formLabelRequired}>*</span>}
+                                    {t("requirements.modal.form.organization")}{" "}
+                                    {!isAdmin && <span className={reqStyles.formLabelRequired}>*</span>}
                                 </label>
                                 <CustomSelect
-                                    name="所属组织"
+                                    name={t("requirements.modal.form.organization")}
                                     options={orgs.map((o) => ({ id: o.orgId, name: o.orgName, color: "#6c757d" }))}
                                     value={
                                         orgs.find((o) => o.orgId === form.organizationId)
@@ -516,9 +539,9 @@ const RequirementList: React.FC = () => {
                         )}
                         <div className={reqStyles.formRow}>
                             <div className={reqStyles.formField}>
-                                <label className={reqStyles.formLabel}>优先级</label>
+                                <label className={reqStyles.formLabel}>{t("requirements.modal.form.priority")}</label>
                                 <CustomSelect
-                                    name="优先级"
+                                    name={t("requirements.modal.form.priority")}
                                     options={formPriorityOptions}
                                     value={formPriorityOptions.find((o) => o.id === form.priority) || null}
                                     onChange={(o) => setFormField("priority", (o?.id as string) || "medium")}
@@ -527,9 +550,9 @@ const RequirementList: React.FC = () => {
                             </div>
                             {modalMode === "edit" && (
                                 <div className={reqStyles.formField}>
-                                    <label className={reqStyles.formLabel}>状态</label>
+                                    <label className={reqStyles.formLabel}>{t("requirements.modal.form.status")}</label>
                                     <CustomSelect
-                                        name="状态"
+                                        name={t("requirements.modal.form.status")}
                                         options={formStatusOptions}
                                         value={formStatusOptions.find((o) => o.id === form.status) || null}
                                         onChange={(o) => setFormField("status", (o?.id as string) || "new")}
@@ -538,9 +561,9 @@ const RequirementList: React.FC = () => {
                                 </div>
                             )}
                             <div className={reqStyles.formField}>
-                                <label className={reqStyles.formLabel}>负责人</label>
+                                <label className={reqStyles.formLabel}>{t("requirements.modal.form.assignee")}</label>
                                 <CustomSelect
-                                    name="负责人"
+                                    name={t("requirements.modal.form.assignee")}
                                     options={memberOptions}
                                     value={
                                         memberOptions.find((o) => o.id === form.assignee) ||
@@ -553,27 +576,27 @@ const RequirementList: React.FC = () => {
                         </div>
                         <div className={reqStyles.formRow}>
                             <div className={reqStyles.formField}>
-                                <label className={reqStyles.formLabel}>迭代</label>
+                                <label className={reqStyles.formLabel}>{t("requirements.modal.form.iteration")}</label>
                                 <Input
-                                    placeholder="如 Sprint 12"
+                                    placeholder={t("requirements.modal.form.iterationPlaceholder")}
                                     value={form.iteration}
                                     onChange={(v) => setFormField("iteration", v)}
                                     size="large"
                                 />
                             </div>
                             <div className={reqStyles.formField}>
-                                <label className={reqStyles.formLabel}>分类</label>
+                                <label className={reqStyles.formLabel}>{t("requirements.modal.form.category")}</label>
                                 <Input
-                                    placeholder="如 前端、后端"
+                                    placeholder={t("requirements.modal.form.categoryPlaceholder")}
                                     value={form.category}
                                     onChange={(v) => setFormField("category", v)}
                                     size="large"
                                 />
                             </div>
                             <div className={reqStyles.formField}>
-                                <label className={reqStyles.formLabel}>来源</label>
+                                <label className={reqStyles.formLabel}>{t("requirements.modal.form.source")}</label>
                                 <Input
-                                    placeholder="如 产品需求"
+                                    placeholder={t("requirements.modal.form.sourcePlaceholder")}
                                     value={form.source}
                                     onChange={(v) => setFormField("source", v)}
                                     size="large"
@@ -581,9 +604,9 @@ const RequirementList: React.FC = () => {
                             </div>
                         </div>
                         <div>
-                            <label className={reqStyles.formLabel}>描述</label>
+                            <label className={reqStyles.formLabel}>{t("requirements.modal.form.description")}</label>
                             <textarea
-                                placeholder="请输入需求详细描述..."
+                                placeholder={t("requirements.modal.form.descriptionPlaceholder")}
                                 value={form.description}
                                 onChange={(e) => setFormField("description", e.target.value)}
                                 rows={6}

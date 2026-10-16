@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import styles from "./BackToTop.module.css";
 
 interface BackToTopProps {
@@ -8,6 +9,7 @@ interface BackToTopProps {
 }
 
 const BackToTop: React.FC<BackToTopProps> = ({ className = "", bottom = "30px", right = "30px" }) => {
+    const { t } = useTranslation("components");
     const handleClick = (e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
@@ -34,8 +36,8 @@ const BackToTop: React.FC<BackToTopProps> = ({ className = "", bottom = "30px", 
         <button
             className={`${styles.backToTop} ${styles.show} ${className}`}
             onClick={handleClick}
-            aria-label="回到顶部"
-            title="回到顶部"
+            aria-label={t("backToTop.label")}
+            title={t("backToTop.label")}
             type="button"
             style={{
                 position: "fixed",

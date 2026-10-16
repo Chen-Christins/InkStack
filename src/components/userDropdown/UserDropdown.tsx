@@ -4,7 +4,9 @@ import { encodeId } from "@/utils/HashId.ts";
 import { FaCog, FaSignOutAlt, FaHome } from "react-icons/fa";
 import Avatar from "../avatar/Avatar";
 import styles from "./UserDropdown.module.css";
-import { PlatformRoleLabel, type PlatformRole } from "@/types/Roles.ts";
+import type { PlatformRole } from "@/types/Roles.ts";
+import { useTranslation } from "react-i18next";
+import { useEnumLabels } from "@/i18n/UseEnumLabels";
 
 interface User {
     id: number | string;
@@ -36,6 +38,8 @@ const UserDropdown: React.FC<UserDropdownProps> = ({
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
     const navigate = useNavigate();
+    const enums = useEnumLabels();
+    const { t } = useTranslation("nav");
     // 点击外部关闭下拉菜单
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -79,7 +83,7 @@ const UserDropdown: React.FC<UserDropdownProps> = ({
                     <div className={styles.userName}>{user.name}</div>
                     {(roleOverride || user.role) && (
                         <div className={styles.userRole} title={roleTitle}>
-                            {roleOverride || (user.role ? PlatformRoleLabel[user.role as PlatformRole] || user.role : "")}
+                            {roleOverride || (user.role ? enums.platformRole[user.role as PlatformRole] || user.role : "")}
                         </div>
                     )}
                 </div>
@@ -101,8 +105,8 @@ const UserDropdown: React.FC<UserDropdownProps> = ({
                                 closeDropdown();
                                 navigate(`/profile/${encodeId(user.id, "user")}`);
                             }}
-                            title="查看个人资料"
-                            aria-label="查看个人资料"
+                            title={t("viewProfile")}
+                            aria-label={t("viewProfile")}
                         >
                             <Avatar src={user.avatar} name={user.name} size={48} className={styles.dropdownAvatar} />
                         </button>
@@ -121,7 +125,7 @@ const UserDropdown: React.FC<UserDropdownProps> = ({
                             }}
                         >
                             <FaHome />
-                            回到首页
+                            {t("goHome")}
                         </div>
                         {showAdminLink && (
                             <div
@@ -132,13 +136,13 @@ const UserDropdown: React.FC<UserDropdownProps> = ({
                                 }}
                             >
                                 <FaCog />
-                                管理后台
+                                {t("admin")}
                             </div>
                         )}
                         <div className={styles.dropdownDivider}></div>
                         <button className={styles.dropdownItem} onClick={handleLogout}>
                             <FaSignOutAlt />
-                            退出登录
+                            {t("logout")}
                         </button>
                     </div>
                 </div>

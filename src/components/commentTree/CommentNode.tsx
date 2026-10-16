@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { ThumbsUp, Send } from "lucide-react";
@@ -50,6 +51,7 @@ const CommentNode: React.FC<CommentNodeProps> = ({
     onReplyCancel,
     onEditTextChange,
 }) => {
+    const { t } = useTranslation("components");
     const isReply = depth > 0;
     const canReply = depth < MAX_REPLY_DEPTH;
 
@@ -78,10 +80,10 @@ const CommentNode: React.FC<CommentNodeProps> = ({
                                     onClick={() => onSaveEdit(comment.id)}
                                     disabled={!editText.trim() || editText.trim() === comment.content}
                                 >
-                                    保存
+                                    {t("commentNode.save")}
                                 </button>
                                 <button className={styles.editCancel} onClick={onCancelEdit}>
-                                    取消
+                                    {t("commentNode.cancel")}
                                 </button>
                             </div>
                         </div>
@@ -96,16 +98,16 @@ const CommentNode: React.FC<CommentNodeProps> = ({
                             onClick={() => onLike(comment.id)}
                         >
                             <ThumbsUp size={12} />
-                            {comment.likes > 0 ? comment.likes : "赞"}
+                            {comment.likes > 0 ? comment.likes : t("commentNode.like")}
                         </button>
                         {canReply && (
                             <button className={styles.actionButton} onClick={() => onToggleReply(comment.id)}>
-                                回复
+                                {t("commentNode.reply")}
                             </button>
                         )}
                         {isAuthenticated && currentUserId === comment.user_id && (
                             <button className={styles.actionButton} onClick={() => onStartEdit(comment)}>
-                                编辑
+                                {t("commentNode.edit")}
                             </button>
                         )}
                     </div>
@@ -146,16 +148,16 @@ const CommentNode: React.FC<CommentNodeProps> = ({
                 <div className={styles.replyInputWrapper}>
                     <textarea
                         className={styles.textarea}
-                        placeholder={`回复 ${comment.user}...`}
+                        placeholder={t("commentNode.replyPlaceholder", { name: comment.user })}
                         value={replyText}
                         onChange={(e) => onReplyTextChange(e.target.value)}
                         rows={2}
                     />
                     <div className={styles.inputFooter}>
-                        <span className={styles.hint}>支持 Markdown 语法</span>
+                        <span className={styles.hint}>{t("commentNode.markdownHint")}</span>
                         <div style={{ display: "flex", gap: 8 }}>
                             <button className={styles.cancelButton} onClick={onReplyCancel}>
-                                取消
+                                {t("commentNode.cancel")}
                             </button>
                             <button
                                 className={styles.submitButton}
@@ -163,7 +165,7 @@ const CommentNode: React.FC<CommentNodeProps> = ({
                                 disabled={!replyText.trim()}
                             >
                                 <Send size={14} />
-                                回复
+                                {t("commentNode.reply")}
                             </button>
                         </div>
                     </div>

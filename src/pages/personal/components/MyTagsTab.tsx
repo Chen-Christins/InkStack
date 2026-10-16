@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { FaTag, FaPlus, FaEdit, FaTrash } from "react-icons/fa";
 import Loading from "@/components/loading/Loading";
 import { confirm } from "@/components/confirm/Confirm";
@@ -19,6 +20,7 @@ interface PersonalTag {
 }
 
 const MyTagsTab: React.FC = () => {
+    const { t } = useTranslation("personal");
     const { user } = useAuth();
     const userId = user?.id;
     const [tags, setTags] = useState<PersonalTag[]>([]);
@@ -43,13 +45,13 @@ const MyTagsTab: React.FC = () => {
 
             try {
                 const res = await LabelService.queryLabel({ user_id: userId });
-                const mapped = (res || []).map((t: any) => ({
-                    id: t.id,
-                    name: t.name,
-                    description: t.desc || "暂无",
-                    articleCount: (t.article_count as number) || 0,
-                    color: t.color || "#61dafb",
-                    createTime: t.create_time ? formatToChinaTime(t.create_time) : "未知时间",
+                const mapped = (res || []).map((item: any) => ({
+                    id: item.id,
+                    name: item.name,
+                    description: item.desc || t("tags.unknownDescription"),
+                    articleCount: (item.article_count as number) || 0,
+                    color: item.color || "#61dafb",
+                    createTime: item.create_time ? formatToChinaTime(item.create_time) : t("tags.unknownTime"),
                 }));
                 setTags(mapped);
             } catch (err) {
@@ -86,7 +88,7 @@ const MyTagsTab: React.FC = () => {
                             ? {
                                   ...tag,
                                   name: res.name,
-                                  description: res.desc || "暂无",
+                                  description: res.desc || t("tags.unknownDescription"),
                                   color: res.color,
                                   createTime: res.create_time ? formatToChinaTime(res.create_time) : tag.createTime,
                               }
@@ -105,7 +107,7 @@ const MyTagsTab: React.FC = () => {
                 const newTag: PersonalTag = {
                     id: Number(res.id),
                     name: res.name,
-                    description: res.desc || "暂无",
+                    description: res.desc || t("tags.unknownDescription"),
                     articleCount: 0,
                     color: res.color,
                     createTime: res.create_time ? formatToChinaTime(res.create_time) : new Date().toISOString().split("T")[0],
@@ -118,7 +120,7 @@ const MyTagsTab: React.FC = () => {
             setTagForm({ name: "", description: "", color: "#61dafb" });
         } catch (err) {
             console.error("保存标签失败:", err);
-            message.error("保存标签失败，请重试");
+            message.error(t("tags.message.saveFailed"));
         } finally {
             setSavingTag(false);
         }
@@ -127,20 +129,20 @@ const MyTagsTab: React.FC = () => {
     // 删除标签
     const handleDeleteTag = async (tag: PersonalTag) => {
         const confirmed = await confirm({
-            title: "确认删除",
-            content: `确定要删除标签 "${tag.name}" 吗？删除后关联文章将失去此标签。`,
-            confirmText: "删除",
-            cancelText: "取消",
+            title: t("tags.deleteConfirmTitle"),
+            content: t("tags.deleteConfirmContent", { name: tag.name }),
+            confirmText: t("tags.delete"),
+            cancelText: t("tags.cancel"),
         });
 
         if (confirmed) {
             try {
                 await LabelService.deleteLabel({ ids: String(tag.id) });
                 // 删除成功后从本地状态移除
-                setTags(tags.filter((t) => t.id !== tag.id));
+                setTags(tags.filter((item) => item.id !== tag.id));
             } catch (err) {
                 console.error("删除标签失败:", err);
-                message.error("删除标签失败，请重试");
+                message.error(t("tags.message.deleteFailed"));
             }
         }
     };
@@ -159,22 +161,22 @@ const MyTagsTab: React.FC = () => {
     return (
         <div className={styles.contentSection}>
             <div className={styles.sectionHeader}>
-                <h2>我的标签</h2>
+                <h2>{t("tags.title")}</h2>
                 <button className={styles.addButton} onClick={() => setShowTagModal(true)}>
                     <FaPlus />
-                    新建标签
+                    {t("tags.createLabel")}
                 </button>
             </div>
 
             {tagsLoading ? (
                 <div style={{ padding: "24px", textAlign: "center" }}>
-                    <Loading size="small" text="正在加载标签..." />
+                    <Loading size="small" text={t("tags.loading")} />
                 </div>
             ) : tags.length === 0 ? (
                 <div className={styles.emptyState}>
                     <FaTag className={styles.emptyIcon} />
-                    <h3>暂无标签数据</h3>
-                    <p>点击"新增标签"按钮创建第一个标签</p>
+                    <h3>{t("tags.emptyTitle")}</h3>
+                    <p>{t("tags.emptyHint")}</p>
                 </div>
             ) : (
                 <div className={styles.tagsGrid}>
@@ -186,8 +188,8 @@ const MyTagsTab: React.FC = () => {
                             </div>
                             <p className={styles.tagDescription}>{tag.description}</p>
                             <div className={styles.tagStats}>
-                                <span>{tag.articleCount} 篇文章</span>
-                                <span>创建于 {tag.createTime}</span>
+                                <span>{t("tags.articleCount", { value: tag.articleCount ?? 0 })}</span>
+                                <span>{t("tags.createdOn", { value: tag.createTime ?? "" })}</span>
                             </div>
                             <div className={styles.tagActions}>
                                 <button className={styles.actionButton} onClick={() => handleEditTag(tag)}>
@@ -207,7 +209,7 @@ const MyTagsTab: React.FC = () => {
                 <div className={styles.modalOverlay}>
                     <div className={styles.modal}>
                         <div className={styles.modalHeader}>
-                            <h3>{editingTag ? "编辑标签" : "新建标签"}</h3>
+                            <h3>{editingTag ? t("tags.editLabel") : t("tags.createLabel")}</h3>
                             <button
                                 className={styles.closeButton}
                                 onClick={() => {
@@ -221,25 +223,25 @@ const MyTagsTab: React.FC = () => {
                         </div>
                         <div className={styles.modalBody}>
                             <div className={styles.formGroup}>
-                                <label>标签名称</label>
+                                <label>{t("tags.nameLabel")}</label>
                                 <input
                                     type="text"
                                     value={tagForm.name}
                                     onChange={(e) => setTagForm({ ...tagForm, name: e.target.value })}
-                                    placeholder="请输入标签名称"
+                                    placeholder={t("tags.namePlaceholder")}
                                 />
                             </div>
                             <div className={styles.formGroup}>
-                                <label>标签描述</label>
+                                <label>{t("tags.descLabel")}</label>
                                 <textarea
                                     value={tagForm.description}
                                     onChange={(e) => setTagForm({ ...tagForm, description: e.target.value })}
-                                    placeholder="请输入标签描述"
+                                    placeholder={t("tags.descPlaceholder")}
                                     rows={3}
                                 />
                             </div>
                             <div className={styles.formGroup}>
-                                <label>标签颜色</label>
+                                <label>{t("tags.colorLabel")}</label>
                                 <div className={styles.colorPicker}>
                                     <input
                                         type="color"
@@ -259,10 +261,10 @@ const MyTagsTab: React.FC = () => {
                                     setTagForm({ name: "", description: "", color: "#61dafb" });
                                 }}
                             >
-                                取消
+                                {t("tags.cancel")}
                             </button>
                             <button className={styles.confirmButton} onClick={handleSaveTag} disabled={savingTag}>
-                                {savingTag ? "保存中..." : editingTag ? "更新" : "创建"}
+                                {savingTag ? t("tags.saving") : editingTag ? t("tags.update") : t("tags.create")}
                             </button>
                         </div>
                     </div>

@@ -1,4 +1,5 @@
 import { AgentGatewayClient } from "../AgentGatewayClient.ts";
+import i18n from "@/i18n";
 import type { EngineEvent, EventEnvelope } from "../../contracts/agent";
 import type { SessionHandle, EngineEventListener } from "./Types.ts";
 
@@ -100,7 +101,7 @@ export function createGatewaySession(onSid: (sid: string) => void): SessionHandl
                                     orgId: 1,
                                     subjectType: "bug",
                                     subjectId: "bug_1",
-                                    prompt: "演示：读取缺陷 bug_1 并分析，如需修复请先申请权限。",
+                                    prompt: i18n.t("services:agentGateway.demoPrompt"),
                                 })
                                 .then((created) => created.sid)
                                 .finally(() => {
@@ -128,13 +129,13 @@ export function createGatewaySession(onSid: (sid: string) => void): SessionHandl
                             }
                             emit(toUiEvent(env));
                         },
-                        onProtocolError: (message) => emitError(`网关事件协议错误：${message}`),
+                        onProtocolError: (message) => emitError(i18n.t("services:agentGateway.protocolError", { message })),
                         onEnd: (reason) => {
                             if (disposed) {
                                 return;
                             }
                             if (reason === "failed") {
-                                emitConnectionFailure("Agent 服务连接已中断，请稍后重试。其他页面仍可正常使用。");
+                                emitConnectionFailure(i18n.t("services:agentGateway.connectionInterrupted"));
                             }
                         },
                     });
@@ -151,7 +152,11 @@ export function createGatewaySession(onSid: (sid: string) => void): SessionHandl
                         } catch (err) {
                             if (!proposalPollFailed && !disposed) {
                                 proposalPollFailed = true;
-                                emitError(`提案同步失败：${err instanceof Error ? err.message : String(err)}`);
+                                emitError(
+                                    i18n.t("services:agentGateway.proposalSyncFailed", {
+                                        message: err instanceof Error ? err.message : String(err),
+                                    }),
+                                );
                             }
                         }
                     };
@@ -161,7 +166,7 @@ export function createGatewaySession(onSid: (sid: string) => void): SessionHandl
                     if (disposed) {
                         return;
                     }
-                    emitConnectionFailure(err instanceof Error ? err.message : "Agent 服务暂时不可用，请稍后重试。");
+                    emitConnectionFailure(err instanceof Error ? err.message : i18n.t("services:agentGateway.serviceUnavailable"));
                 }
             })();
         },
@@ -172,15 +177,21 @@ export function createGatewaySession(onSid: (sid: string) => void): SessionHandl
             };
         },
         answerPermission(requestId, decision) {
-            void client
-                .answerPermission(sid || handle.sid, requestId, decision)
-                .catch((err) => emitError(`Runner 权限应答失败：${err instanceof Error ? err.message : String(err)}`));
+            void client.answerPermission(sid || handle.sid, requestId, decision).catch((err) =>
+                emitError(
+                    i18n.t("services:agentGateway.runnerAckFailed", {
+                        message: err instanceof Error ? err.message : String(err),
+                    }),
+                ),
+            );
         },
         async decideProposal(proposalId, decision, note) {
             try {
                 await client.decideProposal(sid || handle.sid, proposalId, decision, note);
             } catch (err) {
-                const message = `产品提案审批失败：${err instanceof Error ? err.message : String(err)}`;
+                const message = i18n.t("services:agentGateway.proposalApprovalFailed", {
+                    message: err instanceof Error ? err.message : String(err),
+                });
                 emitError(message);
                 throw err;
             }

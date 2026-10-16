@@ -1,5 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { FaExclamationTriangle, FaHome, FaArrowLeft } from "react-icons/fa";
 import styles from "./ArticleErrorView.module.css";
 
@@ -9,20 +10,21 @@ interface ArticleErrorViewProps {
 
 const ArticleErrorView: React.FC<ArticleErrorViewProps> = ({ error }) => {
     const navigate = useNavigate();
+    const { t } = useTranslation("article");
 
     return (
         <div className={styles.container}>
             <div className={styles.icon}>
                 <FaExclamationTriangle />
             </div>
-            <h2 className={styles.title}>无法加载文章</h2>
-            <p className={styles.message}>{error || "发生未知错误"}</p>
+            <h2 className={styles.title}>{t("error.title")}</h2>
+            <p className={styles.message}>{error || t("error.unknown")}</p>
             <div className={styles.actions}>
                 <button onClick={() => navigate(-1)} className={styles.backBtn}>
-                    <FaArrowLeft /> 返回上一页
+                    <FaArrowLeft /> {t("error.back")}
                 </button>
                 <button onClick={() => navigate("/")} className={styles.homeBtn}>
-                    <FaHome /> 返回首页
+                    <FaHome /> {t("backHome")}
                 </button>
             </div>
         </div>
