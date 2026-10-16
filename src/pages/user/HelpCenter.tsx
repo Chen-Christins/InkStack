@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
+import { useAsyncResource } from "@/hooks/UseAsyncResource";
 import { useNavigate } from "react-router-dom";
 import {
     FaQuestionCircle,
@@ -45,27 +46,27 @@ const HelpCenter: React.FC = () => {
     const { isAuthenticated, loading: authLoading } = useAuth();
     const { mode } = useLayoutMode();
     const [search, setSearch] = useState("");
-    const [faqs, setFaqs] = useState<HelpFaq[]>([]);
-    const [faqLoading, setFaqLoading] = useState(true);
     const [openId, setOpenId] = useState<string | null>(null);
     const [fbType, setFbType] = useState("bug");
     const [fbContent, setFbContent] = useState("");
     const [fbContact, setFbContact] = useState("");
     const [fbSubmitting, setFbSubmitting] = useState(false);
 
-    useEffect(() => {
-        HelpService.getFaqs()
-            .then((res) => {
-                const list = res.data || [];
-                console.log("Fetched FAQs:", list); // Debugging line
-                setFaqs(list);
-                if (list.length > 0) {
-                    setOpenId(list[0].id);
-                }
-            })
-            .catch(() => message.error("加载常见问题失败"))
-            .finally(() => setFaqLoading(false));
+    const { data: faqs = [], loading: faqLoading } = useAsyncResource<HelpFaq[]>(async () => {
+        try {
+            const res = await HelpService.getFaqs();
+            return res.data || [];
+        } catch (err) {
+            message.error("加载常见问题失败");
+            throw err;
+        }
     }, []);
+
+    useEffect(() => {
+        if (faqs.length > 0) {
+            setOpenId((prev) => prev ?? faqs[0].id);
+        }
+    }, [faqs]);
 
     const filtered = useMemo(() => (search ? faqs.filter((f) => f.q.includes(search) || f.a.includes(search)) : faqs), [search, faqs]);
 

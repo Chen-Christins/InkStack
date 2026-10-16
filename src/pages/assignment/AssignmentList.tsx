@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { encodeId } from "@/utils/HashId.ts";
 import { FaCheckCircle, FaExclamationCircle, FaArrowRight, FaCalendarAlt, FaClipboardList, FaTasks, FaEye } from "react-icons/fa";
 import Skeleton from "@/components/skeleton/Skeleton";
 import AuthRequired from "@/components/auth/AuthRequired";
 import AssignmentService from "@/services/AssignmentService.ts";
+import { useAsyncResource } from "@/hooks/UseAsyncResource";
 import styles from "./AssignmentList.module.css";
 import ErrorState from "@/components/errorState/ErrorState";
 
@@ -29,25 +30,13 @@ const STATUS_MAP: { [key: number]: string } = {
 const AssignmentList: React.FC = () => {
     const navigate = useNavigate();
     const [filter, setFilter] = useState<"all" | "open" | "closed">("all");
-    const [dataLoading, setDataLoading] = useState(true);
-    const [assignments, setAssignments] = useState<Assignment[]>([]);
-    const [error, setError] = useState<string | null>(null);
-
-    useEffect(() => {
-        const fetchAssignments = async () => {
-            try {
-                setDataLoading(true);
-                setError(null);
-                const response = await AssignmentService.getUserAssignments();
-                setAssignments(response.list || []);
-            } catch (err: any) {
-                setError(err.message || "获取作业列表失败");
-            } finally {
-                setDataLoading(false);
-            }
-        };
-
-        fetchAssignments();
+    const {
+        data: assignments = [],
+        loading: dataLoading,
+        error,
+    } = useAsyncResource<Assignment[]>(async () => {
+        const response = await AssignmentService.getUserAssignments();
+        return response.list || [];
     }, []);
 
     const filteredAssignments = assignments.filter((item) => {
@@ -125,7 +114,7 @@ const AssignmentList: React.FC = () => {
                             <div className={styles.errorState}>
                                 <ErrorState
                                     title="加载失败"
-                                    message={error || "未找到该作业"}
+                                    message={error instanceof Error ? error.message : "获取作业列表失败"}
                                     icon={<FaExclamationCircle />}
                                     actionText="返回作业列表"
                                     onAction={() => navigate("/assignments")}

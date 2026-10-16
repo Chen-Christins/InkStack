@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { FaArrowRight, FaCalendarAlt, FaCheckCircle, FaClipboardList, FaExclamationCircle, FaEye, FaSearch } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import Button from "@/components/button/Button";
@@ -9,6 +9,7 @@ import Skeleton from "@/components/skeleton/Skeleton";
 import AssignmentService, { type GetUserAssignmentsResponse } from "@/services/AssignmentService.ts";
 import type { SelectOption } from "@/types";
 import { encodeId } from "@/utils/HashId.ts";
+import { useAsyncResource } from "@/hooks/UseAsyncResource";
 import styles from "../PersonalCenter.module.css";
 
 type Assignment = GetUserAssignmentsResponse["list"][number];
@@ -27,28 +28,18 @@ const filterOptions: SelectOption[] = [
 
 const MyAssignmentsTab: React.FC = () => {
     const navigate = useNavigate();
-    const [assignments, setAssignments] = useState<Assignment[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
     const [searchTerm, setSearchTerm] = useState("");
     const [filter, setFilter] = useState<AssignmentFilter>("all");
     const [selectedFilter, setSelectedFilter] = useState<SelectOption | null>(filterOptions[0]);
 
-    const fetchAssignments = async () => {
-        try {
-            setLoading(true);
-            setError(null);
-            const response = await AssignmentService.getUserAssignments();
-            setAssignments(response.list || []);
-        } catch (err: any) {
-            setError(err.message || "获取任务列表失败");
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    useEffect(() => {
-        fetchAssignments();
+    const {
+        data: assignments = [],
+        loading,
+        error,
+        reload,
+    } = useAsyncResource<Assignment[]>(async () => {
+        const response = await AssignmentService.getUserAssignments();
+        return response.list || [];
     }, []);
 
     const filteredAssignments = useMemo(() => {
@@ -123,10 +114,10 @@ const MyAssignmentsTab: React.FC = () => {
             {error ? (
                 <ErrorState
                     title="加载失败"
-                    message={error}
+                    message={error instanceof Error ? error.message : "获取任务列表失败"}
                     icon={<FaExclamationCircle />}
                     actionText="重新加载"
-                    onAction={fetchAssignments}
+                    onAction={reload}
                 />
             ) : loading ? (
                 <div className={styles.assignmentsGrid}>

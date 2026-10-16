@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { FaFire, FaPenNib, FaComments, FaStar, FaMedal, FaCode, FaHeart, FaRocket, FaTrophy } from "react-icons/fa";
 import styles from "./UserPage.module.css";
 import acStyles from "./Achievements.module.css";
 import { AuthService, type AchievementData, type AchievementBadge } from "@/services/AuthService.ts";
 import message from "@/components/message/Message";
+import { useAsyncResource } from "@/hooks/UseAsyncResource";
 
 const ICON_MAP: Record<string, React.ReactNode> = {
     pen: <FaPenNib />,
@@ -21,14 +22,13 @@ const WEEKDAYS = ["", "一", "", "三", "", "五", ""];
 const MONTHS = ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"];
 
 const AchievementsTab: React.FC = () => {
-    const [data, setData] = useState<AchievementData | null>(null);
-    const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
-        AuthService.getAchievements()
-            .then(setData)
-            .catch((err) => message.error(err?.message || "加载成就数据失败"))
-            .finally(() => setLoading(false));
+    const { data, loading } = useAsyncResource<AchievementData | null>(async () => {
+        try {
+            return await AuthService.getAchievements();
+        } catch (err: any) {
+            message.error(err?.message || "加载成就数据失败");
+            throw err;
+        }
     }, []);
 
     const stats = data?.stats;

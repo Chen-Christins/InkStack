@@ -38,15 +38,22 @@ export function useAsyncResource<T>(
         }
 
         const controller = new AbortController();
-        const timer = setTimeout(() => controller.abort(), timeoutMs);
         const requestId = ++requestIdRef.current;
+        let timer: ReturnType<typeof setTimeout>;
 
         setLoading(true);
         setError(null);
 
+        const timeoutPromise = new Promise<never>((_resolve, reject) => {
+            timer = setTimeout(() => {
+                controller.abort();
+                reject(new Error("请求超时"));
+            }, timeoutMs);
+        });
+
         const run = async () => {
             try {
-                const result = await fetcher(controller.signal);
+                const result = await Promise.race([fetcher(controller.signal), timeoutPromise]);
                 if (requestId !== requestIdRef.current) {
                     return;
                 }
