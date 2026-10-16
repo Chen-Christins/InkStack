@@ -47,6 +47,7 @@ export interface UserProfile {
     role: PlatformRole;
     location: string;
     website?: string;
+    github?: string;
     joinDate: string;
     stats: {
         articles: number;

@@ -24,6 +24,7 @@ import {
     Loader2,
     Edit,
 } from "lucide-react";
+import { FaGithub } from "react-icons/fa";
 import type { Article, UserProfile } from "@/types";
 import type { UserStats } from "@/services/AuthService.ts";
 import FollowService from "@/services/FollowService.ts";
@@ -40,6 +41,17 @@ function formatDate(timestamp: number | string): string {
     }
     const date = new Date(ts * 1000);
     return `${date.getFullYear()}年${date.getMonth() + 1}月`;
+}
+
+function toGithubHref(value: string): string {
+    return /^https?:\/\//i.test(value) ? value : `https://github.com/${value.replace(/^@/, "")}`;
+}
+
+function toGithubLabel(value: string): string {
+    return value
+        .replace(/^https?:\/\/(www\.)?github\.com\//i, "")
+        .replace(/^@/, "")
+        .replace(/^https?:\/\//i, "");
 }
 
 function formatPublishTime(timestamp: number | string): string {
@@ -136,6 +148,7 @@ const Profile: React.FC = () => {
                     role: userData?.role || "user",
                     location: userData?.location || "",
                     website: userData?.website || "",
+                    github: userData?.github || "",
                     joinDate: formatDate(userData?.create_time),
                     stats: {
                         articles: articlesResponse?.total ?? 0,
@@ -606,6 +619,19 @@ const Profile: React.FC = () => {
                                     <Link2 size={14} />
                                     <a href={profile.website} target="_blank" rel="noopener noreferrer">
                                         {profile.website.replace(/^https?:\/\//, "")}
+                                    </a>
+                                </div>
+                            )}
+                            {profile.github && (
+                                <div className={styles.sidebarMetaItem}>
+                                    <FaGithub size={14} />
+                                    <a
+                                        href={toGithubHref(profile.github)}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        title={toGithubLabel(profile.github)}
+                                    >
+                                        {toGithubLabel(profile.github)}
                                     </a>
                                 </div>
                             )}
