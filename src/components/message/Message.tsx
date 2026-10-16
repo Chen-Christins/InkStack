@@ -1,4 +1,5 @@
 import React, { useState, useEffect, createContext, useContext, type ReactNode, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import styles from "./Message.module.css";
 
 // 消息类型定义
@@ -98,6 +99,7 @@ export const MessageProvider: React.FC<{ children: ReactNode }> = ({ children })
 
 // 消息容器组件
 const MessageContainer: React.FC = () => {
+    const { t } = useTranslation("components");
     const context = useContext(MessageContext);
     if (!context) {
         throw new Error("Message components must be used within a MessageProvider");
@@ -165,7 +167,7 @@ const MessageContainer: React.FC = () => {
                                     removeMessage(message.id!);
                                     message.onClose?.();
                                 }}
-                                aria-label="关闭消息"
+                                aria-label={t("message.close")}
                             >
                                 ✕
                             </button>

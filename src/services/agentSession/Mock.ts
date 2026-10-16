@@ -1,3 +1,4 @@
+import i18n from "@/i18n";
 import type { EngineEvent, SessionStatus, ProposalView } from "../../contracts/agent";
 import type { SessionHandle, EngineEventListener, PermissionDecision } from "./Types.ts";
 
@@ -78,12 +79,12 @@ export function createMockSession(onSid: (sid: string) => void): SessionHandle {
         });
 
     const run = async () => {
-        statusChange("running", "mock 引擎已接管会话");
+        statusChange("running", i18n.t("services:agentMock.statusRunning"));
         await sleep(randomDelay());
         if (disposed) {
             return;
         }
-        chunk("你好，我是 TechHaven 工单助手。已收到请求，正在查询工单 TCK-1024 的详情…");
+        chunk(i18n.t("services:agentMock.chunkGreeting"));
         await sleep(randomDelay());
         if (disposed) {
             return;
@@ -93,17 +94,17 @@ export function createMockSession(onSid: (sid: string) => void): SessionHandle {
         if (disposed) {
             return;
         }
-        toolResult("get_ticket", true, "已取到工单：Safari 15+ 打开登录页白屏，当前状态=待处理");
+        toolResult("get_ticket", true, i18n.t("services:agentMock.toolResultGetTicket"));
         await sleep(randomDelay());
         if (disposed) {
             return;
         }
-        chunk("已读取工单详情。接下来我需要把工单状态更新为「处理中」，该操作会同步通知工单提交人。");
+        chunk(i18n.t("services:agentMock.chunkReadDetail"));
         await sleep(randomDelay());
         if (disposed) {
             return;
         }
-        statusChange("awaiting_permission", "runner 请求执行工具权限");
+        statusChange("awaiting_permission", i18n.t("services:agentMock.statusAwaitingPermission"));
         const requestId = `req_${randomToken(10)}`;
         emit({
             type: "permission_request",
@@ -111,7 +112,7 @@ export function createMockSession(onSid: (sid: string) => void): SessionHandle {
             ts: new Date().toISOString(),
             requestId,
             tool: "update_ticket_status",
-            reason: "runner 请求调用写工具。这里仅决定引擎是否可以发起工具调用，不等于批准产品数据写入。",
+            reason: i18n.t("services:agentMock.permissionReason"),
         });
 
         const decision = await waitForDecision(requestId);
@@ -120,7 +121,7 @@ export function createMockSession(onSid: (sid: string) => void): SessionHandle {
         }
         if (decision === "approve") {
             // 状态机（图 2）：awaiting_permission --批准--> running --> succeeded
-            statusChange("running", "runner 权限已批准，继续发起工具调用");
+            statusChange("running", i18n.t("services:agentMock.statusResuming"));
             await sleep(randomDelay());
             if (disposed) {
                 return;
@@ -130,7 +131,7 @@ export function createMockSession(onSid: (sid: string) => void): SessionHandle {
             if (disposed) {
                 return;
             }
-            toolResult("update_ticket_status", true, "已创建产品写提案；工单尚未发生变化");
+            toolResult("update_ticket_status", true, i18n.t("services:agentMock.toolResultUpdateTicket"));
             await sleep(randomDelay());
             if (disposed) {
                 return;
@@ -143,9 +144,9 @@ export function createMockSession(onSid: (sid: string) => void): SessionHandle {
                 tool: "update_ticket_status",
                 subjectType: "bug",
                 subjectHashId: "TCK-1024",
-                fromStatus: "待处理",
-                toStatus: "处理中",
-                reason: "已确认问题可复现，进入修复处理阶段",
+                fromStatus: i18n.t("services:agentMock.proposalFromStatus"),
+                toStatus: i18n.t("services:agentMock.proposalToStatus"),
+                reason: i18n.t("services:agentMock.proposalReason"),
                 status: "pending",
                 expiresAt: new Date(Date.now() + 30 * 60_000).toISOString(),
                 updatedAt: createdAt,
@@ -164,37 +165,42 @@ export function createMockSession(onSid: (sid: string) => void): SessionHandle {
                     ...proposal,
                     status: "applied",
                     updatedAt: new Date().toISOString(),
-                    note: "MCP worker 已重新校验状态机并幂等应用",
+                    note: i18n.t("services:agentMock.proposalNote"),
                 };
                 proposalLifecycle("applied", proposal, "system", proposal.note);
                 await sleep(randomDelay());
                 if (disposed) {
                     return;
                 }
-                chunk("产品写提案已应用，工单 TCK-1024 现在处于「处理中」。");
+                chunk(i18n.t("services:agentMock.chunkProposalApplied"));
             } else {
                 await sleep(randomDelay());
                 if (disposed) {
                     return;
                 }
-                chunk("产品写提案已拒绝；runner 会话可以正常收尾，工单仍保持「待处理」。");
+                chunk(i18n.t("services:agentMock.chunkProposalRejected"));
             }
             await sleep(randomDelay());
             if (disposed) {
                 return;
             }
-            statusChange("succeeded", proposalDecision === "approve" ? "提案已应用" : "提案被拒绝，未写入产品域");
+            statusChange(
+                "succeeded",
+                proposalDecision === "approve"
+                    ? i18n.t("services:agentMock.statusProposalApplied")
+                    : i18n.t("services:agentMock.statusProposalRejected"),
+            );
         } else {
             await sleep(randomDelay());
             if (disposed) {
                 return;
             }
-            chunk("好的，本次状态变更已取消，工单 TCK-1024 保持「待处理」不变。");
+            chunk(i18n.t("services:agentMock.chunkCancelled"));
             await sleep(randomDelay());
             if (disposed) {
                 return;
             }
-            statusChange("cancelled", "用户拒绝了权限请求");
+            statusChange("cancelled", i18n.t("services:agentMock.statusPermissionRejected"));
         }
     };
 
@@ -219,7 +225,7 @@ export function createMockSession(onSid: (sid: string) => void): SessionHandle {
         },
         async decideProposal(proposalId: string, decision: PermissionDecision, note?: string) {
             if (!proposal || proposal.id !== proposalId) {
-                throw new Error(`未知产品提案：${proposalId}`);
+                throw new Error(i18n.t("services:agentMock.unknownProposal", { id: proposalId }));
             }
             if (proposal.status !== "pending") {
                 return;

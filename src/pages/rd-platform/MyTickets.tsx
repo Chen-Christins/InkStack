@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { useRdNavigate } from "@/hooks/UseRdNavigate.ts";
 import { formatDateTime } from "@/utils/Utils.ts";
 import { encodeId } from "@/utils/HashId.ts";
@@ -28,67 +29,13 @@ import AssigneeDisplay from "@/components/assigneeDisplay/AssigneeDisplay";
 import type { SelectOption } from "../../types";
 import type { Requirement, Bug, Task } from "@/types/RdPlatform.ts";
 
-const reqStatusOptions: SelectOption[] = [
-    { id: "", name: "全部状态", color: "#6c757d" },
-    { id: "new", name: "新建", color: "#3b82f6" },
-    { id: "developing", name: "开发中", color: "#eab308" },
-    { id: "testing", name: "测试中", color: "#a855f7" },
-    { id: "done", name: "已完成", color: "#22c55e" },
-    { id: "closed", name: "已关闭", color: "#6b7280" },
-];
-
-const bugStatusOptions: SelectOption[] = [
-    { id: "", name: "全部状态", color: "#6c757d" },
-    { id: "new", name: "新建", color: "#3b82f6" },
-    { id: "processing", name: "处理中", color: "#a855f7" },
-    { id: "verified", name: "已验证", color: "#22c55e" },
-    { id: "closed", name: "已关闭", color: "#6b7280" },
-    { id: "reopened", name: "已重开", color: "#ef4444" },
-];
-
-const taskStatusOptions: SelectOption[] = [
-    { id: "", name: "全部状态", color: "#6c757d" },
-    { id: "todo", name: "待办", color: "#6b7280" },
-    { id: "doing", name: "进行中", color: "#3b82f6" },
-    { id: "done", name: "已完成", color: "#22c55e" },
-    { id: "closed", name: "已关闭", color: "#6b7280" },
-];
-
-const reqPriorityOptions: SelectOption[] = [
-    { id: "high", name: "高", color: "#ef4444" },
-    { id: "medium", name: "中", color: "#f59e0b" },
-    { id: "low", name: "低", color: "#22c55e" },
-];
-const bugSeverityOptions: SelectOption[] = [
-    { id: "fatal", name: "致命", color: "#dc2626" },
-    { id: "serious", name: "严重", color: "#ea580c" },
-    { id: "normal", name: "一般", color: "#f59e0b" },
-    { id: "minor", name: "轻微", color: "#22c55e" },
-];
-
-const reqStatusText: Record<string, string> = {
-    new: "新建",
-    developing: "开发中",
-    testing: "测试中",
-    done: "已完成",
-    closed: "已关闭",
-};
-const bugStatusText: Record<string, string> = {
-    new: "新建",
-    processing: "处理中",
-    verified: "已验证",
-    closed: "已关闭",
-    reopened: "已重开",
-};
-const taskStatusText: Record<string, string> = { todo: "待办", doing: "进行中", done: "已完成", closed: "已关闭" };
-const priorityText: Record<string, string> = { urgent: "紧急", high: "高", medium: "中", low: "低" };
-const severityText: Record<string, string> = { fatal: "致命", serious: "严重", normal: "一般", minor: "轻微" };
 const PAGE_SIZE = 10;
 
 type TabKey = "req" | "bug" | "task";
 type TabData = Requirement | Bug | Task;
 
 const MyTickets: React.FC = () => {
+    const { t } = useTranslation("rd");
     const navigate = useRdNavigate();
     const { orgNameMap, selectedOrgId } = useRdOrg();
     const [activeTab, setActiveTab] = useState<TabKey>("req");
@@ -107,6 +54,77 @@ const MyTickets: React.FC = () => {
     const [editForm, setEditForm] = useState<Record<string, string>>({});
     const [saving, setSaving] = useState(false);
     const [memberOptions, setMemberOptions] = useState<SelectOption[]>([]);
+
+    const reqStatusOptions: SelectOption[] = [
+        { id: "", name: t("myTickets.status.all"), color: "#6c757d" },
+        { id: "new", name: t("myTickets.status.new"), color: "#3b82f6" },
+        { id: "developing", name: t("myTickets.status.developing"), color: "#eab308" },
+        { id: "testing", name: t("myTickets.status.testing"), color: "#a855f7" },
+        { id: "done", name: t("myTickets.status.done"), color: "#22c55e" },
+        { id: "closed", name: t("myTickets.status.closed"), color: "#6b7280" },
+    ];
+
+    const bugStatusOptions: SelectOption[] = [
+        { id: "", name: t("myTickets.status.all"), color: "#6c757d" },
+        { id: "new", name: t("myTickets.status.new"), color: "#3b82f6" },
+        { id: "processing", name: t("myTickets.status.processing"), color: "#a855f7" },
+        { id: "verified", name: t("myTickets.status.verified"), color: "#22c55e" },
+        { id: "closed", name: t("myTickets.status.closed"), color: "#6b7280" },
+        { id: "reopened", name: t("myTickets.status.reopened"), color: "#ef4444" },
+    ];
+
+    const taskStatusOptions: SelectOption[] = [
+        { id: "", name: t("myTickets.status.all"), color: "#6c757d" },
+        { id: "todo", name: t("myTickets.status.todo"), color: "#6b7280" },
+        { id: "doing", name: t("myTickets.status.doing"), color: "#3b82f6" },
+        { id: "done", name: t("myTickets.status.done"), color: "#22c55e" },
+        { id: "closed", name: t("myTickets.status.closed"), color: "#6b7280" },
+    ];
+
+    const reqPriorityOptions: SelectOption[] = [
+        { id: "high", name: t("myTickets.priority.high"), color: "#ef4444" },
+        { id: "medium", name: t("myTickets.priority.medium"), color: "#f59e0b" },
+        { id: "low", name: t("myTickets.priority.low"), color: "#22c55e" },
+    ];
+    const bugSeverityOptions: SelectOption[] = [
+        { id: "fatal", name: t("myTickets.severity.fatal"), color: "#dc2626" },
+        { id: "serious", name: t("myTickets.severity.serious"), color: "#ea580c" },
+        { id: "normal", name: t("myTickets.severity.normal"), color: "#f59e0b" },
+        { id: "minor", name: t("myTickets.severity.minor"), color: "#22c55e" },
+    ];
+
+    const reqStatusText: Record<string, string> = {
+        new: t("myTickets.status.new"),
+        developing: t("myTickets.status.developing"),
+        testing: t("myTickets.status.testing"),
+        done: t("myTickets.status.done"),
+        closed: t("myTickets.status.closed"),
+    };
+    const bugStatusText: Record<string, string> = {
+        new: t("myTickets.status.new"),
+        processing: t("myTickets.status.processing"),
+        verified: t("myTickets.status.verified"),
+        closed: t("myTickets.status.closed"),
+        reopened: t("myTickets.status.reopened"),
+    };
+    const taskStatusText: Record<string, string> = {
+        todo: t("myTickets.status.todo"),
+        doing: t("myTickets.status.doing"),
+        done: t("myTickets.status.done"),
+        closed: t("myTickets.status.closed"),
+    };
+    const priorityText: Record<string, string> = {
+        urgent: t("myTickets.priority.urgent"),
+        high: t("myTickets.priority.high"),
+        medium: t("myTickets.priority.medium"),
+        low: t("myTickets.priority.low"),
+    };
+    const severityText: Record<string, string> = {
+        fatal: t("myTickets.severity.fatal"),
+        serious: t("myTickets.severity.serious"),
+        normal: t("myTickets.severity.normal"),
+        minor: t("myTickets.severity.minor"),
+    };
 
     useEffect(() => {
         if (editMode && detail) {
@@ -140,7 +158,7 @@ const MyTickets: React.FC = () => {
             setTotal(res.total);
             setTotalMap((prev) => ({ ...prev, [activeTab]: res.total }));
         } catch (err) {
-            message.error(err instanceof Error ? err.message : "获取工单列表失败");
+            message.error(err instanceof Error ? err.message : t("myTickets.message.fetchFailed"));
             setData([]);
             setTotal(0);
         } finally {
@@ -217,14 +235,14 @@ const MyTickets: React.FC = () => {
             f.environment = b.environment || "";
             f.description = b.description || "";
         } else {
-            const t = item as Task;
-            f.title = t.title;
-            f.status = t.status;
-            f.priority = t.priority;
-            f.assignee = t.assignee || "";
-            f.deadline = t.deadline || "";
-            f.estimatedHours = String(t.estimatedHours || 0);
-            f.description = t.description || "";
+            const task = item as Task;
+            f.title = task.title;
+            f.status = task.status;
+            f.priority = task.priority;
+            f.assignee = task.assignee || "";
+            f.deadline = task.deadline || "";
+            f.estimatedHours = String(task.estimatedHours || 0);
+            f.description = task.description || "";
         }
         setEditForm(f);
         setDetail({ type, item });
@@ -274,12 +292,12 @@ const MyTickets: React.FC = () => {
                     description: editForm.description,
                 });
             }
-            message.success("保存成功");
+            message.success(t("myTickets.message.saveSuccess"));
             setEditMode(false);
             setModalVisible(false);
             fetchData();
         } catch (err: any) {
-            message.error(err?.message || "保存失败");
+            message.error(err?.message || t("myTickets.message.saveFailed"));
         } finally {
             setSaving(false);
         }
@@ -305,15 +323,15 @@ const MyTickets: React.FC = () => {
         return (
             <div className={myStyles.formContainer}>
                 <div>
-                    {formLabel("标题", true)}
+                    {formLabel(t("myTickets.form.title"), true)}
                     <Input value={editForm.title || ""} onChange={(v) => setEditForm((p) => ({ ...p, title: v }))} size="large" />
                 </div>
 
                 <div className={myStyles.formRow}>
                     <div className={myStyles.formField}>
-                        {formLabel("状态")}
+                        {formLabel(t("myTickets.form.status"))}
                         <CustomSelect
-                            name="状态"
+                            name={t("myTickets.form.statusName")}
                             options={(detail.type === "req"
                                 ? reqStatusOptions
                                 : detail.type === "bug"
@@ -335,9 +353,9 @@ const MyTickets: React.FC = () => {
 
                     {detail.type === "req" && (
                         <div className={myStyles.formField}>
-                            {formLabel("优先级")}
+                            {formLabel(t("myTickets.form.priority"))}
                             <CustomSelect
-                                name="优先级"
+                                name={t("myTickets.form.priorityName")}
                                 options={reqPriorityOptions}
                                 value={reqPriorityOptions.find((o) => o.id === editForm.priority) || null}
                                 onChange={(o) => setEditForm((p) => ({ ...p, priority: (o?.id as string) || "medium" }))}
@@ -348,9 +366,9 @@ const MyTickets: React.FC = () => {
                     {detail.type === "bug" && (
                         <>
                             <div className={myStyles.formField}>
-                                {formLabel("严重程度")}
+                                {formLabel(t("myTickets.form.severity"))}
                                 <CustomSelect
-                                    name="严重程度"
+                                    name={t("myTickets.form.severityName")}
                                     options={bugSeverityOptions}
                                     value={bugSeverityOptions.find((o) => o.id === editForm.severity) || null}
                                     onChange={(o) => setEditForm((p) => ({ ...p, severity: (o?.id as string) || "normal" }))}
@@ -358,9 +376,9 @@ const MyTickets: React.FC = () => {
                                 />
                             </div>
                             <div className={myStyles.formField}>
-                                {formLabel("优先级")}
+                                {formLabel(t("myTickets.form.priority"))}
                                 <CustomSelect
-                                    name="优先级"
+                                    name={t("myTickets.form.priorityName")}
                                     options={reqPriorityOptions}
                                     value={reqPriorityOptions.find((o) => o.id === editForm.priority) || null}
                                     onChange={(o) => setEditForm((p) => ({ ...p, priority: (o?.id as string) || "high" }))}
@@ -371,9 +389,9 @@ const MyTickets: React.FC = () => {
                     )}
                     {detail.type === "task" && (
                         <div className={myStyles.formField}>
-                            {formLabel("优先级")}
+                            {formLabel(t("myTickets.form.priority"))}
                             <CustomSelect
-                                name="优先级"
+                                name={t("myTickets.form.priorityName")}
                                 options={reqPriorityOptions}
                                 value={reqPriorityOptions.find((o) => o.id === editForm.priority) || null}
                                 onChange={(o) => setEditForm((p) => ({ ...p, priority: (o?.id as string) || "medium" }))}
@@ -383,9 +401,9 @@ const MyTickets: React.FC = () => {
                     )}
 
                     <div className={myStyles.formField}>
-                        {formLabel("负责人")}
+                        {formLabel(t("myTickets.form.assignee"))}
                         <CustomSelect
-                            name="负责人"
+                            name={t("myTickets.form.assigneeName")}
                             options={memberOptions}
                             value={
                                 memberOptions.find((o) => o.id === editForm.assignee) ||
@@ -401,7 +419,7 @@ const MyTickets: React.FC = () => {
                 {detail.type === "req" && (
                     <div className={myStyles.formRow}>
                         <div className={myStyles.formField}>
-                            {formLabel("迭代")}
+                            {formLabel(t("myTickets.form.iteration"))}
                             <Input
                                 value={editForm.iteration || ""}
                                 onChange={(v) => setEditForm((p) => ({ ...p, iteration: v }))}
@@ -409,7 +427,7 @@ const MyTickets: React.FC = () => {
                             />
                         </div>
                         <div className={myStyles.formField}>
-                            {formLabel("分类")}
+                            {formLabel(t("myTickets.form.category"))}
                             <Input
                                 value={editForm.category || ""}
                                 onChange={(v) => setEditForm((p) => ({ ...p, category: v }))}
@@ -417,7 +435,7 @@ const MyTickets: React.FC = () => {
                             />
                         </div>
                         <div className={myStyles.formField}>
-                            {formLabel("来源")}
+                            {formLabel(t("myTickets.form.source"))}
                             <Input
                                 value={editForm.source || ""}
                                 onChange={(v) => setEditForm((p) => ({ ...p, source: v }))}
@@ -429,7 +447,7 @@ const MyTickets: React.FC = () => {
                 {detail.type === "bug" && (
                     <div className={myStyles.formRow}>
                         <div className={myStyles.formField}>
-                            {formLabel("模块")}
+                            {formLabel(t("myTickets.form.module"))}
                             <Input
                                 value={editForm.module || ""}
                                 onChange={(v) => setEditForm((p) => ({ ...p, module: v }))}
@@ -437,7 +455,7 @@ const MyTickets: React.FC = () => {
                             />
                         </div>
                         <div className={myStyles.formField}>
-                            {formLabel("运行环境")}
+                            {formLabel(t("myTickets.form.environment"))}
                             <Input
                                 value={editForm.environment || ""}
                                 onChange={(v) => setEditForm((p) => ({ ...p, environment: v }))}
@@ -449,9 +467,9 @@ const MyTickets: React.FC = () => {
                 {detail.type === "task" && (
                     <div className={myStyles.formRow}>
                         <div className={myStyles.formField}>
-                            {formLabel("截止日期")}
+                            {formLabel(t("myTickets.form.deadline"))}
                             <DatePicker
-                                placeholder="选择截止日期"
+                                placeholder={t("myTickets.form.deadlinePlaceholder")}
                                 value={editForm.deadline ? new Date(editForm.deadline) : undefined}
                                 onChange={(date) =>
                                     setEditForm((p) => ({
@@ -465,7 +483,7 @@ const MyTickets: React.FC = () => {
                             />
                         </div>
                         <div className={myStyles.formField}>
-                            {formLabel("预估工时 (h)")}
+                            {formLabel(t("myTickets.form.estimatedHours"))}
                             <Input
                                 value={editForm.estimatedHours || ""}
                                 onChange={(v) => setEditForm((p) => ({ ...p, estimatedHours: v }))}
@@ -476,7 +494,7 @@ const MyTickets: React.FC = () => {
                 )}
 
                 <div>
-                    {formLabel("描述")}
+                    {formLabel(t("myTickets.form.description"))}
                     <textarea
                         value={editForm.description || ""}
                         onChange={(e) => setEditForm((p) => ({ ...p, description: e.target.value }))}
@@ -504,7 +522,7 @@ const MyTickets: React.FC = () => {
     const filterBar = (
         <div className={styles.filterSection}>
             <div className={styles.filterHeader}>
-                <h3 className={styles.filterTitle}>筛选条件</h3>
+                <h3 className={styles.filterTitle}>{t("myTickets.filters.title")}</h3>
                 <button
                     className={styles.clearBtn}
                     onClick={() => {
@@ -512,18 +530,24 @@ const MyTickets: React.FC = () => {
                         setStatus("");
                     }}
                 >
-                    清除筛选
+                    {t("myTickets.filters.clear")}
                 </button>
             </div>
             <div className={styles.filterForm}>
                 <div className={styles.filterGroup}>
-                    <label className={styles.filterLabel}>搜索</label>
-                    <Input placeholder="标题或描述" value={search} onChange={setSearch} allowClear size="large" />
+                    <label className={styles.filterLabel}>{t("myTickets.filters.searchLabel")}</label>
+                    <Input
+                        placeholder={t("myTickets.filters.searchPlaceholder")}
+                        value={search}
+                        onChange={setSearch}
+                        allowClear
+                        size="large"
+                    />
                 </div>
                 <div className={styles.filterGroup}>
-                    <label className={styles.filterLabel}>状态</label>
+                    <label className={styles.filterLabel}>{t("myTickets.filters.statusLabel")}</label>
                     <CustomSelect
-                        name="状态"
+                        name={t("myTickets.filters.statusSelectName")}
                         options={activeTab === "req" ? reqStatusOptions : activeTab === "bug" ? bugStatusOptions : taskStatusOptions}
                         value={
                             (activeTab === "req" ? reqStatusOptions : activeTab === "bug" ? bugStatusOptions : taskStatusOptions).find(
@@ -540,7 +564,7 @@ const MyTickets: React.FC = () => {
 
     const paginationBar = (
         <div className={styles.pagination}>
-            <span className={styles.paginationInfo}>共 {total} 条记录</span>
+            <span className={styles.paginationInfo}>{t("myTickets.pagination.total", { total })}</span>
             <div className={styles.paginationControls}>
                 <button disabled={page === 1} onClick={() => setPage(1)}>
                     <FaAngleDoubleLeft />
@@ -577,14 +601,14 @@ const MyTickets: React.FC = () => {
         <div className={styles.listPage}>
             <div className={styles.pageHeader}>
                 <div>
-                    <h1 className={styles.pageTitle}>我的工单</h1>
-                    <p className={styles.pageDescription}>我负责或创建的需求、缺陷与任务</p>
+                    <h1 className={styles.pageTitle}>{t("myTickets.pageTitle")}</h1>
+                    <p className={styles.pageDescription}>{t("myTickets.pageDescription")}</p>
                 </div>
             </div>
             <div className={myStyles.tabBar}>
-                {tabBtn("req", <FaClipboardList className={myStyles.tabBtnIcon} />, "需求", totalMap.req)}
-                {tabBtn("bug", <FaBug className={myStyles.tabBtnIcon} />, "缺陷", totalMap.bug)}
-                {tabBtn("task", <FaTasks className={myStyles.tabBtnIcon} />, "任务", totalMap.task)}
+                {tabBtn("req", <FaClipboardList className={myStyles.tabBtnIcon} />, t("myTickets.tabs.req"), totalMap.req)}
+                {tabBtn("bug", <FaBug className={myStyles.tabBtnIcon} />, t("myTickets.tabs.bug"), totalMap.bug)}
+                {tabBtn("task", <FaTasks className={myStyles.tabBtnIcon} />, t("myTickets.tabs.task"), totalMap.task)}
             </div>
             {filterBar}
 
@@ -595,13 +619,13 @@ const MyTickets: React.FC = () => {
                         <table className={styles.table}>
                             <thead>
                                 <tr>
-                                    <th>标题</th>
-                                    <th>优先级</th>
-                                    <th>状态</th>
-                                    <th>负责人</th>
-                                    <th>创建人</th>
-                                    <th>创建时间</th>
-                                    <th>操作</th>
+                                    <th>{t("myTickets.columns.title")}</th>
+                                    <th>{t("myTickets.columns.priority")}</th>
+                                    <th>{t("myTickets.columns.status")}</th>
+                                    <th>{t("myTickets.columns.assignee")}</th>
+                                    <th>{t("myTickets.columns.creator")}</th>
+                                    <th>{t("myTickets.columns.createdAt")}</th>
+                                    <th>{t("myTickets.columns.actions")}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -611,30 +635,32 @@ const MyTickets: React.FC = () => {
                                         <tr key={r.id}>
                                             <td
                                                 className={styles.titleCell}
-                                                data-label="标题"
+                                                data-label={t("myTickets.columns.title")}
                                                 onClick={() => navigate(`/rd/requirements/${encodeId(r.id, "requirement")}`)}
                                             >
                                                 {r.title}
                                             </td>
-                                            <td data-label="优先级">{renderPriorityBadge(r.priority)}</td>
-                                            <td data-label="状态">{renderStatusBadge(r.status, reqStatusText)}</td>
-                                            <td data-label="负责人">
+                                            <td data-label={t("myTickets.columns.priority")}>{renderPriorityBadge(r.priority)}</td>
+                                            <td data-label={t("myTickets.columns.status")}>
+                                                {renderStatusBadge(r.status, reqStatusText)}
+                                            </td>
+                                            <td data-label={t("myTickets.columns.assignee")}>
                                                 <AssigneeDisplay name={r.assignee} avatar={r.assigneeAvatar} />
                                             </td>
-                                            <td data-label="创建人">{r.creator}</td>
-                                            <td data-label="创建时间">{formatDateTime(r.createdAt)}</td>
-                                            <td data-label="操作">
+                                            <td data-label={t("myTickets.columns.creator")}>{r.creator}</td>
+                                            <td data-label={t("myTickets.columns.createdAt")}>{formatDateTime(r.createdAt)}</td>
+                                            <td data-label={t("myTickets.columns.actions")}>
                                                 <div className={styles.actionButtons}>
                                                     <button
                                                         className={`${styles.actionBtn} ${styles.view}`}
-                                                        title="查看"
+                                                        title={t("myTickets.actions.view")}
                                                         onClick={() => openDetail("req", r)}
                                                     >
                                                         <FaEye />
                                                     </button>
                                                     <button
                                                         className={`${styles.actionBtn} ${styles.edit}`}
-                                                        title="编辑"
+                                                        title={t("myTickets.actions.edit")}
                                                         onClick={() => openEdit("req", r)}
                                                     >
                                                         <FaEdit />
@@ -650,7 +676,7 @@ const MyTickets: React.FC = () => {
                                             <div className={styles.emptyCellIcon}>
                                                 <FaClipboardList />
                                             </div>
-                                            <div className={styles.emptyCellText}>暂无相关需求</div>
+                                            <div className={styles.emptyCellText}>{t("myTickets.empty.req")}</div>
                                         </td>
                                     </tr>
                                 )}
@@ -668,14 +694,14 @@ const MyTickets: React.FC = () => {
                         <table className={styles.table}>
                             <thead>
                                 <tr>
-                                    <th>标题</th>
-                                    <th>严重程度</th>
-                                    <th>优先级</th>
-                                    <th>状态</th>
-                                    <th>负责人</th>
-                                    <th>创建人</th>
-                                    <th>创建时间</th>
-                                    <th>操作</th>
+                                    <th>{t("myTickets.columns.title")}</th>
+                                    <th>{t("myTickets.columns.severity")}</th>
+                                    <th>{t("myTickets.columns.priority")}</th>
+                                    <th>{t("myTickets.columns.status")}</th>
+                                    <th>{t("myTickets.columns.assignee")}</th>
+                                    <th>{t("myTickets.columns.creator")}</th>
+                                    <th>{t("myTickets.columns.createdAt")}</th>
+                                    <th>{t("myTickets.columns.actions")}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -685,35 +711,37 @@ const MyTickets: React.FC = () => {
                                         <tr key={b.id}>
                                             <td
                                                 className={styles.titleCell}
-                                                data-label="标题"
+                                                data-label={t("myTickets.columns.title")}
                                                 onClick={() => navigate(`/rd/bugs/${encodeId(b.id, "bug")}`)}
                                             >
                                                 {b.title}
                                             </td>
-                                            <td data-label="严重程度">
+                                            <td data-label={t("myTickets.columns.severity")}>
                                                 <span className={`${styles.badge} ${styles[`severity_${b.severity}`]}`}>
                                                     {severityText[b.severity]}
                                                 </span>
                                             </td>
-                                            <td data-label="优先级">{renderPriorityBadge(b.priority)}</td>
-                                            <td data-label="状态">{renderStatusBadge(b.status, bugStatusText)}</td>
-                                            <td data-label="负责人">
+                                            <td data-label={t("myTickets.columns.priority")}>{renderPriorityBadge(b.priority)}</td>
+                                            <td data-label={t("myTickets.columns.status")}>
+                                                {renderStatusBadge(b.status, bugStatusText)}
+                                            </td>
+                                            <td data-label={t("myTickets.columns.assignee")}>
                                                 <AssigneeDisplay name={b.assignee} avatar={b.assigneeAvatar} />
                                             </td>
-                                            <td data-label="创建人">{b.creator}</td>
-                                            <td data-label="创建时间">{formatDateTime(b.createdAt)}</td>
-                                            <td data-label="操作">
+                                            <td data-label={t("myTickets.columns.creator")}>{b.creator}</td>
+                                            <td data-label={t("myTickets.columns.createdAt")}>{formatDateTime(b.createdAt)}</td>
+                                            <td data-label={t("myTickets.columns.actions")}>
                                                 <div className={styles.actionButtons}>
                                                     <button
                                                         className={`${styles.actionBtn} ${styles.view}`}
-                                                        title="查看"
+                                                        title={t("myTickets.actions.view")}
                                                         onClick={() => openDetail("bug", b)}
                                                     >
                                                         <FaEye />
                                                     </button>
                                                     <button
                                                         className={`${styles.actionBtn} ${styles.edit}`}
-                                                        title="编辑"
+                                                        title={t("myTickets.actions.edit")}
                                                         onClick={() => openEdit("bug", b)}
                                                     >
                                                         <FaEdit />
@@ -729,7 +757,7 @@ const MyTickets: React.FC = () => {
                                             <div className={styles.emptyCellIcon}>
                                                 <FaBug />
                                             </div>
-                                            <div className={styles.emptyCellText}>暂无相关缺陷</div>
+                                            <div className={styles.emptyCellText}>{t("myTickets.empty.bug")}</div>
                                         </td>
                                     </tr>
                                 )}
@@ -747,47 +775,51 @@ const MyTickets: React.FC = () => {
                         <table className={styles.table}>
                             <thead>
                                 <tr>
-                                    <th>标题</th>
-                                    <th>优先级</th>
-                                    <th>状态</th>
-                                    <th>负责人</th>
-                                    <th>创建人</th>
-                                    <th>截止日期</th>
-                                    <th>操作</th>
+                                    <th>{t("myTickets.columns.title")}</th>
+                                    <th>{t("myTickets.columns.priority")}</th>
+                                    <th>{t("myTickets.columns.status")}</th>
+                                    <th>{t("myTickets.columns.assignee")}</th>
+                                    <th>{t("myTickets.columns.creator")}</th>
+                                    <th>{t("myTickets.columns.deadline")}</th>
+                                    <th>{t("myTickets.columns.actions")}</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {data.map((item) => {
-                                    const t = item as Task;
+                                    const task = item as Task;
                                     return (
-                                        <tr key={t.id}>
+                                        <tr key={task.id}>
                                             <td
                                                 className={styles.titleCell}
-                                                data-label="标题"
-                                                onClick={() => navigate(`/rd/tasks/${encodeId(t.id, "task")}`)}
+                                                data-label={t("myTickets.columns.title")}
+                                                onClick={() => navigate(`/rd/tasks/${encodeId(task.id, "task")}`)}
                                             >
-                                                {t.title}
+                                                {task.title}
                                             </td>
-                                            <td data-label="优先级">{renderPriorityBadge(t.priority)}</td>
-                                            <td data-label="状态">{renderStatusBadge(t.status, taskStatusText)}</td>
-                                            <td data-label="负责人">
-                                                <AssigneeDisplay name={t.assignee} avatar={t.assigneeAvatar} />
+                                            <td data-label={t("myTickets.columns.priority")}>{renderPriorityBadge(task.priority)}</td>
+                                            <td data-label={t("myTickets.columns.status")}>
+                                                {renderStatusBadge(task.status, taskStatusText)}
                                             </td>
-                                            <td data-label="创建人">{t.creator}</td>
-                                            <td data-label="截止日期">{t.deadline ? formatDateTime(t.deadline) : "-"}</td>
-                                            <td data-label="操作">
+                                            <td data-label={t("myTickets.columns.assignee")}>
+                                                <AssigneeDisplay name={task.assignee} avatar={task.assigneeAvatar} />
+                                            </td>
+                                            <td data-label={t("myTickets.columns.creator")}>{task.creator}</td>
+                                            <td data-label={t("myTickets.columns.deadline")}>
+                                                {task.deadline ? formatDateTime(task.deadline) : "-"}
+                                            </td>
+                                            <td data-label={t("myTickets.columns.actions")}>
                                                 <div className={styles.actionButtons}>
                                                     <button
                                                         className={`${styles.actionBtn} ${styles.view}`}
-                                                        title="查看"
-                                                        onClick={() => openDetail("task", t)}
+                                                        title={t("myTickets.actions.view")}
+                                                        onClick={() => openDetail("task", task)}
                                                     >
                                                         <FaEye />
                                                     </button>
                                                     <button
                                                         className={`${styles.actionBtn} ${styles.edit}`}
-                                                        title="编辑"
-                                                        onClick={() => openEdit("task", t)}
+                                                        title={t("myTickets.actions.edit")}
+                                                        onClick={() => openEdit("task", task)}
                                                     >
                                                         <FaEdit />
                                                     </button>
@@ -802,7 +834,7 @@ const MyTickets: React.FC = () => {
                                             <div className={styles.emptyCellIcon}>
                                                 <FaTasks />
                                             </div>
-                                            <div className={styles.emptyCellText}>暂无相关任务</div>
+                                            <div className={styles.emptyCellText}>{t("myTickets.empty.task")}</div>
                                         </td>
                                     </tr>
                                 )}
@@ -819,9 +851,15 @@ const MyTickets: React.FC = () => {
                 title={
                     detail
                         ? editMode
-                            ? `编辑${activeTab === "req" ? "需求" : activeTab === "bug" ? "缺陷" : "任务"}`
+                            ? t(
+                                  activeTab === "req"
+                                      ? "myTickets.modal.editReq"
+                                      : activeTab === "bug"
+                                        ? "myTickets.modal.editBug"
+                                        : "myTickets.modal.editTask",
+                              )
                             : (detail.item as any).title
-                        : "工单详情"
+                        : t("myTickets.modal.detailTitle")
                 }
                 onClose={() => {
                     setModalVisible(false);
@@ -833,10 +871,10 @@ const MyTickets: React.FC = () => {
                     editMode ? (
                         <div className={myStyles.modalFooter}>
                             <button onClick={() => setEditMode(false)} className={myStyles.modalCancelBtn}>
-                                取消
+                                {t("myTickets.modal.cancel")}
                             </button>
                             <button onClick={handleSave} disabled={saving} className={myStyles.modalSubmitBtn}>
-                                {saving ? "保存中..." : "保存"}
+                                {saving ? t("myTickets.modal.saving") : t("myTickets.modal.save")}
                             </button>
                         </div>
                     ) : null
@@ -855,18 +893,32 @@ const MyTickets: React.FC = () => {
                                             {renderStatusBadge(r.status, reqStatusText)}
                                         </div>
                                         <div className={myStyles.detailGrid}>
-                                            {renderField_("负责人", <AssigneeDisplay name={r.assignee} avatar={r.assigneeAvatar} />)}
-                                            {renderField_("创建人", r.creator)}
-                                            {renderField_("所属组织", orgNameMap[r.organizationId] || r.organizationId)}
-                                            {renderField_("迭代", r.iteration)}
-                                            {renderField_("分类", r.category)}
-                                            {renderField_("来源", r.source)}
-                                            {renderField_("创建时间", r.createdAt ? formatDateTime(r.createdAt) : "-")}
-                                            {renderField_("更新时间", r.updatedAt ? formatDateTime(r.updatedAt) : "-")}
+                                            {renderField_(
+                                                t("myTickets.detail.assignee"),
+                                                <AssigneeDisplay name={r.assignee} avatar={r.assigneeAvatar} />,
+                                            )}
+                                            {renderField_(t("myTickets.detail.creator"), r.creator)}
+                                            {renderField_(
+                                                t("myTickets.detail.organization"),
+                                                orgNameMap[r.organizationId] || r.organizationId,
+                                            )}
+                                            {renderField_(t("myTickets.detail.iteration"), r.iteration)}
+                                            {renderField_(t("myTickets.detail.category"), r.category)}
+                                            {renderField_(t("myTickets.detail.source"), r.source)}
+                                            {renderField_(
+                                                t("myTickets.detail.createdAt"),
+                                                r.createdAt ? formatDateTime(r.createdAt) : "-",
+                                            )}
+                                            {renderField_(
+                                                t("myTickets.detail.updatedAt"),
+                                                r.updatedAt ? formatDateTime(r.updatedAt) : "-",
+                                            )}
                                         </div>
                                         <div>
-                                            <h4 className={myStyles.detailSectionTitle}>描述</h4>
-                                            <div className={myStyles.detailDescription}>{r.description || "暂无描述"}</div>
+                                            <h4 className={myStyles.detailSectionTitle}>{t("myTickets.detail.description")}</h4>
+                                            <div className={myStyles.detailDescription}>
+                                                {r.description || t("myTickets.detail.noDescription")}
+                                            </div>
                                         </div>
                                     </div>
                                 );
@@ -885,22 +937,38 @@ const MyTickets: React.FC = () => {
                                             {renderStatusBadge(b.status, bugStatusText)}
                                         </div>
                                         <div className={myStyles.detailGrid}>
-                                            {renderField_("负责人", <AssigneeDisplay name={b.assignee} avatar={b.assigneeAvatar} />)}
-                                            {renderField_("创建人", b.creator)}
-                                            {renderField_("所属组织", orgNameMap[b.organizationId] || b.organizationId)}
-                                            {renderField_("所属模块", b.module)}
-                                            {renderField_("关联需求", b.relatedRequirementId)}
-                                            {renderField_("运行环境", b.environment)}
-                                            {renderField_("创建时间", b.createdAt ? formatDateTime(b.createdAt) : "-")}
-                                            {renderField_("更新时间", b.updatedAt ? formatDateTime(b.updatedAt) : "-")}
+                                            {renderField_(
+                                                t("myTickets.detail.assignee"),
+                                                <AssigneeDisplay name={b.assignee} avatar={b.assigneeAvatar} />,
+                                            )}
+                                            {renderField_(t("myTickets.detail.creator"), b.creator)}
+                                            {renderField_(
+                                                t("myTickets.detail.organization"),
+                                                orgNameMap[b.organizationId] || b.organizationId,
+                                            )}
+                                            {renderField_(t("myTickets.detail.module"), b.module)}
+                                            {renderField_(t("myTickets.detail.relatedRequirement"), b.relatedRequirementId)}
+                                            {renderField_(t("myTickets.detail.environment"), b.environment)}
+                                            {renderField_(
+                                                t("myTickets.detail.createdAt"),
+                                                b.createdAt ? formatDateTime(b.createdAt) : "-",
+                                            )}
+                                            {renderField_(
+                                                t("myTickets.detail.updatedAt"),
+                                                b.updatedAt ? formatDateTime(b.updatedAt) : "-",
+                                            )}
                                         </div>
                                         <div className={b.stepsToReproduce ? myStyles.detailSection : myStyles.detailSectionLast}>
-                                            <h4 className={myStyles.detailSectionTitle}>描述</h4>
-                                            <div className={myStyles.detailDescription}>{b.description || "暂无描述"}</div>
+                                            <h4 className={myStyles.detailSectionTitle}>{t("myTickets.detail.description")}</h4>
+                                            <div className={myStyles.detailDescription}>
+                                                {b.description || t("myTickets.detail.noDescription")}
+                                            </div>
                                         </div>
                                         {b.stepsToReproduce && (
                                             <div>
-                                                <h4 className={myStyles.detailSectionTitle}>复现步骤</h4>
+                                                <h4 className={myStyles.detailSectionTitle}>
+                                                    {t("myTickets.detail.stepsToReproduce")}
+                                                </h4>
                                                 <div className={myStyles.detailDescription}>{b.stepsToReproduce}</div>
                                             </div>
                                         )}
@@ -910,17 +978,19 @@ const MyTickets: React.FC = () => {
                         {/* Task detail */}
                         {detail.type === "task" &&
                             (() => {
-                                const t = detail.item as Task;
+                                const task = detail.item as Task;
                                 return (
                                     <div>
                                         <div className={myStyles.detailBadges}>
-                                            {renderPriorityBadge(t.priority)}
-                                            {renderStatusBadge(t.status, taskStatusText)}
+                                            {renderPriorityBadge(task.priority)}
+                                            {renderStatusBadge(task.status, taskStatusText)}
                                         </div>
                                         <div className={myStyles.detailGrid}>className={myStyles.statusGridWithBorder}</div>
                                         <div>
-                                            <h4 className={myStyles.detailSectionTitle}>描述</h4>
-                                            <div className={myStyles.detailDescription}>{t.description || "暂无描述"}</div>
+                                            <h4 className={myStyles.detailSectionTitle}>{t("myTickets.detail.description")}</h4>
+                                            <div className={myStyles.detailDescription}>
+                                                {task.description || t("myTickets.detail.noDescription")}
+                                            </div>
                                         </div>
                                     </div>
                                 );

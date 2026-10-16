@@ -1,4 +1,5 @@
 import React, { useState, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { FaCamera, FaUser, FaLock, FaSave, FaQuoteRight, FaGlobe, FaLink, FaGithub } from "react-icons/fa";
 import { useAuth } from "@/contexts/AuthContext";
 import { AuthService } from "@/services/AuthService.ts";
@@ -8,6 +9,7 @@ import ApiConfigCard from "./ApiConfigCard";
 import styles from "../PersonalCenter.module.css";
 
 const EditProfileTab: React.FC = () => {
+    const { t } = useTranslation("personal");
     const { user } = useAuth();
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -38,17 +40,17 @@ const EditProfileTab: React.FC = () => {
             fileInputRef.current.value = "";
         }
 
-        message.info("头像上传功能暂未开放，请使用图片链接更新头像");
+        message.info(t("editProfile.messages.avatarUploadUnavailable"));
     };
 
     const handleApplyAvatarUrl = async () => {
         const trimmed = avatarInput.trim();
         if (!trimmed) {
-            message.warn("请输入头像URL");
+            message.warn(t("editProfile.messages.avatarUrlRequired"));
             return;
         }
         if (!/^https?:\/\/.+/.test(trimmed)) {
-            message.warn("请输入有效的 HTTP/HTTPS 链接");
+            message.warn(t("editProfile.messages.avatarUrlInvalid"));
             return;
         }
         setSavingAvatar(true);
@@ -56,9 +58,9 @@ const EditProfileTab: React.FC = () => {
             await AuthService.updateUserProfile(undefined, undefined, undefined, undefined, undefined, trimmed);
             setAvatarUrl(trimmed);
             setAvatarInput("");
-            message.success("头像已更新");
+            message.success(t("editProfile.messages.avatarUpdated"));
         } catch (err: any) {
-            message.error(err?.message || "头像更新失败");
+            message.error(err?.message || t("editProfile.messages.avatarUpdateFailed"));
         } finally {
             setSavingAvatar(false);
         }
@@ -66,7 +68,7 @@ const EditProfileTab: React.FC = () => {
 
     const handleSaveProfile = async () => {
         if (!name.trim()) {
-            message.warn("请输入昵称");
+            message.warn(t("editProfile.messages.nameRequired"));
             return;
         }
 
@@ -81,9 +83,9 @@ const EditProfileTab: React.FC = () => {
                 avatarUrl,
                 github.trim(),
             );
-            message.success("个人资料已更新");
+            message.success(t("editProfile.messages.profileUpdated"));
         } catch (err: any) {
-            message.error(err?.message || "保存失败");
+            message.error(err?.message || t("editProfile.messages.saveFailed"));
         } finally {
             setSavingProfile(false);
         }
@@ -91,27 +93,27 @@ const EditProfileTab: React.FC = () => {
 
     const handleChangePassword = async () => {
         if (!currentPassword) {
-            message.warn("请输入当前密码");
+            message.warn(t("editProfile.messages.currentPasswordRequired"));
             return;
         }
         if (!newPassword || newPassword.length < 6) {
-            message.warn("新密码至少 6 位");
+            message.warn(t("editProfile.messages.newPasswordTooShort"));
             return;
         }
         if (newPassword !== confirmPassword) {
-            message.warn("两次输入的密码不一致");
+            message.warn(t("editProfile.messages.passwordMismatch"));
             return;
         }
 
         setSavingPassword(true);
         try {
             await AuthService.updateUserProfile(undefined, newPassword, undefined, undefined, currentPassword);
-            message.success("密码已修改，下次登录时生效");
+            message.success(t("editProfile.messages.passwordChanged"));
             setCurrentPassword("");
             setNewPassword("");
             setConfirmPassword("");
         } catch (err: any) {
-            message.error(err?.message || "修改密码失败");
+            message.error(err?.message || t("editProfile.messages.passwordChangeFailed"));
         } finally {
             setSavingPassword(false);
         }
@@ -120,7 +122,7 @@ const EditProfileTab: React.FC = () => {
     return (
         <div>
             <div className={styles.pageHeader}>
-                <h2 className={styles.pageTitle}>编辑资料</h2>
+                <h2 className={styles.pageTitle}>{t("editProfile.pageTitle")}</h2>
             </div>
 
             <div className={styles.editSections}>
@@ -129,27 +131,27 @@ const EditProfileTab: React.FC = () => {
                     <div className={styles.editCard}>
                         <div className={styles.editCardHeader}>
                             <FaUser className={styles.editCardIcon} />
-                            <span>基本信息</span>
+                            <span>{t("editProfile.sections.basic")}</span>
                         </div>
                         <div className={styles.editCardBody}>
                             <div className={styles.editSubHeader}>
                                 <FaCamera className={styles.editCardIcon} />
-                                <span>头像</span>
+                                <span>{t("editProfile.avatar.title")}</span>
                             </div>
                             <div className={styles.avatarSection}>
                                 <div className={styles.avatarWrapper} onClick={handleAvatarClick}>
                                     <Avatar
                                         src={avatarUrl}
-                                        name={name || user?.name || "用户"}
+                                        name={name || user?.name || t("editProfile.avatar.defaultName")}
                                         size={100}
                                         className={styles.editAvatar}
                                     />
                                     <div className={styles.avatarOverlay}>
                                         <FaCamera />
-                                        <span>更换头像</span>
+                                        <span>{t("editProfile.avatar.change")}</span>
                                     </div>
                                 </div>
-                                <p className={styles.avatarHint}>头像上传功能暂未开放，可直接输入图片链接</p>
+                                <p className={styles.avatarHint}>{t("editProfile.avatar.hint")}</p>
                                 <div className={styles.avatarUrlRow}>
                                     <input
                                         type="url"
@@ -167,7 +169,7 @@ const EditProfileTab: React.FC = () => {
                                         style={{ whiteSpace: "nowrap" }}
                                     >
                                         <FaLink size={12} />
-                                        {savingAvatar ? "应用中..." : "应用"}
+                                        {savingAvatar ? t("editProfile.avatar.applying") : t("editProfile.avatar.apply")}
                                     </button>
                                 </div>
                             </div>
@@ -182,38 +184,38 @@ const EditProfileTab: React.FC = () => {
                             <div className={styles.editDivider} />
                             <div className={styles.editFormGrid}>
                                 <div className={styles.editFormGroup}>
-                                    <label className={styles.editLabel}>昵称</label>
+                                    <label className={styles.editLabel}>{t("editProfile.fields.name")}</label>
                                     <input
                                         type="text"
                                         className={styles.editInput}
                                         value={name}
                                         onChange={(e) => setName(e.target.value)}
-                                        placeholder={user?.name || "请输入昵称"}
+                                        placeholder={user?.name || t("editProfile.fields.namePlaceholder")}
                                     />
                                 </div>
                                 <div className={styles.editFormGroup}>
-                                    <label className={styles.editLabel}>邮箱</label>
+                                    <label className={styles.editLabel}>{t("editProfile.fields.email")}</label>
                                     <input type="email" className={styles.editInput} value={user?.email || ""} disabled />
-                                    <span className={styles.editHint}>邮箱暂不支持自行修改</span>
+                                    <span className={styles.editHint}>{t("editProfile.fields.emailHint")}</span>
                                 </div>
                                 <div className={styles.editFormGroup}>
                                     <label className={styles.editLabel}>
                                         <FaQuoteRight size={12} style={{ marginRight: 4 }} />
-                                        座右铭
+                                        {t("editProfile.fields.motto")}
                                     </label>
                                     <input
                                         type="text"
                                         className={styles.editInput}
                                         value={motto}
                                         onChange={(e) => setMotto(e.target.value)}
-                                        placeholder={user?.bio || "一句话介绍自己"}
+                                        placeholder={user?.bio || t("editProfile.fields.mottoPlaceholder")}
                                         maxLength={100}
                                     />
                                 </div>
                                 <div className={styles.editFormGroup}>
                                     <label className={styles.editLabel}>
                                         <FaGlobe size={12} style={{ marginRight: 4 }} />
-                                        个人网站
+                                        {t("editProfile.fields.website")}
                                     </label>
                                     <input
                                         type="url"
@@ -226,7 +228,7 @@ const EditProfileTab: React.FC = () => {
                                 <div className={styles.editFormGroup}>
                                     <label className={styles.editLabel}>
                                         <FaGithub size={12} style={{ marginRight: 4 }} />
-                                        GitHub 主页
+                                        {t("editProfile.fields.github")}
                                     </label>
                                     <input
                                         type="url"
@@ -239,49 +241,49 @@ const EditProfileTab: React.FC = () => {
                             </div>
                             <button className={styles.editSaveBtn} onClick={handleSaveProfile} disabled={savingProfile}>
                                 <FaSave />
-                                {savingProfile ? "保存中..." : "保存修改"}
+                                {savingProfile ? t("editProfile.actions.saving") : t("editProfile.actions.save")}
                             </button>
 
                             <div className={styles.editDivider} />
                             <div className={styles.editSubHeader}>
                                 <FaLock className={styles.editCardIcon} />
-                                <span>修改密码</span>
+                                <span>{t("editProfile.password.title")}</span>
                             </div>
                             <div className={styles.editFormGrid}>
                                 <div className={styles.editFormGroup}>
-                                    <label className={styles.editLabel}>当前密码</label>
+                                    <label className={styles.editLabel}>{t("editProfile.password.current")}</label>
                                     <input
                                         type="password"
                                         className={styles.editInput}
                                         value={currentPassword}
                                         onChange={(e) => setCurrentPassword(e.target.value)}
-                                        placeholder="请输入当前密码"
+                                        placeholder={t("editProfile.password.currentPlaceholder")}
                                     />
                                 </div>
                                 <div className={styles.editFormGroup}>
-                                    <label className={styles.editLabel}>新密码</label>
+                                    <label className={styles.editLabel}>{t("editProfile.password.new")}</label>
                                     <input
                                         type="password"
                                         className={styles.editInput}
                                         value={newPassword}
                                         onChange={(e) => setNewPassword(e.target.value)}
-                                        placeholder="至少 6 位字符"
+                                        placeholder={t("editProfile.password.newPlaceholder")}
                                     />
                                 </div>
                                 <div className={styles.editFormGroup}>
-                                    <label className={styles.editLabel}>确认新密码</label>
+                                    <label className={styles.editLabel}>{t("editProfile.password.confirm")}</label>
                                     <input
                                         type="password"
                                         className={styles.editInput}
                                         value={confirmPassword}
                                         onChange={(e) => setConfirmPassword(e.target.value)}
-                                        placeholder="请再次输入新密码"
+                                        placeholder={t("editProfile.password.confirmPlaceholder")}
                                     />
                                 </div>
                             </div>
                             <button className={styles.editSaveBtn} onClick={handleChangePassword} disabled={savingPassword}>
                                 <FaLock />
-                                {savingPassword ? "修改中..." : "修改密码"}
+                                {savingPassword ? t("editProfile.password.saving") : t("editProfile.password.submit")}
                             </button>
                         </div>
                     </div>

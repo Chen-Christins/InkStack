@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import {
     FaFilter,
     FaPlus,
@@ -20,7 +21,8 @@ import Modal from "@/components/modal/Modal";
 import { confirm } from "@/components/confirm/Confirm";
 import message from "@/components/message/Message";
 import type { SelectOption } from "@/types";
-import { PlatformRoleLabel, PlatformRoleCSS, PlatformRoleByKey } from "@/types/Roles.ts";
+import { PlatformRoleCSS, PlatformRoleByKey, type PlatformRole } from "@/types/Roles.ts";
+import { useEnumLabels } from "@/i18n/UseEnumLabels";
 import styles from "./UserManagement.module.css";
 import { AuthService } from "@/services/AuthService.ts";
 import { formatToChinaTime } from "@/utils/Utils.ts";
@@ -56,6 +58,8 @@ interface FilterOptions {
 }
 
 const UserManagement: React.FC = () => {
+    const { t } = useTranslation("admin");
+    const enums = useEnumLabels();
     // 状态管理
     const [users, setUsers] = useState<UserListItem[]>([]);
     const [stats, setStats] = useState<UserStats>({
@@ -186,36 +190,36 @@ const UserManagement: React.FC = () => {
 
     // 筛选选项数据
     const roleOptions: SelectOption[] = [
-        { id: "", name: "全部角色", color: "#6c757d" },
-        { id: "admin", name: "管理员", color: "#dc3545" },
-        { id: "checker", name: "审核员", color: "#28a745" },
-        { id: "editor", name: "编辑", color: "#ffc107" },
-        { id: "user", name: "普通用户", color: "#007bff" },
+        { id: "", name: t("users.roleOptions.all"), color: "#6c757d" },
+        { id: "admin", name: t("users.roleOptions.admin"), color: "#dc3545" },
+        { id: "checker", name: t("users.roleOptions.checker"), color: "#28a745" },
+        { id: "editor", name: t("users.roleOptions.editor"), color: "#ffc107" },
+        { id: "user", name: t("users.roleOptions.user"), color: "#007bff" },
     ];
 
     const statusOptions: SelectOption[] = [
-        { id: "", name: "全部状态", color: "#6c757d" },
-        { id: "active", name: "活跃", color: "#28a745" },
-        { id: "inactive", name: "非活跃", color: "#ffc107" },
+        { id: "", name: t("users.statusOptions.all"), color: "#6c757d" },
+        { id: "active", name: t("users.statusOptions.active"), color: "#28a745" },
+        { id: "inactive", name: t("users.statusOptions.inactive"), color: "#ffc107" },
     ];
 
     const createRoleOptions: SelectOption[] = [
-        { id: "1", name: "普通用户", color: "#007bff" },
-        { id: "2", name: "管理员", color: "#dc3545" },
-        { id: "3", name: "编辑", color: "#ffc107" },
-        { id: "4", name: "审核员", color: "#28a745" },
+        { id: "1", name: t("users.createRoleOptions.user"), color: "#007bff" },
+        { id: "2", name: t("users.createRoleOptions.admin"), color: "#dc3545" },
+        { id: "3", name: t("users.createRoleOptions.editor"), color: "#ffc107" },
+        { id: "4", name: t("users.createRoleOptions.checker"), color: "#28a745" },
     ];
 
     const createStateOptions: SelectOption[] = [
-        { id: "1", name: "活跃", color: "#28a745" },
-        { id: "2", name: "非活跃", color: "#ffc107" },
+        { id: "1", name: t("users.statusOptions.active"), color: "#28a745" },
+        { id: "2", name: t("users.statusOptions.inactive"), color: "#ffc107" },
     ];
 
     const dateRangeOptions: SelectOption[] = [
-        { id: "", name: "全部时间", color: "#6c757d" },
-        { id: "7days", name: "最近7天", color: "#17a2b8" },
-        { id: "30days", name: "最近30天", color: "#17a2b8" },
-        { id: "90days", name: "最近90天", color: "#17a2b8" },
+        { id: "", name: t("users.dateRangeOptions.all"), color: "#6c757d" },
+        { id: "7days", name: t("users.dateRangeOptions.last7days"), color: "#17a2b8" },
+        { id: "30days", name: t("users.dateRangeOptions.last30days"), color: "#17a2b8" },
+        { id: "90days", name: t("users.dateRangeOptions.last90days"), color: "#17a2b8" },
     ];
 
     // 处理CustomSelect选择
@@ -283,15 +287,15 @@ const UserManagement: React.FC = () => {
     // 提交表单（创建/编辑）
     const handleFormSubmit = async () => {
         if (!formData.account.trim()) {
-            message.error("请输入用户名");
+            message.error(t("users.message.usernameRequired"));
             return;
         }
         if (!formData.email.trim()) {
-            message.error("请输入邮箱");
+            message.error(t("users.message.emailRequired"));
             return;
         }
         if (!editingUser && (!formData.passwd || formData.passwd.length < 6)) {
-            message.error("密码至少需要6位");
+            message.error(t("users.message.passwordMin"));
             return;
         }
 
@@ -310,7 +314,7 @@ const UserManagement: React.FC = () => {
                     updateParams.passwd = formData.passwd;
                 }
                 await AuthService.updateUserAdmin(updateParams);
-                message.success("用户信息已更新");
+                message.success(t("users.message.updateSuccess"));
             } else {
                 // 创建模式
                 await AuthService.createUserAdmin({
@@ -320,7 +324,7 @@ const UserManagement: React.FC = () => {
                     role: formData.role,
                     state: formData.state,
                 });
-                message.success("用户创建成功");
+                message.success(t("users.message.createSuccess"));
             }
             setIsModalVisible(false);
             // 刷新用户列表
@@ -344,7 +348,7 @@ const UserManagement: React.FC = () => {
             setTotalUsers(rsp.total);
             fetchStats();
         } catch (error: any) {
-            message.error(error.message || (editingUser ? "更新用户失败" : "创建用户失败"));
+            message.error(error.message || (editingUser ? t("users.message.updateFailed") : t("users.message.createFailed")));
         } finally {
             setSubmitting(false);
         }
@@ -353,10 +357,10 @@ const UserManagement: React.FC = () => {
     // 删除用户
     const deleteUser = async (userId: string | number) => {
         const isConfirmed = await confirm({
-            title: "确认删除",
-            content: "确定要删除这个用户吗？此操作不可恢复。",
-            confirmText: "删除",
-            cancelText: "取消",
+            title: t("users.confirm.deleteTitle"),
+            content: t("users.confirm.deleteContent"),
+            confirmText: t("users.confirm.deleteConfirm"),
+            cancelText: t("users.confirm.deleteCancel"),
         });
         if (!isConfirmed) {
             return;
@@ -364,12 +368,12 @@ const UserManagement: React.FC = () => {
 
         try {
             await AuthService.deleteUserAdmin(userId);
-            message.success("用户已删除");
+            message.success(t("users.message.deleteSuccess"));
             setUsers((prev) => prev.filter((user) => user.id !== userId));
             setTotalUsers((prev) => prev - 1);
             fetchStats();
         } catch (error: any) {
-            message.error(error.message || "删除用户失败");
+            message.error(error.message || t("users.message.deleteFailed"));
         }
     };
 
@@ -421,7 +425,7 @@ const UserManagement: React.FC = () => {
     if (loading) {
         return (
             <div className={styles.userManagement}>
-                <Loading text="加载用户数据中..." size="large" />
+                <Loading text={t("users.loading")} size="large" />
             </div>
         );
     }
@@ -431,13 +435,13 @@ const UserManagement: React.FC = () => {
             {/* 页面头部 */}
             <div className={styles.pageHeader}>
                 <div>
-                    <h1 className={styles.pageTitle}>用户管理</h1>
-                    <p className={styles.pageDescription}>管理系统中的所有用户账户，包括权限设置和状态管理</p>
+                    <h1 className={styles.pageTitle}>{t("users.title")}</h1>
+                    <p className={styles.pageDescription}>{t("users.description")}</p>
                 </div>
                 <div className={styles.headerActions}>
                     <button className={`${styles.btn} ${styles.btnPrimary}`} onClick={openCreateModal}>
                         <FaPlus />
-                        添加用户
+                        {t("users.addUser")}
                     </button>
                 </div>
             </div>
@@ -449,28 +453,28 @@ const UserManagement: React.FC = () => {
                         <FaUsers />
                     </div>
                     <div className={styles.statValue}>{stats.totalUsers}</div>
-                    <div className={styles.statLabel}>总用户数</div>
+                    <div className={styles.statLabel}>{t("users.stats.totalUsers")}</div>
                 </div>
                 <div className={styles.statCard}>
                     <div className={`${styles.statIcon} ${styles.success}`}>
                         <FaEye />
                     </div>
                     <div className={styles.statValue}>{stats.activeUsers}</div>
-                    <div className={styles.statLabel}>活跃用户</div>
+                    <div className={styles.statLabel}>{t("users.stats.activeUsers")}</div>
                 </div>
                 <div className={styles.statCard}>
                     <div className={`${styles.statIcon} ${styles.warning}`}>
                         <FaPlus />
                     </div>
                     <div className={styles.statValue}>{stats.newUsers}</div>
-                    <div className={styles.statLabel}>新用户（30天）</div>
+                    <div className={styles.statLabel}>{t("users.stats.newUsers")}</div>
                 </div>
                 <div className={styles.statCard}>
                     <div className={`${styles.statIcon} ${styles.error}`}>
                         <FaTrash />
                     </div>
                     <div className={styles.statValue}>{stats.inactiveUsers}</div>
-                    <div className={styles.statLabel}>非活跃用户</div>
+                    <div className={styles.statLabel}>{t("users.stats.inactiveUsers")}</div>
                 </div>
             </div>
 
@@ -479,19 +483,19 @@ const UserManagement: React.FC = () => {
                 <div className={styles.filterHeader}>
                     <h3 className={styles.filterTitle}>
                         <FaFilter />
-                        筛选条件
+                        {t("users.filters.title")}
                     </h3>
                     <div className={styles.filterActions}>
                         <button className={`${styles.btn} ${styles.btnOutline} ${styles.btnSm}`} onClick={clearFilters}>
-                            清除筛选
+                            {t("users.filters.clear")}
                         </button>
                     </div>
                 </div>
                 <div className={styles.filterForm}>
                     <div className={styles.filterGroup}>
-                        <label className={styles.filterLabel}>搜索用户</label>
+                        <label className={styles.filterLabel}>{t("users.filters.search")}</label>
                         <Input
-                            placeholder="用户名或邮箱"
+                            placeholder={t("users.filters.searchPlaceholder")}
                             value={filters.search}
                             onChange={(value) => handleFilterChange("search", value)}
                             allowClear={true}
@@ -500,37 +504,37 @@ const UserManagement: React.FC = () => {
                         />
                     </div>
                     <div className={styles.filterGroup}>
-                        <label className={styles.filterLabel}>用户角色</label>
+                        <label className={styles.filterLabel}>{t("users.filters.role")}</label>
                         <CustomSelect
-                            name="用户角色"
+                            name={t("users.filters.role")}
                             options={roleOptions}
                             value={roleOptions.find((option) => option.id === filters.role) || null}
                             onChange={handleSelectChange("role")}
-                            placeholder="选择角色..."
+                            placeholder={t("users.filters.rolePlaceholder")}
                             className="adminCustomSelect"
                             hideBadge={true}
                         />
                     </div>
                     <div className={styles.filterGroup}>
-                        <label className={styles.filterLabel}>账户状态</label>
+                        <label className={styles.filterLabel}>{t("users.filters.status")}</label>
                         <CustomSelect
-                            name="账户状态"
+                            name={t("users.filters.status")}
                             options={statusOptions}
                             value={statusOptions.find((option) => option.id === filters.status) || null}
                             onChange={handleSelectChange("status")}
-                            placeholder="选择状态..."
+                            placeholder={t("users.filters.statusPlaceholder")}
                             className="adminCustomSelect"
                             hideBadge={true}
                         />
                     </div>
                     <div className={styles.filterGroup}>
-                        <label className={styles.filterLabel}>注册时间</label>
+                        <label className={styles.filterLabel}>{t("users.filters.registerTime")}</label>
                         <CustomSelect
-                            name="注册时间"
+                            name={t("users.filters.registerTime")}
                             options={dateRangeOptions}
                             value={dateRangeOptions.find((option) => option.id === filters.dateRange) || null}
                             onChange={handleSelectChange("dateRange")}
-                            placeholder="选择时间范围..."
+                            placeholder={t("users.filters.dateRangePlaceholder")}
                             className="adminCustomSelect"
                             hideBadge={true}
                         />
@@ -541,22 +545,24 @@ const UserManagement: React.FC = () => {
             {/* 用户表格 */}
             <div className={styles.tableContainer}>
                 <div className={styles.tableHeader}>
-                    <h3 className={styles.tableTitle}>用户列表</h3>
+                    <h3 className={styles.tableTitle}>{t("users.table.title")}</h3>
                     <div className={styles.tableActions}>
-                        <span style={{ fontSize: "14px", color: "var(--text-secondary)" }}>共 {totalUsers} 个用户</span>
+                        <span style={{ fontSize: "14px", color: "var(--text-secondary)" }}>
+                            {t("users.table.total", { total: totalUsers })}
+                        </span>
                     </div>
                 </div>
                 <table className={styles.usersTable}>
                     <thead>
                         <tr>
-                            <th>用户信息</th>
-                            <th>角色</th>
-                            <th>状态</th>
-                            <th>注册时间</th>
-                            <th>最后登录</th>
-                            <th>文章数</th>
-                            <th>评论数</th>
-                            <th>操作</th>
+                            <th>{t("users.table.userInfo")}</th>
+                            <th>{t("users.table.role")}</th>
+                            <th>{t("users.table.status")}</th>
+                            <th>{t("users.table.registerTime")}</th>
+                            <th>{t("users.table.lastLogin")}</th>
+                            <th>{t("users.table.articleCount")}</th>
+                            <th>{t("users.table.commentCount")}</th>
+                            <th>{t("users.table.actions")}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -576,13 +582,17 @@ const UserManagement: React.FC = () => {
                                         <span
                                             className={`${styles.roleBadge} ${styles[PlatformRoleCSS[user.role as keyof typeof PlatformRoleCSS] || "user"]}`}
                                         >
-                                            {PlatformRoleLabel[user.role as keyof typeof PlatformRoleLabel] || user.role}
+                                            {enums.platformRole[user.role as PlatformRole] || user.role}
                                         </span>
                                     </td>
                                     <td>
                                         <span className={`${styles.statusBadge} ${styles[user.status]}`}>
                                             <span className={styles.statusIndicator}></span>
-                                            {user.status === "active" ? "活跃" : user.status === "inactive" ? "非活跃" : "待审核"}
+                                            {user.status === "active"
+                                                ? t("users.status.active")
+                                                : user.status === "inactive"
+                                                  ? t("users.status.inactive")
+                                                  : t("users.status.pending")}
                                         </span>
                                     </td>
                                     <td>{formatDate(user.createdAt)}</td>
@@ -593,14 +603,14 @@ const UserManagement: React.FC = () => {
                                         <div className={styles.actionButtons}>
                                             <button
                                                 className={`${styles.actionButton} ${styles.edit}`}
-                                                title="编辑用户"
+                                                title={t("users.actions.edit")}
                                                 onClick={() => openEditModal(user)}
                                             >
                                                 <FaEdit />
                                             </button>
                                             <button
                                                 className={`${styles.actionButton} ${styles.edit}`}
-                                                title="查看详情"
+                                                title={t("users.actions.view")}
                                                 onClick={() => openDetailModal(user)}
                                             >
                                                 <FaEye />
@@ -611,7 +621,7 @@ const UserManagement: React.FC = () => {
                                                 size="small"
                                                 onClick={() => deleteUser(user.id)}
                                                 className={styles.actionButton}
-                                                aria-label="删除用户"
+                                                aria-label={t("users.actions.delete")}
                                             >
                                                 <FaTrash />
                                             </Button>
@@ -629,7 +639,7 @@ const UserManagement: React.FC = () => {
                                         color: "var(--text-secondary)",
                                     }}
                                 >
-                                    暂无数据
+                                    {t("users.table.noData")}
                                 </td>
                             </tr>
                         )}
@@ -640,7 +650,11 @@ const UserManagement: React.FC = () => {
                 {totalPages >= 1 && (
                     <div className={styles.paginationContainer}>
                         <div className={styles.paginationInfo}>
-                            显示 {startIndex + 1} - {Math.min(endIndex, totalUsers)} 条， 共 {totalUsers} 条记录
+                            {t("users.table.pagination", {
+                                start: startIndex + 1,
+                                end: Math.min(endIndex, totalUsers),
+                                total: totalUsers,
+                            })}
                         </div>
                         <div className={styles.paginationControls}>
                             <button className={styles.paginationButton} onClick={() => setCurrentPage(1)} disabled={currentPage === 1}>
@@ -691,7 +705,7 @@ const UserManagement: React.FC = () => {
             {/* 创建/编辑用户模态框 */}
             <Modal
                 visible={isModalVisible}
-                title={editingUser ? "编辑用户" : "添加用户"}
+                title={editingUser ? t("users.form.editTitle") : t("users.form.createTitle")}
                 onClose={() => setIsModalVisible(false)}
                 width={560}
                 footer={
@@ -701,18 +715,18 @@ const UserManagement: React.FC = () => {
                             onClick={() => setIsModalVisible(false)}
                             disabled={submitting}
                         >
-                            取消
+                            {t("users.form.cancel")}
                         </button>
                         <button className={`${styles.btn} ${styles.btnPrimary}`} onClick={handleFormSubmit} disabled={submitting}>
-                            {submitting ? "保存中..." : editingUser ? "保存修改" : "确认创建"}
+                            {submitting ? t("users.form.saving") : editingUser ? t("users.form.save") : t("users.form.create")}
                         </button>
                     </>
                 }
             >
                 <div className={styles.formGroup}>
-                    <label className={styles.formLabel}>用户名 *</label>
+                    <label className={styles.formLabel}>{t("users.form.username")}</label>
                     <Input
-                        placeholder="请输入用户名"
+                        placeholder={t("users.form.usernamePlaceholder")}
                         value={formData.account}
                         onChange={(value) => setFormData({ ...formData, account: value })}
                         className={styles.formInput}
@@ -720,9 +734,9 @@ const UserManagement: React.FC = () => {
                     />
                 </div>
                 <div className={styles.formGroup}>
-                    <label className={styles.formLabel}>邮箱 *</label>
+                    <label className={styles.formLabel}>{t("users.form.email")}</label>
                     <Input
-                        placeholder="请输入邮箱地址"
+                        placeholder={t("users.form.emailPlaceholder")}
                         value={formData.email}
                         onChange={(value) => setFormData({ ...formData, email: value })}
                         className={styles.formInput}
@@ -731,9 +745,12 @@ const UserManagement: React.FC = () => {
                     />
                 </div>
                 <div className={styles.formGroup}>
-                    <label className={styles.formLabel}>密码{editingUser ? "" : " *"}</label>
+                    <label className={styles.formLabel}>
+                        {t("users.form.password")}
+                        {editingUser ? "" : " *"}
+                    </label>
                     <Input
-                        placeholder={editingUser ? "留空则不修改密码" : "请输入密码（至少6位）"}
+                        placeholder={editingUser ? t("users.form.passwordEditPlaceholder") : t("users.form.passwordPlaceholder")}
                         value={formData.passwd}
                         onChange={(value) => setFormData({ ...formData, passwd: value })}
                         className={styles.formInput}
@@ -742,24 +759,24 @@ const UserManagement: React.FC = () => {
                     />
                 </div>
                 <div className={styles.formGroup}>
-                    <label className={styles.formLabel}>用户角色 *</label>
+                    <label className={styles.formLabel}>{t("users.form.role")}</label>
                     <CustomSelect
-                        name="用户角色"
+                        name={t("users.form.role")}
                         options={createRoleOptions}
                         value={createRoleOptions.find((o) => Number(o.id) === formData.role) || null}
                         onChange={(option) => setFormData({ ...formData, role: option ? Number(option.id) : 1 })}
-                        placeholder="选择角色..."
+                        placeholder={t("users.form.rolePlaceholder")}
                         hideBadge={true}
                     />
                 </div>
                 <div className={styles.formGroup}>
-                    <label className={styles.formLabel}>账户状态</label>
+                    <label className={styles.formLabel}>{t("users.form.status")}</label>
                     <CustomSelect
-                        name="账户状态"
+                        name={t("users.form.status")}
                         options={createStateOptions}
                         value={createStateOptions.find((o) => Number(o.id) === formData.state) || null}
                         onChange={(option) => setFormData({ ...formData, state: option ? Number(option.id) : 1 })}
-                        placeholder="选择状态..."
+                        placeholder={t("users.form.statusPlaceholder")}
                         hideBadge={true}
                     />
                 </div>
@@ -768,12 +785,12 @@ const UserManagement: React.FC = () => {
             {/* 查看用户详情模态框 */}
             <Modal
                 visible={isDetailVisible}
-                title="用户详情"
+                title={t("users.detail.title")}
                 onClose={() => setIsDetailVisible(false)}
                 width={520}
                 footer={
                     <button className={`${styles.btn} ${styles.btnSecondary}`} onClick={() => setIsDetailVisible(false)}>
-                        关闭
+                        {t("users.detail.close")}
                     </button>
                 }
             >
@@ -790,42 +807,54 @@ const UserManagement: React.FC = () => {
                         </div>
                         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
                             <div>
-                                <div style={{ fontSize: "13px", color: "var(--text-secondary)", marginBottom: "4px" }}>角色</div>
+                                <div style={{ fontSize: "13px", color: "var(--text-secondary)", marginBottom: "4px" }}>
+                                    {t("users.detail.role")}
+                                </div>
                                 <div style={{ fontSize: "15px", fontWeight: 500 }}>
                                     <span
                                         className={`${styles.roleBadge} ${styles[PlatformRoleCSS[detailUser.role as keyof typeof PlatformRoleCSS] || "user"]}`}
                                     >
-                                        {PlatformRoleLabel[detailUser.role as keyof typeof PlatformRoleLabel] || detailUser.role}
+                                        {enums.platformRole[detailUser.role as PlatformRole] || detailUser.role}
                                     </span>
                                 </div>
                             </div>
                             <div>
-                                <div style={{ fontSize: "13px", color: "var(--text-secondary)", marginBottom: "4px" }}>状态</div>
+                                <div style={{ fontSize: "13px", color: "var(--text-secondary)", marginBottom: "4px" }}>
+                                    {t("users.detail.status")}
+                                </div>
                                 <div style={{ fontSize: "15px" }}>
                                     <span className={`${styles.statusBadge} ${styles[detailUser.status]}`}>
                                         <span className={styles.statusIndicator}></span>
                                         {detailUser.status === "active"
-                                            ? "活跃"
+                                            ? t("users.status.active")
                                             : detailUser.status === "inactive"
-                                              ? "非活跃"
-                                              : "待审核"}
+                                              ? t("users.status.inactive")
+                                              : t("users.status.pending")}
                                     </span>
                                 </div>
                             </div>
                             <div>
-                                <div style={{ fontSize: "13px", color: "var(--text-secondary)", marginBottom: "4px" }}>注册时间</div>
+                                <div style={{ fontSize: "13px", color: "var(--text-secondary)", marginBottom: "4px" }}>
+                                    {t("users.detail.registerTime")}
+                                </div>
                                 <div style={{ fontSize: "15px" }}>{detailUser.createdAt}</div>
                             </div>
                             <div>
-                                <div style={{ fontSize: "13px", color: "var(--text-secondary)", marginBottom: "4px" }}>最后登录</div>
+                                <div style={{ fontSize: "13px", color: "var(--text-secondary)", marginBottom: "4px" }}>
+                                    {t("users.detail.lastLogin")}
+                                </div>
                                 <div style={{ fontSize: "15px" }}>{detailUser.lastLogin}</div>
                             </div>
                             <div>
-                                <div style={{ fontSize: "13px", color: "var(--text-secondary)", marginBottom: "4px" }}>文章数</div>
+                                <div style={{ fontSize: "13px", color: "var(--text-secondary)", marginBottom: "4px" }}>
+                                    {t("users.detail.articleCount")}
+                                </div>
                                 <div style={{ fontSize: "15px" }}>{detailUser.articleCount}</div>
                             </div>
                             <div>
-                                <div style={{ fontSize: "13px", color: "var(--text-secondary)", marginBottom: "4px" }}>评论数</div>
+                                <div style={{ fontSize: "13px", color: "var(--text-secondary)", marginBottom: "4px" }}>
+                                    {t("users.detail.commentCount")}
+                                </div>
                                 <div style={{ fontSize: "15px" }}>{detailUser.commentCount}</div>
                             </div>
                         </div>

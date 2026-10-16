@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { decodeId } from "@/utils/HashId.ts";
 import {
     FaCloudUploadAlt,
@@ -42,6 +43,7 @@ const AssignmentSubmit: React.FC = () => {
     const { id: encodedId } = useParams();
     const id = encodedId ? decodeId(encodedId, "assignment") : null;
     const navigate = useNavigate();
+    const { t } = useTranslation("assignment");
     const [assignment, setAssignment] = useState<Assignment | null>(null);
     const [files, setFiles] = useState<File[]>([]);
     const [isDragging, setIsDragging] = useState(false);
@@ -54,7 +56,7 @@ const AssignmentSubmit: React.FC = () => {
     useEffect(() => {
         const fetchAssignmentDetail = async () => {
             if (!id) {
-                message.error("作业ID不能为空");
+                message.error(t("submit.messages.idRequired"));
                 navigate("/assignments");
                 return;
             }
@@ -65,10 +67,10 @@ const AssignmentSubmit: React.FC = () => {
                 const response = await AssignmentService.getAssignmentDetail({ id });
                 setAssignment(response);
             } catch (err: any) {
-                setError(err.message || "获取作业详情失败");
+                setError(err.message || t("submit.messages.fetchFailed"));
                 // 如果不是资源不存在才弹窗提示
                 if (!err.message || !/不存在|not found|404/i.test(err.message)) {
-                    message.error(err.message || "获取作业详情失败");
+                    message.error(err.message || t("submit.messages.fetchFailed"));
                 }
                 // 延迟跳转，让用户看到错误信息
                 setTimeout(() => {
@@ -80,7 +82,7 @@ const AssignmentSubmit: React.FC = () => {
         };
 
         fetchAssignmentDetail();
-    }, [id, navigate]);
+    }, [id, navigate, t]);
 
     const handleDragEnter = (e: React.DragEvent) => {
         e.preventDefault();
@@ -126,7 +128,7 @@ const AssignmentSubmit: React.FC = () => {
         newFiles.forEach((file) => {
             const fileSizeMB = file.size / (1024 * 1024);
             if (fileSizeMB > maxFileSize) {
-                message.error(`文件 ${file.name} 超过大小限制 (${maxFileSize}MB)`);
+                message.error(t("submit.messages.fileSizeExceeded", { name: file.name, max: maxFileSize }));
                 return;
             }
 
@@ -135,7 +137,7 @@ const AssignmentSubmit: React.FC = () => {
             const allowedTypes = assignment.file_type.split(",").map((type) => type.trim());
 
             if (!allowedTypes.includes(fileExtension)) {
-                message.error(`文件 ${file.name} 格式不支持，仅支持 ${assignment.file_type}`);
+                message.error(t("submit.messages.fileTypeUnsupported", { name: file.name, types: assignment.file_type }));
                 return;
             }
 
@@ -151,12 +153,12 @@ const AssignmentSubmit: React.FC = () => {
 
     const handleSubmit = async () => {
         if (files.length === 0) {
-            message.warn("请至少上传一个文件");
+            message.warn(t("submit.messages.noFile"));
             return;
         }
 
         if (!assignment) {
-            message.error("作业信息获取失败，请刷新页面重试");
+            message.error(t("submit.messages.assignmentMissing"));
             return;
         }
 
@@ -176,14 +178,14 @@ const AssignmentSubmit: React.FC = () => {
             });
 
             if (result.success) {
-                message.success("作业提交成功！");
+                message.success(t("submit.messages.submitSuccess"));
                 navigate("/assignments");
             } else {
-                message.error(result.error || "提交失败，请重试");
+                message.error(result.error || t("submit.messages.submitFailed"));
             }
         } catch (error: any) {
             console.error("提交失败:", error);
-            const errorMessage = error.response?.data?.message || error.message || "提交失败，请重试";
+            const errorMessage = error.response?.data?.message || error.message || t("submit.messages.submitFailed");
             message.error(errorMessage);
         } finally {
             setSubmitting(false);
@@ -222,15 +224,15 @@ const AssignmentSubmit: React.FC = () => {
         const priorityStr = PRIORITY_NUMBER_MAP_STR[priority] || "medium";
         switch (priorityStr) {
             case "urgent":
-                return <span className={`${styles.priorityBadge} ${styles.priorityUrgent}`}>紧急</span>;
+                return <span className={`${styles.priorityBadge} ${styles.priorityUrgent}`}>{t("submit.priority.urgent")}</span>;
             case "high":
-                return <span className={`${styles.priorityBadge} ${styles.priorityHigh}`}>高优先级</span>;
+                return <span className={`${styles.priorityBadge} ${styles.priorityHigh}`}>{t("submit.priority.high")}</span>;
             case "medium":
-                return <span className={`${styles.priorityBadge} ${styles.priorityMedium}`}>中优先级</span>;
+                return <span className={`${styles.priorityBadge} ${styles.priorityMedium}`}>{t("submit.priority.medium")}</span>;
             case "low":
-                return <span className={`${styles.priorityBadge} ${styles.priorityLow}`}>低优先级</span>;
+                return <span className={`${styles.priorityBadge} ${styles.priorityLow}`}>{t("submit.priority.low")}</span>;
             default:
-                return <span className={`${styles.priorityBadge} ${styles.priorityMedium}`}>中优先级</span>;
+                return <span className={`${styles.priorityBadge} ${styles.priorityMedium}`}>{t("submit.priority.medium")}</span>;
         }
     };
 
@@ -240,19 +242,19 @@ const AssignmentSubmit: React.FC = () => {
             case "open":
                 return (
                     <span className={`${styles.statusBadge} ${styles.statusSubmitted}`}>
-                        <FaCheckCircle /> 开启中
+                        <FaCheckCircle /> {t("submit.status.open")}
                     </span>
                 );
             case "closed":
                 return (
                     <span className={`${styles.statusBadge} ${styles.statusLate}`}>
-                        <FaExclamationCircle /> 已关闭
+                        <FaExclamationCircle /> {t("submit.status.closed")}
                     </span>
                 );
             default:
                 return (
                     <span className={`${styles.statusBadge} ${styles.statusPending}`}>
-                        <FaClock /> 进行中
+                        <FaClock /> {t("submit.status.pending")}
                     </span>
                 );
         }
@@ -267,7 +269,7 @@ const AssignmentSubmit: React.FC = () => {
         return (
             <div className={styles.container}>
                 <div className={styles.mainContent}>
-                    <AuthRequired message="您需要登录后才能查看作业详情和提交作业。">
+                    <AuthRequired message={t("submit.authRequired")}>
                         <AssignmentSubmitSkeleton />
                     </AuthRequired>
                 </div>
@@ -279,12 +281,12 @@ const AssignmentSubmit: React.FC = () => {
         return (
             <div className={styles.container}>
                 <div className={styles.mainContent}>
-                    <AuthRequired message="您需要登录后才能查看作业详情和提交作业。">
+                    <AuthRequired message={t("submit.authRequired")}>
                         <ErrorState
-                            title="加载失败"
-                            message={error || "未找到该作业"}
+                            title={t("submit.errorState.title")}
+                            message={error || t("submit.errorState.notFound")}
                             icon={<FaExclamationCircle />}
-                            actionText="返回作业列表"
+                            actionText={t("submit.errorState.backAction")}
                             onAction={() => navigate("/assignments")}
                         />
                     </AuthRequired>
@@ -296,7 +298,7 @@ const AssignmentSubmit: React.FC = () => {
     return (
         <div className={styles.container}>
             <div className={styles.mainContent}>
-                <AuthRequired message="您需要登录后才能查看作业详情和提交作业。">
+                <AuthRequired message={t("submit.authRequired")}>
                     <div className={styles.card}>
                         <div
                             style={{
@@ -306,7 +308,7 @@ const AssignmentSubmit: React.FC = () => {
                             }}
                         >
                             <button className={styles.backButton} onClick={() => navigate(-1)}>
-                                <FaArrowLeft /> 返回上一页
+                                <FaArrowLeft /> {t("submit.header.back")}
                             </button>
                             <div className={styles.headerContent}>
                                 <div className={styles.titleGroup}>
@@ -324,26 +326,26 @@ const AssignmentSubmit: React.FC = () => {
                                 <div className={styles.sectionIcon}>
                                     <FaInfoCircle />
                                 </div>
-                                <h2 className={styles.sectionTitle}>任务详情</h2>
+                                <h2 className={styles.sectionTitle}>{t("submit.detail.title")}</h2>
                             </div>
 
                             <div className={styles.infoGrid}>
                                 <div className={styles.infoCard}>
-                                    <span className={styles.infoLabel}>截止时间</span>
+                                    <span className={styles.infoLabel}>{t("submit.detail.deadline")}</span>
                                     <span className={`${styles.infoValue} ${styles.deadlineValue}`}>
                                         {formatDate(assignment.end_time)}
                                     </span>
                                 </div>
                                 <div className={styles.infoCard}>
-                                    <span className={styles.infoLabel}>优先级</span>
+                                    <span className={styles.infoLabel}>{t("submit.detail.priority")}</span>
                                     <span className={styles.infoValue}>{getPriorityBadge(assignment.priority)}</span>
                                 </div>
                                 <div className={styles.infoCard}>
-                                    <span className={styles.infoLabel}>文件大小限制</span>
+                                    <span className={styles.infoLabel}>{t("submit.detail.sizeLimit")}</span>
                                     <span className={styles.infoValue}>{Math.round(assignment.file_size)} MB</span>
                                 </div>
                                 <div className={styles.infoCard}>
-                                    <span className={styles.infoLabel}>允许文件格式</span>
+                                    <span className={styles.infoLabel}>{t("submit.detail.fileTypes")}</span>
                                     <span className={styles.infoValue}>{assignment.file_type}</span>
                                 </div>
                             </div>
@@ -356,7 +358,7 @@ const AssignmentSubmit: React.FC = () => {
                                 <div className={styles.sectionIcon}>
                                     <FaCloudUploadAlt />
                                 </div>
-                                <h2 className={styles.sectionTitle}>任务提交</h2>
+                                <h2 className={styles.sectionTitle}>{t("submit.submitSection.title")}</h2>
                             </div>
 
                             <div className={styles.uploadContainer}>
@@ -381,14 +383,16 @@ const AssignmentSubmit: React.FC = () => {
                                             <FaCloudUploadAlt />
                                         </div>
                                         <div className={styles.uploadTitle}>
-                                            {isAssignmentOpen() ? "点击或拖拽文件到此处上传" : "任务已关闭，无法上传文件"}
+                                            {isAssignmentOpen() ? t("submit.upload.openTitle") : t("submit.upload.closedTitle")}
                                         </div>
                                         <div className={styles.uploadDesc}>
                                             {isAssignmentOpen()
-                                                ? `支持 ${assignment.file_type} 格式文件`
-                                                : "请联系管理员重新开启作业提交"}
+                                                ? t("submit.upload.openDesc", { types: assignment.file_type })
+                                                : t("submit.upload.closedDesc")}
                                         </div>
-                                        <div className={styles.uploadLimit}>单个文件不超过 {Math.round(assignment.file_size)}MB</div>
+                                        <div className={styles.uploadLimit}>
+                                            {t("submit.upload.limit", { size: Math.round(assignment.file_size) })}
+                                        </div>
                                     </div>
                                 </div>
 
@@ -408,7 +412,7 @@ const AssignmentSubmit: React.FC = () => {
                                                 <button
                                                     className={styles.deleteBtn}
                                                     onClick={() => removeFile(index)}
-                                                    title="移除文件"
+                                                    title={t("submit.file.remove")}
                                                 >
                                                     <FaTrash />
                                                 </button>
@@ -424,7 +428,7 @@ const AssignmentSubmit: React.FC = () => {
                                     onClick={() => navigate(-1)}
                                     disabled={submitting}
                                 >
-                                    取消
+                                    {t("submit.actions.cancel")}
                                 </button>
                                 <button
                                     className={`${styles.btn} ${styles.btnPrimary}`}
@@ -433,11 +437,11 @@ const AssignmentSubmit: React.FC = () => {
                                 >
                                     {submitting
                                         ? uploadProgress > 0 && uploadProgress < 100
-                                            ? `上传中...${uploadProgress}%`
-                                            : "提交中..."
+                                            ? t("submit.actions.uploading", { progress: uploadProgress })
+                                            : t("submit.actions.submitting")
                                         : !isAssignmentOpen()
-                                          ? "作业已关闭"
-                                          : "确认提交"}
+                                          ? t("submit.actions.closed")
+                                          : t("submit.actions.confirm")}
                                 </button>
                                 {/* 上传进度条 */}
                                 {submitting && uploadProgress > 0 && uploadProgress < 100 && (

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { FaGithub, FaStar, FaExternalLinkAlt, FaTrash, FaKey, FaSync } from "react-icons/fa";
 import Modal from "../modal/Modal";
 import Input from "../input/Input";
@@ -55,14 +56,6 @@ const languageColors: Record<string, string> = {
     Swift: "#f05138",
 };
 
-// ---- 同步状态文案 ----
-const syncStatusText: Record<string, string> = {
-    idle: "未同步",
-    syncing: "同步中...",
-    success: "已同步",
-    failed: "同步失败",
-};
-
 // ---- component ----
 interface Props {
     orgId: string;
@@ -71,8 +64,17 @@ interface Props {
 }
 
 const OrganizationRepos: React.FC<Props> = ({ orgId, canManage, onChange }) => {
+    const { t } = useTranslation("organization");
     const [repos, setRepos] = useState<Repo[]>([]);
     const [loading, setLoading] = useState(true);
+
+    // ---- 同步状态文案 ----
+    const syncStatusText: Record<string, string> = {
+        idle: t("repos.syncStatus.idle"),
+        syncing: t("repos.syncStatus.syncing"),
+        success: t("repos.syncStatus.success"),
+        failed: t("repos.syncStatus.failed"),
+    };
 
     // 配置 Token modal
     const [tokenModalVisible, setTokenModalVisible] = useState(false);
@@ -106,7 +108,7 @@ const OrganizationRepos: React.FC<Props> = ({ orgId, canManage, onChange }) => {
                 })),
             );
         } catch (err: any) {
-            message.error(err?.message || "获取仓库列表失败");
+            message.error(err?.message || t("repos.fetchFailed"));
         }
     };
 
@@ -147,22 +149,24 @@ const OrganizationRepos: React.FC<Props> = ({ orgId, canManage, onChange }) => {
         e.preventDefault();
         e.stopPropagation();
         await confirm({
-            title: "确认删除",
+            title: t("repos.deleteConfirm.title"),
             content: (
                 <div>
-                    确定要删除仓库 "<strong>{repo.name}</strong>" 吗？删除后无法恢复。
+                    {t("repos.deleteConfirm.before")}
+                    <strong>{repo.name}</strong>
+                    {t("repos.deleteConfirm.after")}
                 </div>
             ),
-            confirmText: "删除",
-            cancelText: "取消",
+            confirmText: t("repos.deleteConfirm.confirm"),
+            cancelText: t("repos.deleteConfirm.cancel"),
             onConfirm: async () => {
                 try {
                     await OrganizationService.deleteRepo({ id: repo.id, org_id: orgId });
                     setRepos((prev) => prev.filter((r) => r.id !== repo.id));
-                    message.success("仓库已删除");
+                    message.success(t("repos.deleteSuccess"));
                     onChange?.(-1);
                 } catch {
-                    message.error("删除仓库失败");
+                    message.error(t("repos.deleteFailed"));
                 }
             },
         });
@@ -179,7 +183,7 @@ const OrganizationRepos: React.FC<Props> = ({ orgId, canManage, onChange }) => {
 
     const handleSaveToken = async () => {
         if (!tokenValue.trim()) {
-            message.warn("请输入 GitHub Token");
+            message.warn(t("repos.tokenRequired"));
             return;
         }
         if (!tokenRepo) {
@@ -191,9 +195,9 @@ const OrganizationRepos: React.FC<Props> = ({ orgId, canManage, onChange }) => {
             setRepos((prev) => prev.map((r) => (r.id === tokenRepo.id ? { ...r, hasToken: true } : r)));
             setTokenValue("");
             setTokenModalVisible(false);
-            message.success("Token 已保存");
+            message.success(t("repos.tokenSaved"));
         } catch {
-            message.error("保存失败");
+            message.error(t("repos.saveFailed"));
         } finally {
             setTokenSaving(false);
         }
@@ -211,7 +215,7 @@ const OrganizationRepos: React.FC<Props> = ({ orgId, canManage, onChange }) => {
             await OrganizationService.syncRepo({ repo_id: repo.id });
         } catch {
             setRepos((prev) => prev.map((r) => (r.id === repo.id ? { ...r, syncStatus: "failed" as const } : r)));
-            message.error("同步失败");
+            message.error(t("repos.syncFailed"));
         }
     };
 
@@ -252,7 +256,7 @@ const OrganizationRepos: React.FC<Props> = ({ orgId, canManage, onChange }) => {
             {repos.length === 0 ? (
                 <div className={styles.emptyState}>
                     <FaGithub size={40} style={{ opacity: 0.3, marginBottom: "12px" }} />
-                    <p style={{ color: "var(--text-secondary)", fontSize: "14px" }}>暂无仓库</p>
+                    <p style={{ color: "var(--text-secondary)", fontSize: "14px" }}>{t("repos.empty")}</p>
                 </div>
             ) : (
                 <div className={styles.repoGrid}>
@@ -270,7 +274,7 @@ const OrganizationRepos: React.FC<Props> = ({ orgId, canManage, onChange }) => {
                                     <>
                                         <span
                                             className={repo.hasToken ? styles.repoTokenBadge : styles.repoTokenBadgeNone}
-                                            title={repo.hasToken ? "已配置 Token" : "未配置 Token，点击配置"}
+                                            title={repo.hasToken ? t("repos.tokenConfigured") : t("repos.tokenNotConfigured")}
                                             onClick={(e) => openTokenModal(e, repo)}
                                         >
                                             <FaKey size={10} />
@@ -284,7 +288,7 @@ const OrganizationRepos: React.FC<Props> = ({ orgId, canManage, onChange }) => {
                                         </span>
                                         <button
                                             className={styles.repoDeleteBtn}
-                                            title="删除仓库"
+                                            title={t("repos.deleteTitle")}
                                             onClick={(e) => handleDeleteRepo(e, repo)}
                                         >
                                             <FaTrash size={12} />
@@ -325,25 +329,23 @@ const OrganizationRepos: React.FC<Props> = ({ orgId, canManage, onChange }) => {
             {/* 配置 Token Modal */}
             <Modal
                 visible={tokenModalVisible}
-                title={tokenRepo ? `配置 Token - ${tokenRepo.name}` : "配置 Token"}
+                title={tokenRepo ? t("repos.tokenModal.titleWithRepo", { name: tokenRepo.name }) : t("repos.tokenModal.title")}
                 onClose={() => setTokenModalVisible(false)}
                 width={480}
                 footer={
                     <div style={{ display: "flex", gap: "12px", justifyContent: "flex-end" }}>
                         <button className={styles.cancelButton} onClick={() => setTokenModalVisible(false)}>
-                            取消
+                            {t("repos.tokenModal.cancel")}
                         </button>
                         <button className={styles.confirmButton} onClick={handleSaveToken} disabled={tokenSaving}>
-                            {tokenSaving ? "保存中..." : "保存"}
+                            {tokenSaving ? t("repos.tokenModal.saving") : t("repos.tokenModal.save")}
                         </button>
                     </div>
                 }
             >
                 <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                     <p style={{ fontSize: "13px", color: "var(--text-secondary)", margin: 0 }}>
-                        {tokenRepo?.hasToken
-                            ? "该仓库已配置 Token，输入新值将覆盖旧值。"
-                            : "为该仓库配置 GitHub Personal Access Token，用于拉取仓库元数据（Star 数、描述、语言等）。"}
+                        {tokenRepo?.hasToken ? t("repos.tokenModal.overwriteHint") : t("repos.tokenModal.hint")}
                     </p>
                     <div>
                         <label className={styles.formLabel}>GitHub Token</label>

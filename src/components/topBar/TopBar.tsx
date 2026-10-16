@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { FaPen, FaSave, FaFly, FaBars, FaSignOutAlt, FaUserCircle, FaRegComments, FaFlask } from "react-icons/fa";
 import styles from "./TopBar.module.css";
 import Notification from "../notification/Notification";
@@ -9,7 +10,8 @@ import { encodeId } from "@/utils/HashId.ts";
 import { useSiteSettings } from "@/contexts/SiteSettingsContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEditorToolbar } from "@/contexts/EditorToolbarContext";
-import { isNormalUser, PlatformRoleLabel, type PlatformRole as PlatformRoleType } from "@/types/Roles.ts";
+import { isNormalUser, type PlatformRole as PlatformRoleType } from "@/types/Roles.ts";
+import { useEnumLabels } from "@/i18n/UseEnumLabels";
 
 interface TopBarProps {
     onMenuClick?: () => void;
@@ -21,6 +23,9 @@ const TopBar: React.FC<TopBarProps> = ({ onMenuClick, tools }) => {
     const { user, isAuthenticated, logout, loading } = useAuth();
     const editor = useEditorToolbar();
     const { settings: siteSettings } = useSiteSettings();
+    const { t } = useTranslation("nav");
+    const { t: tCommon } = useTranslation("common");
+    const enums = useEnumLabels();
     const defaultLogo = "/techhaven-logo.svg";
 
     const [isScrolled, setIsScrolled] = useState(false);
@@ -30,9 +35,11 @@ const TopBar: React.FC<TopBarProps> = ({ onMenuClick, tools }) => {
 
     const currentUser = user
         ? {
-              name: user.name || user.account || "用户",
+              name: user.name || user.account || tCommon("user.fallbackName"),
               avatar: user.avatar || "https://picsum.photos/id/64/200",
-              role: user.role ? PlatformRoleLabel[user.role as PlatformRoleType] || "用户" : "用户",
+              role: user.role
+                  ? enums.platformRole[user.role as PlatformRoleType] || tCommon("user.fallbackName")
+                  : tCommon("user.fallbackName"),
               email: user.email,
           }
         : null;
@@ -69,7 +76,7 @@ const TopBar: React.FC<TopBarProps> = ({ onMenuClick, tools }) => {
         <header className={`${styles.topBar} ${isScrolled ? styles.topBarScrolled : ""}`}>
             <div className={`${styles.bar} ${hasBroadcast ? styles.barWithBroadcast : ""}`}>
                 <div className={styles.leftGroup}>
-                    <button className={styles.menuBtn} onClick={onMenuClick} type="button" aria-label="打开导航菜单">
+                    <button className={styles.menuBtn} onClick={onMenuClick} type="button" aria-label={t("openNavMenu")}>
                         <FaBars />
                     </button>
                     <div className={styles.logoPill} onClick={() => navigate("/index")} role="button" tabIndex={0}>
@@ -92,7 +99,7 @@ const TopBar: React.FC<TopBarProps> = ({ onMenuClick, tools }) => {
                                 type="button"
                             >
                                 <FaSave className={styles.actionIcon} />
-                                <span>{editor.state.isEdit ? "保存修改" : "保存草稿"}</span>
+                                <span>{editor.state.isEdit ? t("saveChanges") : t("saveDraft")}</span>
                             </button>
                             <button
                                 className={styles.actionBtn}
@@ -101,13 +108,13 @@ const TopBar: React.FC<TopBarProps> = ({ onMenuClick, tools }) => {
                                 type="button"
                             >
                                 <FaFly className={styles.actionIcon} />
-                                <span>{editor.state.isEdit ? "更新文章" : "发布文章"}</span>
+                                <span>{editor.state.isEdit ? t("updateArticle") : t("publishArticle")}</span>
                             </button>
                         </>
                     ) : (
                         <button className={styles.actionBtn} onClick={() => navigate("/article/create")} type="button">
                             <FaPen className={styles.actionIcon} />
-                            <span>撰写文章</span>
+                            <span>{t("writeArticle")}</span>
                         </button>
                     )}
                 </div>
@@ -120,8 +127,8 @@ const TopBar: React.FC<TopBarProps> = ({ onMenuClick, tools }) => {
                             className={styles.iconBtn}
                             onClick={() => navigate("/test/chunk-upload")}
                             type="button"
-                            title="进入测试页面"
-                            aria-label="进入测试页面"
+                            title={t("testPage")}
+                            aria-label={t("testPage")}
                         >
                             <FaFlask />
                         </button>
@@ -149,8 +156,8 @@ const TopBar: React.FC<TopBarProps> = ({ onMenuClick, tools }) => {
                                                     navigate(`/profile/${encodeId(user.id, "user")}`);
                                                 }
                                             }}
-                                            title="查看个人资料"
-                                            aria-label="查看个人资料"
+                                            title={t("viewProfile")}
+                                            aria-label={t("viewProfile")}
                                         >
                                             <Avatar src={currentUser.avatar} name={currentUser.name} size={48} />
                                         </button>
@@ -169,7 +176,7 @@ const TopBar: React.FC<TopBarProps> = ({ onMenuClick, tools }) => {
                                             }}
                                         >
                                             <FaUserCircle />
-                                            个人中心
+                                            {t("personalCenter")}
                                         </div>
                                         {!normalUser && (
                                             <>
@@ -181,7 +188,7 @@ const TopBar: React.FC<TopBarProps> = ({ onMenuClick, tools }) => {
                                                     }}
                                                 >
                                                     <FaRegComments />
-                                                    私信
+                                                    {t("messages")}
                                                 </div>
                                                 <div className={styles.dropdownDivider}></div>
                                             </>
@@ -195,7 +202,7 @@ const TopBar: React.FC<TopBarProps> = ({ onMenuClick, tools }) => {
                                             type="button"
                                         >
                                             <FaSignOutAlt />
-                                            退出登录
+                                            {t("logout")}
                                         </button>
                                     </div>
                                 </div>

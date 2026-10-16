@@ -1,0 +1,56 @@
+const section = {
+    pageTitle: "编辑资料",
+    sections: {
+        basic: "基本信息",
+    },
+    avatar: {
+        title: "头像",
+        defaultName: "用户",
+        change: "更换头像",
+        hint: "头像上传功能暂未开放，可直接输入图片链接",
+        apply: "应用",
+        applying: "应用中...",
+    },
+    fields: {
+        name: "昵称",
+        namePlaceholder: "请输入昵称",
+        email: "邮箱",
+        emailHint: "邮箱暂不支持自行修改",
+        motto: "座右铭",
+        mottoPlaceholder: "一句话介绍自己",
+        website: "个人网站",
+        github: "GitHub 主页",
+    },
+    actions: {
+        save: "保存修改",
+        saving: "保存中...",
+    },
+    password: {
+        title: "修改密码",
+        current: "当前密码",
+        currentPlaceholder: "请输入当前密码",
+        new: "新密码",
+        newPlaceholder: "至少 6 位字符",
+        confirm: "确认新密码",
+        confirmPlaceholder: "请再次输入新密码",
+        submit: "修改密码",
+        saving: "修改中...",
+    },
+    messages: {
+        avatarUploadUnavailable: "头像上传功能暂未开放，请使用图片链接更新头像",
+        avatarUrlRequired: "请输入头像URL",
+        avatarUrlInvalid: "请输入有效的 HTTP/HTTPS 链接",
+        avatarUpdated: "头像已更新",
+        avatarUpdateFailed: "头像更新失败",
+        nameRequired: "请输入昵称",
+        profileUpdated: "个人资料已更新",
+        saveFailed: "保存失败",
+        currentPasswordRequired: "请输入当前密码",
+        newPasswordTooShort: "新密码至少 6 位",
+        passwordMismatch: "两次输入的密码不一致",
+        passwordChanged: "密码已修改，下次登录时生效",
+        passwordChangeFailed: "修改密码失败",
+    },
+} as const;
+
+export default section;

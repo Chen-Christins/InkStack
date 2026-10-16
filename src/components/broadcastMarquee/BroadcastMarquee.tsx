@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { FaTimes } from "react-icons/fa";
 import NotificationService from "@/services/NotificationService.ts";
 import styles from "./BroadcastMarquee.module.css";
@@ -17,6 +18,7 @@ interface BroadcastMarqueeProps {
 }
 
 const BroadcastMarquee: React.FC<BroadcastMarqueeProps> = ({ onActiveChange }) => {
+    const { t } = useTranslation("components");
     const [broadcasts, setBroadcasts] = useState<BroadcastItem[]>([]);
     const [dismissedIds, setDismissedIds] = useState<Set<number>>(() => new Set());
     const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -71,7 +73,7 @@ const BroadcastMarquee: React.FC<BroadcastMarqueeProps> = ({ onActiveChange }) =
         <div className={`${styles.broadcastMarquee} ${styles[topLevel]}`} role="status" aria-live="polite">
             <div className={styles.label}>
                 <span className={styles.statusDot} />
-                公告
+                {t("broadcastMarquee.label")}
             </div>
             <div className={styles.viewport}>
                 <div className={styles.track}>
@@ -84,7 +86,7 @@ const BroadcastMarquee: React.FC<BroadcastMarqueeProps> = ({ onActiveChange }) =
                     ))}
                 </div>
             </div>
-            <button className={styles.closeButton} type="button" onClick={handleDismiss} aria-label="关闭广播">
+            <button className={styles.closeButton} type="button" onClick={handleDismiss} aria-label={t("broadcastMarquee.close")}>
                 <FaTimes size={12} />
             </button>
         </div>

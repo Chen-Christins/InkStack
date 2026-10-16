@@ -1,0 +1,68 @@
+const section = {
+    loading: "加载评论管理中...",
+    title: "评论管理",
+    description: "管理用户评论、审核内容和处理举报",
+    totalComments: "共 {{total}} 条评论",
+    empty: "暂无数据",
+    filter: {
+        title: "筛选条件",
+        clear: "清除筛选",
+        searchLabel: "搜索评论",
+        searchPlaceholder: "评论内容、作者或文章标题",
+        statusLabel: "状态",
+        statusPlaceholder: "选择状态...",
+        statusOptions: {
+            all: "全部状态",
+            approved: "已通过",
+            pending: "待审核",
+            rejected: "已拒绝",
+            spam: "垃圾评论",
+        },
+        reportedLabel: "举报状态",
+        reportedPlaceholder: "选择举报状态...",
+        reportedOptions: {
+            all: "全部",
+            reported: "被举报",
+            normal: "正常",
+        },
+    },
+    batch: {
+        selected: "已选择 {{total}} 条评论",
+        approve: "批准",
+        reject: "拒绝",
+        markSpam: "标记垃圾",
+        delete: "删除",
+    },
+    actions: {
+        approve: "批准",
+        reject: "拒绝",
+        markSpam: "标记垃圾",
+        delete: "删除",
+    },
+    card: {
+        report: "举报 {{value}}",
+        article: "文章：{{value}}",
+        likes: "{{value}} 赞",
+        replies: "{{value}} 回复",
+    },
+    pagination: {
+        info: "显示 {{start}} - {{end}} 条， 共 {{total}} 条评论",
+    },
+    confirm: {
+        approveTitle: "批准评论",
+        approveContent: "确定要批准选中的 {{total}} 条评论吗？",
+        approveConfirm: "确认批准",
+        rejectTitle: "拒绝评论",
+        rejectContent: "确定要拒绝选中的 {{total}} 条评论吗？",
+        rejectConfirm: "确认拒绝",
+        spamTitle: "标记垃圾评论",
+        spamContent: "确定要将选中的 {{total}} 条评论标记为垃圾评论吗？",
+        spamConfirm: "确认标记",
+        deleteTitle: "删除评论",
+        deleteContent: "确定要删除选中的 {{total}} 条评论吗？删除后无法恢复。",
+        deleteConfirm: "确认删除",
+        cancel: "取消",
+    },
+} as const;
+
+export default section;

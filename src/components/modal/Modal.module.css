@@ -28,9 +28,7 @@
     opacity: 0;
     animation: scaleIn 0.2s forwards;
     border: 1px solid var(--border-primary);
-    overflow-y: auto;
-    scrollbar-width: thin;
-    scrollbar-color: var(--border-primary) var(--bg-secondary);
+    overflow: hidden;
 }
 
 .modal.large {
@@ -47,6 +45,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
+    flex-shrink: 0;
 }
 
 .title {
@@ -75,26 +74,29 @@
 
 .content {
     padding: 24px;
-    overflow: visible;
-    flex: 1 0 auto;
+    overflow-y: auto;
+    flex: 1 1 auto;
+    min-height: 0;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-primary) var(--bg-secondary);
 }
 
 /* 滚动条样式 - 适配暗色主题 */
-.modal::-webkit-scrollbar {
+.content::-webkit-scrollbar {
     width: 8px;
 }
 
-.modal::-webkit-scrollbar-track {
+.content::-webkit-scrollbar-track {
     background: var(--bg-secondary);
     border-radius: 4px;
 }
 
-.modal::-webkit-scrollbar-thumb {
+.content::-webkit-scrollbar-thumb {
     background: var(--border-primary);
     border-radius: 4px;
 }
 
-.modal::-webkit-scrollbar-thumb:hover {
+.content::-webkit-scrollbar-thumb:hover {
     background: var(--text-secondary);
 }
 
@@ -107,6 +109,7 @@
     background-color: var(--bg-secondary);
     border-bottom-left-radius: 12px;
     border-bottom-right-radius: 12px;
+    flex-shrink: 0;
 }
 
 @keyframes fadeIn {

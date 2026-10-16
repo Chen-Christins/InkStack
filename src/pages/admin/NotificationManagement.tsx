@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { FaBell, FaPaperPlane, FaTimes } from "react-icons/fa";
 import CustomSelect from "@/components/customSelect/CustomSelect";
 import Input from "@/components/input/Input";
@@ -10,13 +11,8 @@ import NotificationService from "@/services/NotificationService.ts";
 import type { SelectOption } from "@/types";
 import styles from "./NotificationManagement.module.css";
 
-const BROADCAST_LEVEL_OPTIONS: SelectOption[] = [
-    { id: "info", name: "普通", color: "#3b82f6" },
-    { id: "warning", name: "警告", color: "#f59e0b" },
-    { id: "danger", name: "紧急", color: "#ef4444" },
-];
-
 const NotificationManagement: React.FC = () => {
+    const { t } = useTranslation("admin");
     const [title, setTitle] = useState("");
     const [content, setContent] = useState("");
     const [type, setType] = useState("system");
@@ -45,39 +41,45 @@ const NotificationManagement: React.FC = () => {
     const handleCloseBroadcast = async (id: number) => {
         try {
             await NotificationService.closeBroadcast(id);
-            message.success("广播已关闭");
+            message.success(t("notifications.message.broadcastClosed"));
             fetchBroadcasts();
         } catch (err: any) {
-            message.error(err?.message || "关闭失败");
+            message.error(err?.message || t("notifications.message.closeFailed"));
         }
     };
 
+    const broadcastLevelOptions: SelectOption[] = [
+        { id: "info", name: t("notifications.level.info"), color: "#3b82f6" },
+        { id: "warning", name: t("notifications.level.warning"), color: "#f59e0b" },
+        { id: "danger", name: t("notifications.level.danger"), color: "#ef4444" },
+    ];
+
     const typeOptions: SelectOption[] = [
-        { id: "system", name: "系统通知", color: "#6366f1" },
-        { id: "announcement", name: "公告", color: "#f59e0b" },
-        { id: "article", name: "文章推送", color: "#10b981" },
+        { id: "system", name: t("notifications.type.system"), color: "#6366f1" },
+        { id: "announcement", name: t("notifications.type.announcement"), color: "#f59e0b" },
+        { id: "article", name: t("notifications.type.article"), color: "#10b981" },
     ];
 
     const targetOptions: SelectOption[] = [
-        { id: "all", name: "所有用户", color: "#6366f1" },
-        { id: "users", name: "指定用户", color: "#f59e0b" },
+        { id: "all", name: t("notifications.target.all"), color: "#6366f1" },
+        { id: "users", name: t("notifications.target.users"), color: "#f59e0b" },
     ];
 
     const handleSend = async () => {
         if (!title.trim()) {
-            message.error("请输入通知标题");
+            message.error(t("notifications.message.titleRequired"));
             return;
         }
         if (!content.trim()) {
-            message.error("请输入通知内容");
+            message.error(t("notifications.message.contentRequired"));
             return;
         }
         if (target === "users" && !userIds.trim()) {
-            message.error("请输入目标用户ID");
+            message.error(t("notifications.message.targetRequired"));
             return;
         }
         if (isBroadcast && endTime && startTime && endTime <= startTime) {
-            message.error("结束时间必须晚于开始时间");
+            message.error(t("notifications.message.endBeforeStart"));
             return;
         }
 
@@ -94,7 +96,7 @@ const NotificationManagement: React.FC = () => {
                 start_time: isBroadcast && startTime ? Math.floor(startTime.getTime() / 1000) : undefined,
                 end_time: isBroadcast && endTime ? Math.floor(endTime.getTime() / 1000) : undefined,
             });
-            message.success(isBroadcast ? "广播已创建" : "通知发送成功");
+            message.success(isBroadcast ? t("notifications.message.broadcastCreated") : t("notifications.message.sendSuccess"));
             setTitle("");
             setContent("");
             setUserIds("");
@@ -105,7 +107,7 @@ const NotificationManagement: React.FC = () => {
                 fetchBroadcasts();
             }
         } catch (err: any) {
-            message.error(err.message || "发送失败，请稍后重试");
+            message.error(err.message || t("notifications.message.sendFailed"));
         } finally {
             setSending(false);
         }
@@ -118,40 +120,40 @@ const NotificationManagement: React.FC = () => {
                 <div>
                     <h1 className={styles.pageTitle}>
                         <FaBell />
-                        发送通知
+                        {t("notifications.page.title")}
                     </h1>
-                    <p className={styles.pageDescription}>向用户推送系统通知、公告或文章更新提醒</p>
+                    <p className={styles.pageDescription}>{t("notifications.page.description")}</p>
                 </div>
             </div>
 
             {/* 表单卡片 */}
             <div className={styles.formCard}>
                 <div className={styles.formSection}>
-                    <h3 className={styles.formSectionTitle}>通知设置</h3>
+                    <h3 className={styles.formSectionTitle}>{t("notifications.form.settingsTitle")}</h3>
 
                     <div className={styles.formGrid}>
                         {/* 通知类型 */}
                         <div className={styles.formGroup}>
-                            <label className={styles.formLabel}>通知类型</label>
+                            <label className={styles.formLabel}>{t("notifications.form.typeLabel")}</label>
                             <CustomSelect
-                                name="通知类型"
+                                name={t("notifications.form.typeLabel")}
                                 options={typeOptions}
                                 value={typeOptions.find((o) => o.id === type) || null}
                                 onChange={(option) => setType(String(option?.id || "system"))}
-                                placeholder="选择通知类型"
+                                placeholder={t("notifications.form.typePlaceholder")}
                                 hideBadge={true}
                             />
                         </div>
 
                         {/* 发送目标 */}
                         <div className={styles.formGroup}>
-                            <label className={styles.formLabel}>发送目标</label>
+                            <label className={styles.formLabel}>{t("notifications.form.targetLabel")}</label>
                             <CustomSelect
-                                name="发送目标"
+                                name={t("notifications.form.targetLabel")}
                                 options={targetOptions}
                                 value={targetOptions.find((o) => o.id === target) || null}
                                 onChange={(option) => setTarget((option?.id as "all" | "users") || "all")}
-                                placeholder="选择发送目标"
+                                placeholder={t("notifications.form.targetPlaceholder")}
                                 hideBadge={true}
                             />
                         </div>
@@ -160,9 +162,9 @@ const NotificationManagement: React.FC = () => {
                     {/* 指定用户ID */}
                     {target === "users" && (
                         <div className={styles.formGroup}>
-                            <label className={styles.formLabel}>目标用户ID</label>
+                            <label className={styles.formLabel}>{t("notifications.form.userIdLabel")}</label>
                             <Input
-                                placeholder="多个ID用逗号分隔，例如: 1,2,3"
+                                placeholder={t("notifications.form.userIdPlaceholder")}
                                 value={userIds}
                                 onChange={(value) => setUserIds(value)}
                                 allowClear={true}
@@ -173,10 +175,10 @@ const NotificationManagement: React.FC = () => {
 
                     {/* 设为广播跑马灯 */}
                     <div className={styles.formGroup}>
-                        <label className={styles.formLabel}>设为广播</label>
+                        <label className={styles.formLabel}>{t("notifications.form.broadcastLabel")}</label>
                         <div className={styles.switchRow}>
                             <Switch checked={isBroadcast} onChange={(checked) => setIsBroadcast(checked)} />
-                            <span className={styles.switchHint}>开启后该通知将在页面顶部跑马灯持续滚动展示</span>
+                            <span className={styles.switchHint}>{t("notifications.form.broadcastHint")}</span>
                         </div>
                     </div>
 
@@ -184,34 +186,34 @@ const NotificationManagement: React.FC = () => {
                     {isBroadcast && (
                         <>
                             <div className={styles.formGroup}>
-                                <label className={styles.formLabel}>广播级别</label>
+                                <label className={styles.formLabel}>{t("notifications.form.broadcastLevelLabel")}</label>
                                 <CustomSelect
-                                    name="广播级别"
-                                    options={BROADCAST_LEVEL_OPTIONS}
-                                    value={BROADCAST_LEVEL_OPTIONS.find((o) => o.id === broadcastLevel) || null}
+                                    name={t("notifications.form.broadcastLevelLabel")}
+                                    options={broadcastLevelOptions}
+                                    value={broadcastLevelOptions.find((o) => o.id === broadcastLevel) || null}
                                     onChange={(option) => setBroadcastLevel(String(option?.id || "info"))}
-                                    placeholder="选择广播级别"
+                                    placeholder={t("notifications.form.broadcastLevelPlaceholder")}
                                     hideBadge={true}
                                 />
                             </div>
                             <div className={styles.formGrid}>
                                 <div className={styles.formGroup}>
-                                    <label className={styles.formLabel}>开始时间（可选，留空立即可见）</label>
+                                    <label className={styles.formLabel}>{t("notifications.form.startTimeLabel")}</label>
                                     <DatePicker
                                         value={startTime || undefined}
                                         onChange={(date) => setStartTime(date)}
-                                        placeholder="即时生效"
+                                        placeholder={t("notifications.form.startTimePlaceholder")}
                                         showTime
                                         allowClear
                                         size="large"
                                     />
                                 </div>
                                 <div className={styles.formGroup}>
-                                    <label className={styles.formLabel}>结束时间（可选，留空手动关闭）</label>
+                                    <label className={styles.formLabel}>{t("notifications.form.endTimeLabel")}</label>
                                     <DatePicker
                                         value={endTime || undefined}
                                         onChange={(date) => setEndTime(date)}
-                                        placeholder="手动关闭"
+                                        placeholder={t("notifications.form.endTimePlaceholder")}
                                         showTime
                                         allowClear
                                         size="large"
@@ -226,12 +228,12 @@ const NotificationManagement: React.FC = () => {
 
                 {/* 通知内容 */}
                 <div className={styles.formSection}>
-                    <h3 className={styles.formSectionTitle}>通知内容</h3>
+                    <h3 className={styles.formSectionTitle}>{t("notifications.form.contentTitle")}</h3>
 
                     <div className={styles.formGroup}>
-                        <label className={styles.formLabel}>通知标题</label>
+                        <label className={styles.formLabel}>{t("notifications.form.titleLabel")}</label>
                         <Input
-                            placeholder="请输入通知标题"
+                            placeholder={t("notifications.form.titlePlaceholder")}
                             value={title}
                             onChange={(value) => setTitle(value)}
                             allowClear={true}
@@ -242,14 +244,14 @@ const NotificationManagement: React.FC = () => {
 
                     <div className={styles.formGroup}>
                         <label className={styles.formLabel}>
-                            通知内容
+                            {t("notifications.form.contentLabel")}
                             <span className={styles.charCount}>{content.length}/2000</span>
                         </label>
                         <textarea
                             className={styles.textarea}
                             value={content}
                             onChange={(e) => setContent(e.target.value)}
-                            placeholder="请输入通知内容，支持纯文本"
+                            placeholder={t("notifications.form.contentPlaceholder")}
                             rows={6}
                             maxLength={2000}
                         />
@@ -260,7 +262,7 @@ const NotificationManagement: React.FC = () => {
                 <div className={styles.formActions}>
                     <Button color="primary" size="medium" onClick={handleSend} disabled={sending} loading={sending}>
                         <FaPaperPlane />
-                        {sending ? "发送中..." : "发送通知"}
+                        {sending ? t("notifications.form.sending") : t("notifications.form.send")}
                     </Button>
                 </div>
             </div>
@@ -268,7 +270,7 @@ const NotificationManagement: React.FC = () => {
             {/* 当前广播列表 */}
             {activeBroadcasts.length > 0 && (
                 <div className={styles.formCard} style={{ marginTop: 24 }}>
-                    <h3 className={styles.formSectionTitle}>当前广播</h3>
+                    <h3 className={styles.formSectionTitle}>{t("notifications.broadcasts.title")}</h3>
                     <div className={styles.broadcastList}>
                         {activeBroadcasts.map((bc) => (
                             <div key={bc.id} className={styles.broadcastItem}>
@@ -291,10 +293,10 @@ const NotificationManagement: React.FC = () => {
                                 <button
                                     onClick={() => handleCloseBroadcast(bc.id)}
                                     className={styles.broadcastCloseButton}
-                                    title="手动关闭此广播"
+                                    title={t("notifications.broadcasts.closeTitle")}
                                 >
                                     <FaTimes size={10} style={{ marginRight: 4 }} />
-                                    关闭
+                                    {t("notifications.broadcasts.close")}
                                 </button>
                             </div>
                         ))}

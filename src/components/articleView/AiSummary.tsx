@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import ReactMarkdown from "react-markdown";
 import { Sparkles, RotateCw, AlertCircle } from "lucide-react";
 import styles from "./AiSummary.module.css";
@@ -10,6 +11,7 @@ interface AiSummaryProps {
 }
 
 const AiSummary: React.FC<AiSummaryProps> = ({ articleId }) => {
+    const { t } = useTranslation("article");
     const { text, isStreaming, isCompleted, error, start, reset } = useAiSummary(articleId);
 
     const handleGenerate = () => {
@@ -31,29 +33,29 @@ const AiSummary: React.FC<AiSummaryProps> = ({ articleId }) => {
                 <div className={styles.iconWrapper}>
                     <Sparkles className={styles.aiIcon} />
                 </div>
-                <span className={styles.title}>AI 智能总结</span>
+                <span className={styles.title}>{t("ai.title")}</span>
                 {!isStreaming && !isCompleted && !error && (
                     <button className={styles.generateBtn} onClick={handleGenerate} disabled={articleId == null}>
                         <Sparkles size={14} />
-                        生成总结
+                        {t("ai.generate")}
                     </button>
                 )}
                 {isStreaming && (
                     <button className={styles.generateBtn} disabled>
                         <span className={styles.spinner} />
-                        生成中...
+                        {t("ai.generating")}
                     </button>
                 )}
                 {isCompleted && !error && text && (
                     <button className={styles.generateBtn} onClick={handleRegenerate}>
                         <RotateCw size={14} />
-                        重新生成
+                        {t("ai.regenerate")}
                     </button>
                 )}
                 {(error || (isCompleted && !text)) && (
                     <button className={styles.generateBtn} onClick={handleRegenerate}>
                         <RotateCw size={14} />
-                        重试
+                        {t("ai.retry")}
                     </button>
                 )}
             </div>
@@ -70,22 +72,20 @@ const AiSummary: React.FC<AiSummaryProps> = ({ articleId }) => {
                     {isStreaming && <span className={styles.cursor} />}
                 </div>
             ) : isStreaming ? (
-                <div className={styles.contentPlaceholder}>AI 正在生成总结...</div>
+                <div className={styles.contentPlaceholder}>{t("ai.placeholderGenerating")}</div>
             ) : isCompleted ? (
                 <div className={styles.errorContent}>
                     <AlertCircle size={14} className={styles.errorIcon} />
-                    <span>AI 总结生成失败，请稍后重试</span>
+                    <span>{t("ai.failed")}</span>
                 </div>
             ) : (
-                <div className={styles.contentPlaceholder}>
-                    {articleId == null ? "文章数据加载中，请稍候..." : "点击上方按钮，让 AI 帮你总结这篇文章的核心内容"}
-                </div>
+                <div className={styles.contentPlaceholder}>{articleId == null ? t("ai.waiting") : t("ai.intro")}</div>
             )}
 
             {/* 完成后的底部免责声明 */}
             {isCompleted && !error && text && (
                 <div className={styles.footer}>
-                    <span className={styles.disclaimer}>内容由 AI 生成，仅供参考</span>
+                    <span className={styles.disclaimer}>{t("ai.disclaimer")}</span>
                 </div>
             )}
         </div>

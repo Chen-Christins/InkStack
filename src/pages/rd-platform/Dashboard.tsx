@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { useRdNavigate } from "@/hooks/UseRdNavigate.ts";
 import { formatDateTime } from "@/utils/Utils.ts";
 import { FaClipboardList, FaBug, FaTasks, FaExclamationTriangle, FaCode } from "react-icons/fa";
@@ -11,6 +12,7 @@ import AssigneeDisplay from "@/components/assigneeDisplay/AssigneeDisplay";
 import type { RdStats, Requirement, Bug, Task } from "@/types/RdPlatform.ts";
 
 const Dashboard: React.FC = () => {
+    const { t } = useTranslation("rd");
     const navigate = useRdNavigate();
     const { selectedOrgId } = useRdOrg();
     const [stats, setStats] = useState<RdStats | null>(null);
@@ -48,39 +50,39 @@ const Dashboard: React.FC = () => {
     }
 
     const statusText: Record<string, string> = {
-        new: "新建",
-        developing: "开发中",
-        testing: "测试中",
-        done: "已完成",
-        closed: "已关闭",
-        accepted: "已受理",
-        processing: "处理中",
-        verified: "已验证",
-        reopened: "已重开",
-        todo: "待办",
-        doing: "进行中",
+        new: t("dashboard.status.new"),
+        developing: t("dashboard.status.developing"),
+        testing: t("dashboard.status.testing"),
+        done: t("dashboard.status.done"),
+        closed: t("dashboard.status.closed"),
+        accepted: t("dashboard.status.accepted"),
+        processing: t("dashboard.status.processing"),
+        verified: t("dashboard.status.verified"),
+        reopened: t("dashboard.status.reopened"),
+        todo: t("dashboard.status.todo"),
+        doing: t("dashboard.status.doing"),
     };
 
     const priorityText: Record<string, string> = {
-        urgent: "紧急",
-        high: "高",
-        medium: "中",
-        low: "低",
+        urgent: t("dashboard.priority.urgent"),
+        high: t("dashboard.priority.high"),
+        medium: t("dashboard.priority.medium"),
+        low: t("dashboard.priority.low"),
     };
 
     const severityText: Record<string, string> = {
-        fatal: "致命",
-        serious: "严重",
-        normal: "一般",
-        minor: "轻微",
+        fatal: t("dashboard.severity.fatal"),
+        serious: t("dashboard.severity.serious"),
+        normal: t("dashboard.severity.normal"),
+        minor: t("dashboard.severity.minor"),
     };
 
     return (
         <div className={styles.dashboard}>
             <div className={styles.pageHeader}>
                 <div>
-                    <h1 className={styles.pageTitle}>研发仪表盘</h1>
-                    <p className={styles.pageDescription}>项目全局概览与最近动态</p>
+                    <h1 className={styles.pageTitle}>{t("dashboard.title")}</h1>
+                    <p className={styles.pageDescription}>{t("dashboard.description")}</p>
                 </div>
             </div>
 
@@ -91,60 +93,62 @@ const Dashboard: React.FC = () => {
                         <FaClipboardList />
                     </div>
                     <div className={styles.statValue}>{stats?.totalRequirements ?? 0}</div>
-                    <div className={styles.statLabel}>需求总数</div>
-                    <div className={styles.statSub}>未关闭 {stats?.openRequirements ?? 0}</div>
+                    <div className={styles.statLabel}>{t("dashboard.stats.totalRequirements")}</div>
+                    <div className={styles.statSub}>
+                        {t("dashboard.stats.openRequirements", { value: stats?.openRequirements ?? 0 })}
+                    </div>
                 </div>
                 <div className={styles.statCard} onClick={() => navigate("/rd/bugs")}>
                     <div className={`${styles.statIcon} ${styles.danger}`}>
                         <FaBug />
                     </div>
                     <div className={styles.statValue}>{stats?.totalBugs ?? 0}</div>
-                    <div className={styles.statLabel}>缺陷总数</div>
-                    <div className={styles.statSub}>未解决 {stats?.unresolvedBugs ?? 0}</div>
+                    <div className={styles.statLabel}>{t("dashboard.stats.totalBugs")}</div>
+                    <div className={styles.statSub}>{t("dashboard.stats.unresolvedBugs", { value: stats?.unresolvedBugs ?? 0 })}</div>
                 </div>
                 <div className={styles.statCard} onClick={() => navigate("/rd/tasks")}>
                     <div className={`${styles.statIcon} ${styles.success}`}>
                         <FaTasks />
                     </div>
                     <div className={styles.statValue}>{stats?.totalTasks ?? 0}</div>
-                    <div className={styles.statLabel}>任务总数</div>
-                    <div className={styles.statSub}>已逾期 {stats?.overdueTasks ?? 0}</div>
+                    <div className={styles.statLabel}>{t("dashboard.stats.totalTasks")}</div>
+                    <div className={styles.statSub}>{t("dashboard.stats.overdueTasks", { value: stats?.overdueTasks ?? 0 })}</div>
                 </div>
                 <div className={styles.statCard} onClick={() => navigate("/rd/reviews")}>
                     <div className={`${styles.statIcon} ${styles.warning}`}>
                         <FaCode />
                     </div>
                     <div className={styles.statValue}>{reviewStats.totalReviews}</div>
-                    <div className={styles.statLabel}>审查总数</div>
-                    <div className={styles.statSub}>待审核 {reviewStats.pendingReviews}</div>
+                    <div className={styles.statLabel}>{t("dashboard.stats.totalReviews")}</div>
+                    <div className={styles.statSub}>{t("dashboard.stats.pendingReviews", { value: reviewStats.pendingReviews })}</div>
                 </div>
                 <div className={styles.statCard}>
                     <div className={`${styles.statIcon} ${styles.warning}`}>
                         <FaExclamationTriangle />
                     </div>
                     <div className={styles.statValue}>{(stats?.openRequirements ?? 0) + (stats?.unresolvedBugs ?? 0)}</div>
-                    <div className={styles.statLabel}>待处理工作项</div>
-                    <div className={styles.statSub}>需求 + 缺陷</div>
+                    <div className={styles.statLabel}>{t("dashboard.stats.pendingWorkItems")}</div>
+                    <div className={styles.statSub}>{t("dashboard.stats.requirementsAndBugs")}</div>
                 </div>
             </div>
 
             {/* 最近的需求 */}
             <div className={styles.section}>
                 <div className={styles.sectionHeader}>
-                    <h2 className={styles.sectionTitle}>最近需求</h2>
+                    <h2 className={styles.sectionTitle}>{t("dashboard.requirements.title")}</h2>
                     <button className={styles.viewAllBtn} onClick={() => navigate("/rd/requirements")}>
-                        查看全部 →
+                        {t("dashboard.viewAll")}
                     </button>
                 </div>
                 <div className={styles.tableWrapper}>
                     <table className={styles.table}>
                         <thead>
                             <tr>
-                                <th>标题</th>
-                                <th>优先级</th>
-                                <th>状态</th>
-                                <th>负责人</th>
-                                <th>创建时间</th>
+                                <th>{t("dashboard.table.title")}</th>
+                                <th>{t("dashboard.table.priority")}</th>
+                                <th>{t("dashboard.table.status")}</th>
+                                <th>{t("dashboard.table.assignee")}</th>
+                                <th>{t("dashboard.table.createdAt")}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -154,21 +158,21 @@ const Dashboard: React.FC = () => {
                                     className={styles.clickableRow}
                                     onClick={() => navigate(`/rd/requirements/${encodeId(r.id, "requirement")}`)}
                                 >
-                                    <td data-label="标题">{r.title}</td>
-                                    <td data-label="优先级">
+                                    <td data-label={t("dashboard.table.title")}>{r.title}</td>
+                                    <td data-label={t("dashboard.table.priority")}>
                                         <span className={`${styles.badge} ${styles[`priority_${r.priority}`]}`}>
                                             {priorityText[r.priority]}
                                         </span>
                                     </td>
-                                    <td data-label="状态">
+                                    <td data-label={t("dashboard.table.status")}>
                                         <span className={`${styles.badge} ${styles[`status_${r.status}`]}`}>
                                             {statusText[r.status] || r.status}
                                         </span>
                                     </td>
-                                    <td data-label="负责人">
+                                    <td data-label={t("dashboard.table.assignee")}>
                                         <AssigneeDisplay name={r.assignee} avatar={r.assigneeAvatar} />
                                     </td>
-                                    <td data-label="创建时间">{formatDateTime(r.createdAt)}</td>
+                                    <td data-label={t("dashboard.table.createdAt")}>{formatDateTime(r.createdAt)}</td>
                                 </tr>
                             ))}
                             {recentRequirements.length === 0 && (
@@ -177,7 +181,7 @@ const Dashboard: React.FC = () => {
                                         <div className={styles.emptyCellIcon}>
                                             <FaClipboardList />
                                         </div>
-                                        <div className={styles.emptyCellText}>暂无需求</div>
+                                        <div className={styles.emptyCellText}>{t("dashboard.requirements.empty")}</div>
                                     </td>
                                 </tr>
                             )}
@@ -189,21 +193,21 @@ const Dashboard: React.FC = () => {
             {/* 最近的缺陷 */}
             <div className={styles.section}>
                 <div className={styles.sectionHeader}>
-                    <h2 className={styles.sectionTitle}>最近缺陷</h2>
+                    <h2 className={styles.sectionTitle}>{t("dashboard.bugs.title")}</h2>
                     <button className={styles.viewAllBtn} onClick={() => navigate("/rd/bugs")}>
-                        查看全部 →
+                        {t("dashboard.viewAll")}
                     </button>
                 </div>
                 <div className={styles.tableWrapper}>
                     <table className={styles.table}>
                         <thead>
                             <tr>
-                                <th>标题</th>
-                                <th>严重程度</th>
-                                <th>优先级</th>
-                                <th>状态</th>
-                                <th>负责人</th>
-                                <th>创建时间</th>
+                                <th>{t("dashboard.table.title")}</th>
+                                <th>{t("dashboard.table.severity")}</th>
+                                <th>{t("dashboard.table.priority")}</th>
+                                <th>{t("dashboard.table.status")}</th>
+                                <th>{t("dashboard.table.assignee")}</th>
+                                <th>{t("dashboard.table.createdAt")}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -213,26 +217,26 @@ const Dashboard: React.FC = () => {
                                     className={styles.clickableRow}
                                     onClick={() => navigate(`/rd/bugs/${encodeId(b.id, "bug")}`)}
                                 >
-                                    <td data-label="标题">{b.title}</td>
-                                    <td data-label="严重程度">
+                                    <td data-label={t("dashboard.table.title")}>{b.title}</td>
+                                    <td data-label={t("dashboard.table.severity")}>
                                         <span className={`${styles.badge} ${styles[`severity_${b.severity}`]}`}>
                                             {severityText[b.severity]}
                                         </span>
                                     </td>
-                                    <td data-label="优先级">
+                                    <td data-label={t("dashboard.table.priority")}>
                                         <span className={`${styles.badge} ${styles[`priority_${b.priority}`]}`}>
                                             {priorityText[b.priority]}
                                         </span>
                                     </td>
-                                    <td data-label="状态">
+                                    <td data-label={t("dashboard.table.status")}>
                                         <span className={`${styles.badge} ${styles[`status_${b.status}`]}`}>
                                             {statusText[b.status] || b.status}
                                         </span>
                                     </td>
-                                    <td data-label="负责人">
+                                    <td data-label={t("dashboard.table.assignee")}>
                                         <AssigneeDisplay name={b.assignee} avatar={b.assigneeAvatar} />
                                     </td>
-                                    <td data-label="创建时间">{formatDateTime(b.createdAt)}</td>
+                                    <td data-label={t("dashboard.table.createdAt")}>{formatDateTime(b.createdAt)}</td>
                                 </tr>
                             ))}
                             {recentBugs.length === 0 && (
@@ -241,7 +245,7 @@ const Dashboard: React.FC = () => {
                                         <div className={styles.emptyCellIcon}>
                                             <FaBug />
                                         </div>
-                                        <div className={styles.emptyCellText}>暂无缺陷</div>
+                                        <div className={styles.emptyCellText}>{t("dashboard.bugs.empty")}</div>
                                     </td>
                                 </tr>
                             )}
@@ -253,44 +257,46 @@ const Dashboard: React.FC = () => {
             {/* 最近的任务 */}
             <div className={styles.section}>
                 <div className={styles.sectionHeader}>
-                    <h2 className={styles.sectionTitle}>最近任务</h2>
+                    <h2 className={styles.sectionTitle}>{t("dashboard.tasks.title")}</h2>
                     <button className={styles.viewAllBtn} onClick={() => navigate("/rd/tasks")}>
-                        查看全部 →
+                        {t("dashboard.viewAll")}
                     </button>
                 </div>
                 <div className={styles.tableWrapper}>
                     <table className={styles.table}>
                         <thead>
                             <tr>
-                                <th>标题</th>
-                                <th>状态</th>
-                                <th>优先级</th>
-                                <th>负责人</th>
-                                <th>截止日期</th>
+                                <th>{t("dashboard.table.title")}</th>
+                                <th>{t("dashboard.table.status")}</th>
+                                <th>{t("dashboard.table.priority")}</th>
+                                <th>{t("dashboard.table.assignee")}</th>
+                                <th>{t("dashboard.table.deadline")}</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {recentTasks.map((t) => (
+                            {recentTasks.map((task) => (
                                 <tr
-                                    key={t.id}
+                                    key={task.id}
                                     className={styles.clickableRow}
-                                    onClick={() => navigate(`/rd/tasks/${encodeId(t.id, "task")}`)}
+                                    onClick={() => navigate(`/rd/tasks/${encodeId(task.id, "task")}`)}
                                 >
-                                    <td data-label="标题">{t.title}</td>
-                                    <td data-label="状态">
-                                        <span className={`${styles.badge} ${styles[`status_${t.status}`]}`}>
-                                            {statusText[t.status]}
+                                    <td data-label={t("dashboard.table.title")}>{task.title}</td>
+                                    <td data-label={t("dashboard.table.status")}>
+                                        <span className={`${styles.badge} ${styles[`status_${task.status}`]}`}>
+                                            {statusText[task.status]}
                                         </span>
                                     </td>
-                                    <td data-label="优先级">
-                                        <span className={`${styles.badge} ${styles[`priority_${t.priority}`]}`}>
-                                            {priorityText[t.priority]}
+                                    <td data-label={t("dashboard.table.priority")}>
+                                        <span className={`${styles.badge} ${styles[`priority_${task.priority}`]}`}>
+                                            {priorityText[task.priority]}
                                         </span>
                                     </td>
-                                    <td data-label="负责人">
-                                        <AssigneeDisplay name={t.assignee} avatar={t.assigneeAvatar} />
+                                    <td data-label={t("dashboard.table.assignee")}>
+                                        <AssigneeDisplay name={task.assignee} avatar={task.assigneeAvatar} />
                                     </td>
-                                    <td data-label="截止日期">{t.deadline ? formatDateTime(t.deadline) : "-"}</td>
+                                    <td data-label={t("dashboard.table.deadline")}>
+                                        {task.deadline ? formatDateTime(task.deadline) : "-"}
+                                    </td>
                                 </tr>
                             ))}
                             {recentTasks.length === 0 && (
@@ -299,7 +305,7 @@ const Dashboard: React.FC = () => {
                                         <div className={styles.emptyCellIcon}>
                                             <FaTasks />
                                         </div>
-                                        <div className={styles.emptyCellText}>暂无任务</div>
+                                        <div className={styles.emptyCellText}>{t("dashboard.tasks.empty")}</div>
                                     </td>
                                 </tr>
                             )}

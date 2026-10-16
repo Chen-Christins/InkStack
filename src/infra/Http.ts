@@ -1,4 +1,5 @@
 import axios, { type AxiosInstance, type AxiosRequestConfig, type AxiosResponse, AxiosError } from "axios";
+import i18n from "@/i18n";
 import { getErrorMsg } from "../utils/ErrorCodes.ts";
 import { tokenManager } from "../auth/TokenManager.ts";
 
@@ -148,7 +149,7 @@ class HttpClient {
                 const errno = getResponseErrno(data);
                 const failed = (errno !== undefined && errno !== 0) || (errno === undefined && data.success === false);
                 if (failed) {
-                    const fallbackMessage = getResponseMessage(data) || "请求失败";
+                    const fallbackMessage = getResponseMessage(data) || i18n.t("services:http.requestFailed");
                     const mappedMessage = errno === undefined ? fallbackMessage : getErrorMsg(errno, fallbackMessage);
                     if (errno !== undefined) {
                         businessErrorHandler?.(errno, data);
@@ -166,7 +167,7 @@ class HttpClient {
                 }
 
                 if (!axios.isAxiosError(error)) {
-                    const message = error instanceof Error ? error.message : "请求配置错误";
+                    const message = error instanceof Error ? error.message : i18n.t("services:http.requestConfigError");
                     return Promise.reject(new HttpError(message, 500, {}, { cause: error }));
                 }
 
@@ -180,7 +181,7 @@ class HttpClient {
                     withCredentials: error.config?.withCredentials,
                 });
 
-                let message = "网络错误";
+                let message: string = i18n.t("services:http.networkError");
                 let code = 500;
                 let responseErrno: number | undefined;
                 const isCanceled = axios.isCancel(error) || error.code === AxiosError.ERR_CANCELED;
@@ -196,18 +197,18 @@ class HttpClient {
                         message = getErrorMsg(responseErrno, fallbackMsg);
                         businessErrorHandler?.(responseErrno, data);
                     } else {
-                        message = fallbackMsg || `请求失败 (${status})`;
+                        message = fallbackMsg || i18n.t("services:http.requestFailedStatus", { status });
                     }
                 } else if (isCanceled) {
-                    message = "请求已取消";
+                    message = i18n.t("services:http.requestCanceled");
                 } else if (error.request) {
                     if (isTimeout) {
-                        message = "请求超时";
+                        message = i18n.t("services:http.requestTimeout");
                     } else {
-                        message = "网络连接失败";
+                        message = i18n.t("services:http.networkConnectFailed");
                     }
                 } else {
-                    message = error.message || "请求配置错误";
+                    message = error.message || i18n.t("services:http.requestConfigError");
                 }
 
                 const httpError = new HttpError(message, code, error.config as HttpRequestConfig, {

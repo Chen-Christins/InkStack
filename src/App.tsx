@@ -3,39 +3,34 @@ import "simplebar-react/dist/simplebar.min.css";
 import "./App.css";
 import { BrowserRouter } from "react-router-dom";
 import { useEffect } from "react";
+import { I18nextProvider } from "react-i18next";
+import i18n from "./i18n";
+import { useLanguageSync } from "./i18n/UseLanguageSync";
 import { MessageProvider } from "./components/message/Message";
 import { ConfirmProvider } from "./components/confirm/Confirm";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { AuthProvider } from "./contexts/AuthContext";
 import { LayoutWidthProvider } from "./contexts/LayoutWidthContext";
 import { LayoutModeProvider } from "./contexts/LayoutModeContext";
-import { SiteSettingsProvider, useSiteSettings } from "./contexts/SiteSettingsContext";
+import { SiteSettingsProvider } from "./contexts/SiteSettingsContext";
 import IdleTimeoutHandler from "./components/sessionTimeout/IdleTimeoutHandler";
 import RouterConfig from "./router/RouterConfig";
 import ThemeBackground from "./components/themeBackground";
 import SessionNotifier from "./components/auth/SessionNotifier";
 import { usePresenceConnection } from "./hooks/UseOnlineCount.ts";
 import { useDevToolsProtection } from "./hooks/UseDevToolsProtection.ts";
-import { initErrorCodes, refreshErrorCodes } from "./utils/ErrorCodes.ts";
+import { initErrorCodes } from "./utils/ErrorCodes.ts";
 import "./utils/ErrorHandlers.ts"; // 注册业务 errno 处理器（1101 等）
 
 function AppContent() {
     usePresenceConnection();
     useDevToolsProtection();
-
-    const { settings } = useSiteSettings();
+    useLanguageSync();
 
     // 启动时立即加载错误码（不依赖 settings）
     useEffect(() => {
         initErrorCodes();
     }, []);
-
-    // settings 加载后，语言变化时刷新错误码
-    useEffect(() => {
-        if (settings.language) {
-            refreshErrorCodes(settings.language);
-        }
-    }, [settings.language]);
 
     return (
         <>
@@ -62,19 +57,21 @@ function AppContent() {
 
 function App() {
     return (
-        <BrowserRouter>
-            <ThemeProvider>
-                <AuthProvider>
-                    <LayoutWidthProvider>
-                        <LayoutModeProvider>
-                            <SiteSettingsProvider>
-                                <AppContent />
-                            </SiteSettingsProvider>
-                        </LayoutModeProvider>
-                    </LayoutWidthProvider>
-                </AuthProvider>
-            </ThemeProvider>
-        </BrowserRouter>
+        <I18nextProvider i18n={i18n}>
+            <BrowserRouter>
+                <ThemeProvider>
+                    <AuthProvider>
+                        <LayoutWidthProvider>
+                            <LayoutModeProvider>
+                                <SiteSettingsProvider>
+                                    <AppContent />
+                                </SiteSettingsProvider>
+                            </LayoutModeProvider>
+                        </LayoutWidthProvider>
+                    </AuthProvider>
+                </ThemeProvider>
+            </BrowserRouter>
+        </I18nextProvider>
     );
 }
 

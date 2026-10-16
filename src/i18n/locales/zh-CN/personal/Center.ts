@@ -1,0 +1,35 @@
+const section = {
+    title: "个人中心",
+    defaultUserName: "用户",
+    nav: {
+        articles: "我的文章",
+        assignments: "我的任务",
+        edit: "编辑资料",
+        tags: "我的标签",
+        stats: "数据统计",
+        organizations: "我的组织",
+        following: "我的关注",
+        followers: "我的粉丝",
+        notifications: "通知中心",
+        security: "账户安全",
+        bookmarks: "我的收藏",
+    },
+    expandSidebar: "展开侧边栏",
+    collapseSidebar: "收起侧边栏",
+    openMenu: "打开菜单",
+    loginRequiredTitle: "请先登录",
+    loginRequiredDesc: "您需要登录后才能访问个人中心，查看和管理您的文章、标签及数据统计。",
+    loginNow: "立即登录",
+    backHome: "返回首页",
+    loadingData: "正在加载个人数据...",
+    editProfile: "编辑资料",
+    profileStats: {
+        articles: "文章",
+        following: "关注",
+        followers: "粉丝",
+        tags: "标签",
+        organizations: "组织",
+    },
+} as const;
+
+export default section;

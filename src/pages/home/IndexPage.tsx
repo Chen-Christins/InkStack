@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import styles from "./IndexPage.module.css";
 import classicStyles from "./IndexPageClassic.module.css";
 import ArticleList from "@/components/articleList/ArticleList";
@@ -21,6 +22,7 @@ interface TagItem {
 }
 
 const IndexPage: React.FC = () => {
+    const { t } = useTranslation("home");
     const { user, loading: authLoading } = useAuth();
     const { mode } = useLayoutMode();
 
@@ -120,7 +122,7 @@ const IndexPage: React.FC = () => {
                                 searchKeyword={searchKeyword}
                                 headerRight={
                                     <SearchBox
-                                        placeholder="搜索文章..."
+                                        placeholder={t("searchPlaceholder")}
                                         size="small"
                                         onSearch={(keyword) => setSearchKeyword(keyword.trim())}
                                         onChange={(value) => {
@@ -180,7 +182,7 @@ const IndexPage: React.FC = () => {
                                     searchKeyword={searchKeyword}
                                     headerRight={
                                         <SearchBox
-                                            placeholder="搜索文章..."
+                                            placeholder={t("searchPlaceholder")}
                                             size="small"
                                             onSearch={(keyword) => setSearchKeyword(keyword.trim())}
                                             onChange={(value) => {

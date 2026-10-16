@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom"; // Assuming react-router-dom is used
+import { useTranslation } from "react-i18next";
 import { encodeId } from "@/utils/HashId.ts";
 import { FaBuilding, FaCheckCircle, FaUserFriends, FaLock, FaClipboardList, FaArrowRight, FaPlus, FaFlask } from "react-icons/fa";
 import Skeleton from "@/components/skeleton/Skeleton";
@@ -22,6 +23,7 @@ interface Organization {
 
 const OrganizationList: React.FC = () => {
     const navigate = useNavigate();
+    const { t } = useTranslation("organization");
     const { user: currentUser } = useAuth();
     const [filter, setFilter] = useState<"all" | "active" | "inactive">("all");
     const [loading, setLoading] = useState(true);
@@ -86,7 +88,7 @@ const OrganizationList: React.FC = () => {
                 }));
                 setOrganizations(mapped);
             } catch (e) {
-                message.error("获取组织列表失败");
+                message.error(t("list.fetchFailed"));
             } finally {
                 setLoading(false);
             }
@@ -106,13 +108,13 @@ const OrganizationList: React.FC = () => {
             case "active":
                 return (
                     <span className={`${styles.statusBadge} ${styles.statusActive}`}>
-                        <FaCheckCircle /> 正常
+                        <FaCheckCircle /> {t("list.status.active")}
                     </span>
                 );
             case "inactive":
                 return (
                     <span className={`${styles.statusBadge} ${styles.statusInactive}`}>
-                        <FaLock /> 停用
+                        <FaLock /> {t("list.status.inactive")}
                     </span>
                 ); // Using FaLock for inactive
             default:
@@ -123,15 +125,15 @@ const OrganizationList: React.FC = () => {
     return (
         <>
             <div className={styles.mainContent}>
-                <AuthRequired message="您需要登录后才能查看和管理组织列表。">
+                <AuthRequired message={t("list.authRequired")}>
                     <>
                         <div className={styles.pageHeader}>
                             <div className={styles.pageHeaderTop}>
                                 <h1 className={styles.pageTitle}>
-                                    <FaBuilding /> 组织列表
+                                    <FaBuilding /> {t("list.title")}
                                 </h1>
                                 <button className={styles.applyBtn} onClick={() => setApplyVisible(true)}>
-                                    <FaPlus /> 申请创建组织
+                                    <FaPlus /> {t("list.applyCreate")}
                                 </button>
                             </div>
                             <div className={styles.filterBar}>
@@ -139,19 +141,19 @@ const OrganizationList: React.FC = () => {
                                     className={`${styles.filterBtn} ${filter === "all" ? styles.active : ""}`}
                                     onClick={() => setFilter("all")}
                                 >
-                                    全部
+                                    {t("list.filter.all")}
                                 </button>
                                 <button
                                     className={`${styles.filterBtn} ${filter === "active" ? styles.active : ""}`}
                                     onClick={() => setFilter("active")}
                                 >
-                                    正常
+                                    {t("list.filter.active")}
                                 </button>
                                 <button
                                     className={`${styles.filterBtn} ${filter === "inactive" ? styles.active : ""}`}
                                     onClick={() => setFilter("inactive")}
                                 >
-                                    停用
+                                    {t("list.filter.inactive")}
                                 </button>
                             </div>
                         </div>
@@ -195,7 +197,7 @@ const OrganizationList: React.FC = () => {
                                         <div className={styles.cardFooter}>
                                             <div className={styles.cardMetric}>
                                                 <FaUserFriends />
-                                                {org.memberCount} 成员
+                                                {t("list.memberCount", { value: org.memberCount })}
                                             </div>
                                             <div className={styles.cardActions}>
                                                 {rdOrgIds.has(org.id) && (
@@ -204,7 +206,7 @@ const OrganizationList: React.FC = () => {
                                                         onClick={() => navigate(`/rd?org=${encodeId(org.id, "organization")}`)}
                                                     >
                                                         <FaFlask />
-                                                        研发
+                                                        {t("list.rd")}
                                                     </button>
                                                 )}
                                                 <button
@@ -213,7 +215,7 @@ const OrganizationList: React.FC = () => {
                                                         navigate(`/organization/detail/${encodeId(org.id, "organization")}`)
                                                     }
                                                 >
-                                                    查看详情
+                                                    {t("list.viewDetail")}
                                                     <FaArrowRight />
                                                 </button>
                                             </div>
@@ -224,8 +226,8 @@ const OrganizationList: React.FC = () => {
                         ) : (
                             <div className={styles.emptyState}>
                                 <FaClipboardList className={styles.emptyIcon} />
-                                <h3 className={styles.emptyText}>暂无组织</h3>
-                                <p className={styles.emptySubtext}>当前筛选条件下没有找到相关组织</p>
+                                <h3 className={styles.emptyText}>{t("list.empty.title")}</h3>
+                                <p className={styles.emptySubtext}>{t("list.empty.subtitle")}</p>
                             </div>
                         )}
                     </>

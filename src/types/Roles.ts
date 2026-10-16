@@ -13,14 +13,6 @@ export const PlatformRole = {
 
 export type PlatformRole = (typeof PlatformRole)[keyof typeof PlatformRole];
 
-/** 平台角色 → 中文显示名 */
-export const PlatformRoleLabel: Record<PlatformRole, string> = {
-    [PlatformRole.USER]: "用户",
-    [PlatformRole.ADMIN]: "管理员",
-    [PlatformRole.EDITOR]: "编辑",
-    [PlatformRole.CHECKER]: "审核员",
-};
-
 /** 平台角色 → CSS 类名 */
 export const PlatformRoleCSS: Record<PlatformRole, string> = {
     [PlatformRole.USER]: "user",
@@ -48,15 +40,6 @@ export const OrgRole = {
 } as const;
 
 export type OrgRole = (typeof OrgRole)[keyof typeof OrgRole];
-
-/** 组织角色 → 中文显示名 */
-export const OrgRoleLabel: Record<OrgRole, string> = {
-    [OrgRole.MEMBER]: "普通成员",
-    [OrgRole.REPORTER]: "报告者",
-    [OrgRole.DEVELOPER]: "开发者",
-    [OrgRole.DEV_LEAD]: "研发主管",
-    [OrgRole.ORG_ADMIN]: "组织管理员",
-};
 
 // ===== 工单级别权限（仅看组织角色自身等级） =====
 
@@ -147,23 +130,28 @@ export const canSetMemberRole = (
 };
 
 /**
- * 获取当前用户可设置的角色选项（纯数值 + 中文标签，不含 UI 元素）
+ * 获取当前用户可设置的角色选项（纯数值 + 本地化标签，不含 UI 元素）
+ * @param myRole 当前用户组织角色
+ * @param labels 组织角色本地化标签映射（来自 useEnumLabels().orgRole）
  */
-export const getAvailableRoles = (myRole: number | null | undefined): { value: OrgRole; label: string }[] => {
+export const getAvailableRoles = (
+    myRole: number | null | undefined,
+    labels: Record<OrgRole, string>,
+): { value: OrgRole; label: string }[] => {
     if (myRole === OrgRole.DEV_LEAD) {
         return [
-            { value: OrgRole.MEMBER, label: OrgRoleLabel[OrgRole.MEMBER] },
-            { value: OrgRole.REPORTER, label: OrgRoleLabel[OrgRole.REPORTER] },
-            { value: OrgRole.DEVELOPER, label: OrgRoleLabel[OrgRole.DEVELOPER] },
+            { value: OrgRole.MEMBER, label: labels[OrgRole.MEMBER] },
+            { value: OrgRole.REPORTER, label: labels[OrgRole.REPORTER] },
+            { value: OrgRole.DEVELOPER, label: labels[OrgRole.DEVELOPER] },
         ];
     }
     if (myRole === OrgRole.ORG_ADMIN) {
         return [
-            { value: OrgRole.MEMBER, label: OrgRoleLabel[OrgRole.MEMBER] },
-            { value: OrgRole.REPORTER, label: OrgRoleLabel[OrgRole.REPORTER] },
-            { value: OrgRole.DEVELOPER, label: OrgRoleLabel[OrgRole.DEVELOPER] },
-            { value: OrgRole.DEV_LEAD, label: OrgRoleLabel[OrgRole.DEV_LEAD] },
-            { value: OrgRole.ORG_ADMIN, label: OrgRoleLabel[OrgRole.ORG_ADMIN] },
+            { value: OrgRole.MEMBER, label: labels[OrgRole.MEMBER] },
+            { value: OrgRole.REPORTER, label: labels[OrgRole.REPORTER] },
+            { value: OrgRole.DEVELOPER, label: labels[OrgRole.DEVELOPER] },
+            { value: OrgRole.DEV_LEAD, label: labels[OrgRole.DEV_LEAD] },
+            { value: OrgRole.ORG_ADMIN, label: labels[OrgRole.ORG_ADMIN] },
         ];
     }
     return [];

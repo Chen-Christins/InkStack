@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import {
     FaPlus,
     FaSearch,
@@ -73,6 +74,7 @@ const PRIORITY_NUMBER_MAP_STR: Record<number, string> = {
 };
 
 const AssignmentManagement: React.FC = () => {
+    const { t } = useTranslation("admin");
     const [loading, setLoading] = useState(true);
     const [assignments, setAssignments] = useState<Assignment[]>([]);
     const [searchTerm, setSearchTerm] = useState("");
@@ -154,7 +156,7 @@ const AssignmentManagement: React.FC = () => {
             setTotal(res.total);
         } catch (error) {
             console.error("获取任务列表失败:", error);
-            message.error("获取任务列表失败");
+            message.error(t("assignments.message.fetchListFailed"));
         } finally {
             setLoading(false);
         }
@@ -222,7 +224,7 @@ const AssignmentManagement: React.FC = () => {
             !formData.allowedTypes ||
             formData.allowedTypes.length === 0
         ) {
-            message.error("请填写完整信息");
+            message.error(t("assignments.message.incomplete"));
             return;
         }
 
@@ -243,7 +245,7 @@ const AssignmentManagement: React.FC = () => {
                 });
                 await fetchAssignments(); // 刷新列表
                 fetchStats();
-                message.success("任务更新成功");
+                message.success(t("assignments.message.updateSuccess"));
             } else {
                 // 创建模式
                 await AssignmentService.createAssignment({
@@ -258,12 +260,12 @@ const AssignmentManagement: React.FC = () => {
                 });
                 await fetchAssignments(); // 刷新列表
                 fetchStats();
-                message.success("任务发布成功");
+                message.success(t("assignments.message.publishSuccess"));
             }
             setIsModalVisible(false);
         } catch (error: any) {
             console.error("操作失败:", error);
-            message.error(error.message || "操作失败");
+            message.error(error.message || t("assignments.message.operationFailed"));
         } finally {
             setLoading(false);
         }
@@ -321,10 +323,10 @@ const AssignmentManagement: React.FC = () => {
 
     const handleDelete = async (id: string) => {
         const isConfirmed = await confirm({
-            title: "确认删除",
-            content: "您确定要删除这个任务吗？删除后无法恢复，且所有学生的提交记录也将被删除。",
-            confirmText: "删除",
-            cancelText: "取消",
+            title: t("assignments.delete.title"),
+            content: t("assignments.delete.content"),
+            confirmText: t("assignments.delete.confirmText"),
+            cancelText: t("assignments.delete.cancelText"),
         });
 
         if (isConfirmed) {
@@ -333,10 +335,10 @@ const AssignmentManagement: React.FC = () => {
                 await AssignmentService.deleteAssignments({ ids: id });
                 await fetchAssignments(); // 刷新列表
                 fetchStats();
-                message.success("任务已删除");
+                message.success(t("assignments.delete.success"));
             } catch (error) {
                 console.error("删除失败:", error);
-                message.error("删除失败");
+                message.error(t("assignments.delete.error"));
             } finally {
                 setLoading(false);
             }
@@ -348,19 +350,19 @@ const AssignmentManagement: React.FC = () => {
             case "active":
                 return (
                     <span className={`${styles.statusBadge} ${styles.statusActive}`}>
-                        <FaCheckCircle /> 进行中
+                        <FaCheckCircle /> {t("assignments.status.active")}
                     </span>
                 );
             case "draft":
                 return (
                     <span className={`${styles.statusBadge} ${styles.statusDraft}`}>
-                        <FaEdit /> 草稿
+                        <FaEdit /> {t("assignments.status.draft")}
                     </span>
                 );
             case "closed":
                 return (
                     <span className={`${styles.statusBadge} ${styles.statusClosed}`}>
-                        <FaTimesCircle /> 已结束
+                        <FaTimesCircle /> {t("assignments.status.closed")}
                     </span>
                 );
             default:
@@ -376,12 +378,12 @@ const AssignmentManagement: React.FC = () => {
         <div className={styles.container}>
             <div className={styles.pageHeader}>
                 <div>
-                    <h1 className={styles.pageTitle}>任务管理</h1>
-                    <p className={styles.pageDescription}>管理系统中的所有任务，包括发布、筛选和状态管理</p>
+                    <h1 className={styles.pageTitle}>{t("assignments.pageTitle")}</h1>
+                    <p className={styles.pageDescription}>{t("assignments.pageDescription")}</p>
                 </div>
                 <div className={styles.headerActions}>
                     <button className={`${styles.btn} ${styles.btnPrimary}`} onClick={openCreateModal}>
-                        <FaPlus /> 发布任务
+                        <FaPlus /> {t("assignments.publishTask")}
                     </button>
                 </div>
             </div>
@@ -391,28 +393,28 @@ const AssignmentManagement: React.FC = () => {
                         <FaBookOpen />
                     </div>
                     <div className={styles.statValue}>{stats.total}</div>
-                    <div className={styles.statLabel}>总任务数</div>
+                    <div className={styles.statLabel}>{t("assignments.stats.total")}</div>
                 </div>
                 <div className={styles.statCard}>
                     <div className={`${styles.statIcon} ${styles.success}`}>
                         <FaCheckCircle />
                     </div>
                     <div className={styles.statValue}>{stats.active}</div>
-                    <div className={styles.statLabel}>进行中</div>
+                    <div className={styles.statLabel}>{t("assignments.stats.active")}</div>
                 </div>
                 <div className={styles.statCard}>
                     <div className={`${styles.statIcon} ${styles.error}`}>
                         <FaTimesCircle />
                     </div>
                     <div className={styles.statValue}>{stats.closed}</div>
-                    <div className={styles.statLabel}>已结束</div>
+                    <div className={styles.statLabel}>{t("assignments.stats.closed")}</div>
                 </div>
                 <div className={styles.statCard}>
                     <div className={`${styles.statIcon} ${styles.warning}`}>
                         <FaEdit />
                     </div>
                     <div className={styles.statValue}>{stats.draft}</div>
-                    <div className={styles.statLabel}>草稿箱</div>
+                    <div className={styles.statLabel}>{t("assignments.stats.draft")}</div>
                 </div>
             </div>
 
@@ -420,14 +422,14 @@ const AssignmentManagement: React.FC = () => {
                 <div className={styles.filterHeader}>
                     <h3 className={styles.filterTitle}>
                         <FaFilter />
-                        筛选条件
+                        {t("assignments.filter.title")}
                     </h3>
                 </div>
                 <div className={styles.filterForm}>
                     <div className={styles.filterGroup}>
-                        <label className={styles.filterLabel}>搜索任务</label>
+                        <label className={styles.filterLabel}>{t("assignments.filter.searchLabel")}</label>
                         <Input
-                            placeholder="搜索任务标题或类型名称..."
+                            placeholder={t("assignments.filter.searchPlaceholder")}
                             value={searchTerm}
                             onChange={(value) => setSearchTerm(value)}
                             prefix={<FaSearch />}
@@ -436,29 +438,29 @@ const AssignmentManagement: React.FC = () => {
                         />
                     </div>
                     <div className={styles.filterGroup}>
-                        <label className={styles.filterLabel}>任务状态</label>
+                        <label className={styles.filterLabel}>{t("assignments.filter.statusLabel")}</label>
                         <CustomSelect
-                            name="状态筛选"
+                            name={t("assignments.filter.statusSelectName")}
                             options={[
-                                { id: "all", name: "所有状态", color: "var(--text-secondary)" },
-                                { id: "active", name: "进行中", color: "var(--success)" },
-                                { id: "closed", name: "已结束", color: "var(--error)" },
-                                { id: "draft", name: "草稿", color: "var(--warning)" },
+                                { id: "all", name: t("assignments.status.all"), color: "var(--text-secondary)" },
+                                { id: "active", name: t("assignments.status.active"), color: "var(--success)" },
+                                { id: "closed", name: t("assignments.status.closed"), color: "var(--error)" },
+                                { id: "draft", name: t("assignments.status.draft"), color: "var(--warning)" },
                             ]}
                             value={{
                                 id: statusFilter,
                                 name:
                                     statusFilter === "all"
-                                        ? "所有状态"
+                                        ? t("assignments.status.all")
                                         : statusFilter === "active"
-                                          ? "进行中"
+                                          ? t("assignments.status.active")
                                           : statusFilter === "closed"
-                                            ? "已结束"
-                                            : "草稿",
+                                            ? t("assignments.status.closed")
+                                            : t("assignments.status.draft"),
                                 color: "",
                             }}
                             onChange={(option) => setStatusFilter(option ? String(option.id) : "all")}
-                            placeholder="状态筛选"
+                            placeholder={t("assignments.filter.statusPlaceholder")}
                             hideBadge={true}
                         />
                     </div>
@@ -467,24 +469,26 @@ const AssignmentManagement: React.FC = () => {
 
             <div className={styles.tableContainer}>
                 <div className={styles.tableHeader}>
-                    <h3 className={styles.tableTitle}>任务列表</h3>
+                    <h3 className={styles.tableTitle}>{t("assignments.table.title")}</h3>
                     <div className={styles.tableActions}>
-                        <span style={{ fontSize: "14px", color: "var(--text-secondary)" }}>共 {total} 个任务</span>
+                        <span style={{ fontSize: "14px", color: "var(--text-secondary)" }}>
+                            {t("assignments.table.totalTasks", { total })}
+                        </span>
                     </div>
                 </div>
                 <table className={styles.assignmentTable}>
                     <thead>
                         <tr>
-                            <th style={{ textAlign: "left" }}>任务信息</th>
-                            <th>所属类型</th>
-                            <th>所属组织</th>
-                            <th>负责人</th>
-                            <th>优先级</th>
-                            <th>截止时间</th>
-                            <th>提交情况</th>
-                            <th>状态</th>
-                            <th>创建时间</th>
-                            <th>操作</th>
+                            <th style={{ textAlign: "left" }}>{t("assignments.table.headers.info")}</th>
+                            <th>{t("assignments.table.headers.course")}</th>
+                            <th>{t("assignments.table.headers.organization")}</th>
+                            <th>{t("assignments.table.headers.assignedBy")}</th>
+                            <th>{t("assignments.table.headers.priority")}</th>
+                            <th>{t("assignments.table.headers.deadline")}</th>
+                            <th>{t("assignments.table.headers.submissions")}</th>
+                            <th>{t("assignments.table.headers.status")}</th>
+                            <th>{t("assignments.table.headers.createdAt")}</th>
+                            <th>{t("assignments.table.headers.actions")}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -529,10 +533,10 @@ const AssignmentManagement: React.FC = () => {
                                     <td style={{ textAlign: "center" }}>
                                         <span className={`${styles.priorityBadge} ${styles[item.priority]}`}>
                                             <FaFlag />
-                                            {item.priority === "low" && "低"}
-                                            {item.priority === "medium" && "中"}
-                                            {item.priority === "high" && "高"}
-                                            {item.priority === "urgent" && "紧急"}
+                                            {item.priority === "low" && t("assignments.priority.low")}
+                                            {item.priority === "medium" && t("assignments.priority.medium")}
+                                            {item.priority === "high" && t("assignments.priority.high")}
+                                            {item.priority === "urgent" && t("assignments.priority.urgent")}
                                         </span>
                                     </td>
                                     <td>
@@ -579,17 +583,21 @@ const AssignmentManagement: React.FC = () => {
                                         <div className={styles.actionButtons}>
                                             <button
                                                 className={styles.actionBtn}
-                                                title="查看详情"
+                                                title={t("assignments.table.view")}
                                                 onClick={() => openPreviewModal(item)}
                                             >
                                                 <FaEye />
                                             </button>
-                                            <button className={styles.actionBtn} title="编辑" onClick={() => openEditModal(item)}>
+                                            <button
+                                                className={styles.actionBtn}
+                                                title={t("assignments.table.edit")}
+                                                onClick={() => openEditModal(item)}
+                                            >
                                                 <FaEdit />
                                             </button>
                                             <button
                                                 className={`${styles.actionBtn} ${styles.delete}`}
-                                                title="删除"
+                                                title={t("assignments.table.delete")}
                                                 onClick={() => handleDelete(item.id)}
                                             >
                                                 <FaTrash />
@@ -608,7 +616,7 @@ const AssignmentManagement: React.FC = () => {
                                         color: "var(--text-secondary)",
                                     }}
                                 >
-                                    暂无数据
+                                    {t("assignments.table.empty")}
                                 </td>
                             </tr>
                         )}
@@ -618,7 +626,11 @@ const AssignmentManagement: React.FC = () => {
                 {totalPages >= 1 && (
                     <div className={styles.pagination}>
                         <span className={styles.pageInfo}>
-                            显示 {startIndex + 1} - {Math.min(startIndex + pageSize, total)} 条， 共 {total} 条记录
+                            {t("assignments.pagination.showing", {
+                                start: startIndex + 1,
+                                end: Math.min(startIndex + pageSize, total),
+                                total,
+                            })}
                         </span>
                         <div className={styles.pageButtons}>
                             <button className={styles.pageBtn} disabled={currentPage === 1} onClick={() => setCurrentPage(1)}>
@@ -667,33 +679,33 @@ const AssignmentManagement: React.FC = () => {
             {/* 创建/编辑模态框 */}
             <Modal
                 visible={isModalVisible}
-                title={currentAssignment ? "编辑任务" : "发布新任务"}
+                title={currentAssignment ? t("assignments.modal.editTitle") : t("assignments.modal.createTitle")}
                 onClose={() => setIsModalVisible(false)}
                 width={600}
                 footer={
                     <>
                         <button className={`${styles.btn} ${styles.btnSecondary}`} onClick={() => setIsModalVisible(false)}>
-                            取消
+                            {t("assignments.modal.cancel")}
                         </button>
                         <button className={`${styles.btn} ${styles.btnPrimary}`} onClick={handleSubmit}>
-                            {currentAssignment ? "保存修改" : "立即发布"}
+                            {currentAssignment ? t("assignments.modal.saveButton") : t("assignments.modal.publishButton")}
                         </button>
                     </>
                 }
             >
                 <div className={styles.formGroup}>
-                    <label className={styles.formLabel}>任务标题 *</label>
+                    <label className={styles.formLabel}>{t("assignments.form.titleLabel")}</label>
                     <Input
-                        placeholder="请输入任务标题"
+                        placeholder={t("assignments.form.titlePlaceholder")}
                         value={formData.title || ""}
                         onChange={(value) => setFormData({ ...formData, title: value })}
                         className={styles.formInput}
                     />
                 </div>
                 <div className={styles.formGroup}>
-                    <label className={styles.formLabel}>所属类型 *</label>
+                    <label className={styles.formLabel}>{t("assignments.form.courseLabel")}</label>
                     <Input
-                        placeholder="请输入类型名称"
+                        placeholder={t("assignments.form.coursePlaceholder")}
                         value={formData.courseName || ""}
                         onChange={(value) => setFormData({ ...formData, courseName: value })}
                         className={styles.formInput}
@@ -701,7 +713,7 @@ const AssignmentManagement: React.FC = () => {
                 </div>
                 <div className={styles.formRow}>
                     <div className={styles.formGroup}>
-                        <label className={styles.formLabel}>截止时间 *</label>
+                        <label className={styles.formLabel}>{t("assignments.form.deadlineLabel")}</label>
                         <DatePicker
                             showTime
                             value={formData.deadline ? new Date(formData.deadline) : undefined}
@@ -714,20 +726,20 @@ const AssignmentManagement: React.FC = () => {
                             size="large"
                             className={styles.formInput}
                             style={{ width: "100%" }}
-                            placeholder="请选择截止时间"
+                            placeholder={t("assignments.form.deadlinePlaceholder")}
                             format="YYYY-MM-DD HH:mm:ss"
                         />
                     </div>
                     <div className={styles.formGroup}>
-                        <label className={styles.formLabel}>文件大小限制 (MB) *</label>
+                        <label className={styles.formLabel}>{t("assignments.form.maxFileSizeLabel")}</label>
                         <Input
                             type="number"
-                            placeholder="请输入最大文件大小 (不超过96MB)"
+                            placeholder={t("assignments.form.maxFileSizePlaceholder")}
                             value={String(formData.maxFileSize || "")}
                             onChange={(value) => {
                                 const num = Number(value);
                                 if (num > 96) {
-                                    message.error("文件大小不能超过96MB");
+                                    message.error(t("assignments.message.fileSizeExceeded"));
                                     return;
                                 }
                                 setFormData({ ...formData, maxFileSize: num });
@@ -738,56 +750,61 @@ const AssignmentManagement: React.FC = () => {
                 </div>
                 <div style={{ display: "flex", gap: "20px" }}>
                     <div className={styles.formGroup} style={{ flex: 1 }}>
-                        <label className={styles.formLabel}>任务状态 *</label>
+                        <label className={styles.formLabel}>{t("assignments.form.statusLabel")}</label>
                         <CustomSelect
-                            name="状态选择"
+                            name={t("assignments.form.statusSelectName")}
                             options={[
-                                { id: "active", name: "进行中", color: "var(--success)" },
-                                { id: "closed", name: "已结束", color: "var(--error)" },
-                                { id: "draft", name: "草稿", color: "var(--warning)" },
+                                { id: "active", name: t("assignments.status.active"), color: "var(--success)" },
+                                { id: "closed", name: t("assignments.status.closed"), color: "var(--error)" },
+                                { id: "draft", name: t("assignments.status.draft"), color: "var(--warning)" },
                             ]}
                             value={{
                                 id: formData.status || "draft",
-                                name: formData.status === "active" ? "进行中" : formData.status === "closed" ? "已结束" : "草稿",
+                                name:
+                                    formData.status === "active"
+                                        ? t("assignments.status.active")
+                                        : formData.status === "closed"
+                                          ? t("assignments.status.closed")
+                                          : t("assignments.status.draft"),
                                 color: "",
                             }}
                             onChange={(option) => setFormData({ ...formData, status: option?.id as any })}
-                            placeholder="请选择状态"
+                            placeholder={t("assignments.form.statusPlaceholder")}
                             hideBadge={true}
                         />
                     </div>
                     <div className={styles.formGroup} style={{ flex: 1 }}>
-                        <label className={styles.formLabel}>优先级 *</label>
+                        <label className={styles.formLabel}>{t("assignments.form.priorityLabel")}</label>
                         <CustomSelect
-                            name="优先级选择"
+                            name={t("assignments.form.prioritySelectName")}
                             options={[
-                                { id: "low", name: "低", color: "#6c757d" },
-                                { id: "medium", name: "中", color: "#ffc107" },
-                                { id: "high", name: "高", color: "#ff9800" },
-                                { id: "urgent", name: "紧急", color: "#dc3545" },
+                                { id: "low", name: t("assignments.priority.low"), color: "#6c757d" },
+                                { id: "medium", name: t("assignments.priority.medium"), color: "#ffc107" },
+                                { id: "high", name: t("assignments.priority.high"), color: "#ff9800" },
+                                { id: "urgent", name: t("assignments.priority.urgent"), color: "#dc3545" },
                             ]}
                             value={{
                                 id: formData.priority || "medium",
                                 name:
                                     formData.priority === "low"
-                                        ? "低"
+                                        ? t("assignments.priority.low")
                                         : formData.priority === "medium"
-                                          ? "中"
+                                          ? t("assignments.priority.medium")
                                           : formData.priority === "high"
-                                            ? "高"
-                                            : "紧急",
+                                            ? t("assignments.priority.high")
+                                            : t("assignments.priority.urgent"),
                                 color: "",
                             }}
                             onChange={(option) => setFormData({ ...formData, priority: option?.id as any })}
-                            placeholder="请选择优先级"
+                            placeholder={t("assignments.form.priorityPlaceholder")}
                             hideBadge={true}
                         />
                     </div>
                 </div>
                 <div className={styles.formGroup}>
-                    <label className={styles.formLabel}>允许文件格式 (用逗号分隔) *</label>
+                    <label className={styles.formLabel}>{t("assignments.form.allowedTypesLabel")}</label>
                     <Input
-                        placeholder="例如: .pdf, .doc, .zip"
+                        placeholder={t("assignments.form.allowedTypesPlaceholder")}
                         value={allowedTypesInput}
                         onChange={(value) => {
                             setAllowedTypesInput(value);
@@ -803,10 +820,10 @@ const AssignmentManagement: React.FC = () => {
                     />
                 </div>
                 <div className={styles.formGroup}>
-                    <label className={styles.formLabel}>任务描述 *</label>
+                    <label className={styles.formLabel}>{t("assignments.form.descriptionLabel")}</label>
                     <textarea
                         className={styles.formTextarea}
-                        placeholder="请输入任务详细描述..."
+                        placeholder={t("assignments.form.descriptionPlaceholder")}
                         value={formData.description || ""}
                         onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                     />
@@ -816,19 +833,19 @@ const AssignmentManagement: React.FC = () => {
             {/* 预览模态框 */}
             <Modal
                 visible={isPreviewVisible}
-                title="任务详情预览"
+                title={t("assignments.preview.title")}
                 onClose={() => setIsPreviewVisible(false)}
                 width={600}
                 footer={
                     <button className={`${styles.btn} ${styles.btnPrimary}`} onClick={() => setIsPreviewVisible(false)}>
-                        关闭
+                        {t("assignments.preview.close")}
                     </button>
                 }
             >
                 {currentAssignment && (
                     <div>
                         <div className={styles.detailGroup}>
-                            <div className={styles.detailLabel}>任务标题</div>
+                            <div className={styles.detailLabel}>{t("assignments.preview.assignmentTitle")}</div>
                             <div className={styles.detailValue} style={{ fontSize: "18px", fontWeight: 600 }}>
                                 {currentAssignment.title}
                             </div>
@@ -836,22 +853,22 @@ const AssignmentManagement: React.FC = () => {
 
                         <div className={styles.detailRow}>
                             <div className={styles.detailGroup}>
-                                <div className={styles.detailLabel}>所属类型</div>
+                                <div className={styles.detailLabel}>{t("assignments.preview.course")}</div>
                                 <div className={styles.detailValue}>{currentAssignment.courseName}</div>
                             </div>
                             <div className={styles.detailGroup}>
-                                <div className={styles.detailLabel}>所属组织</div>
+                                <div className={styles.detailLabel}>{t("assignments.preview.organization")}</div>
                                 <div className={styles.detailValue}>{currentAssignment.organizationName || "-"}</div>
                             </div>
                         </div>
 
                         <div className={styles.detailRow}>
                             <div className={styles.detailGroup}>
-                                <div className={styles.detailLabel}>负责人</div>
+                                <div className={styles.detailLabel}>{t("assignments.preview.assignedBy")}</div>
                                 <div className={styles.detailValue}>{currentAssignment.assignedBy || "-"}</div>
                             </div>
                             <div className={styles.detailGroup}>
-                                <div className={styles.detailLabel}>当前状态</div>
+                                <div className={styles.detailLabel}>{t("assignments.preview.currentStatus")}</div>
                                 <div className={styles.detailValue}>
                                     <div
                                         style={{
@@ -866,10 +883,10 @@ const AssignmentManagement: React.FC = () => {
                                             style={{ marginLeft: "8px" }}
                                         >
                                             <FaFlag />
-                                            {currentAssignment.priority === "low" && "低"}
-                                            {currentAssignment.priority === "medium" && "中"}
-                                            {currentAssignment.priority === "high" && "高"}
-                                            {currentAssignment.priority === "urgent" && "紧急"}
+                                            {currentAssignment.priority === "low" && t("assignments.priority.low")}
+                                            {currentAssignment.priority === "medium" && t("assignments.priority.medium")}
+                                            {currentAssignment.priority === "high" && t("assignments.priority.high")}
+                                            {currentAssignment.priority === "urgent" && t("assignments.priority.urgent")}
                                         </span>
                                     </div>
                                 </div>
@@ -878,32 +895,39 @@ const AssignmentManagement: React.FC = () => {
 
                         <div className={styles.detailRow}>
                             <div className={styles.detailGroup}>
-                                <div className={styles.detailLabel}>截止时间</div>
+                                <div className={styles.detailLabel}>{t("assignments.preview.deadline")}</div>
                                 <div className={styles.detailValue}>{currentAssignment.deadline}</div>
                             </div>
                             <div className={styles.detailGroup}>
-                                <div className={styles.detailLabel}>创建时间</div>
+                                <div className={styles.detailLabel}>{t("assignments.preview.createdAt")}</div>
                                 <div className={styles.detailValue}>{currentAssignment.createdAt}</div>
                             </div>
                         </div>
 
                         <div className={styles.detailRow}>
                             <div className={styles.detailGroup}>
-                                <div className={styles.detailLabel}>文件大小限制</div>
+                                <div className={styles.detailLabel}>{t("assignments.preview.maxFileSize")}</div>
                                 <div className={styles.detailValue}>
-                                    {currentAssignment.maxFileSize ? `${currentAssignment.maxFileSize} MB` : "未设置"}
+                                    {currentAssignment.maxFileSize
+                                        ? `${currentAssignment.maxFileSize} MB`
+                                        : t("assignments.preview.notSet")}
                                 </div>
                             </div>
                             <div className={styles.detailGroup}>
-                                <div className={styles.detailLabel}>允许文件格式</div>
-                                <div className={styles.detailValue}>{currentAssignment.allowedTypes?.join(", ") || "不限"}</div>
+                                <div className={styles.detailLabel}>{t("assignments.preview.allowedTypes")}</div>
+                                <div className={styles.detailValue}>
+                                    {currentAssignment.allowedTypes?.join(", ") || t("assignments.preview.unlimited")}
+                                </div>
                             </div>
                         </div>
 
                         <div className={styles.detailGroup}>
-                            <div className={styles.detailLabel}>提交情况</div>
+                            <div className={styles.detailLabel}>{t("assignments.preview.submissions")}</div>
                             <div className={styles.detailValue}>
-                                已提交 {currentAssignment.submissionCount} / 共 {currentAssignment.totalStudents} 人
+                                {t("assignments.preview.submitted", {
+                                    submitted: currentAssignment.submissionCount,
+                                    total: currentAssignment.totalStudents,
+                                })}
                                 <div
                                     style={{
                                         width: "100%",
@@ -926,7 +950,7 @@ const AssignmentManagement: React.FC = () => {
                         </div>
 
                         <div className={styles.detailGroup}>
-                            <div className={styles.detailLabel}>任务描述</div>
+                            <div className={styles.detailLabel}>{t("assignments.preview.description")}</div>
                             <div
                                 className={styles.detailValue}
                                 style={{
@@ -936,7 +960,7 @@ const AssignmentManagement: React.FC = () => {
                                     minHeight: "80px",
                                 }}
                             >
-                                {currentAssignment.description || "暂无描述"}
+                                {currentAssignment.description || t("assignments.preview.noDescription")}
                             </div>
                         </div>
                     </div>

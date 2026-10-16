@@ -1,6 +1,8 @@
 import { useRdList } from "@/hooks/UseRdList.ts";
 import { useOrgMemberOptions } from "@/hooks/UseOrgMemberOptions.ts";
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
+import i18n from "@/i18n";
 import { useRdNavigate } from "@/hooks/UseRdNavigate.ts";
 import { formatDateTime } from "@/utils/Utils.ts";
 import { encodeId } from "@/utils/HashId.ts";
@@ -27,29 +29,12 @@ import { confirm } from "@/components/confirm/Confirm";
 import message from "@/components/message/Message";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRdOrg } from "@/contexts/RdOrgContext";
+import { useEnumLabels } from "@/i18n/UseEnumLabels";
 import { RdPlatformService as RdAPI } from "@/services/RdPlatformService.ts";
 import AssigneeDisplay from "@/components/assigneeDisplay/AssigneeDisplay";
 import type { Task } from "@/types/RdPlatform.ts";
 import { OrgPermission } from "@/types/RdPlatform.ts";
 import type { SelectOption } from "../../types";
-
-const statusOptions: SelectOption[] = [
-    { id: "", name: "全部状态", color: "#6c757d" },
-    { id: "todo", name: "待办", color: "#3b82f6" },
-    { id: "doing", name: "进行中", color: "#eab308" },
-    { id: "done", name: "已完成", color: "#22c55e" },
-    { id: "closed", name: "已关闭", color: "#6b7280" },
-];
-
-const priorityOptions: SelectOption[] = [
-    { id: "", name: "全部优先级", color: "#6c757d" },
-    { id: "high", name: "高", color: "#ef4444" },
-    { id: "medium", name: "中", color: "#f59e0b" },
-    { id: "low", name: "低", color: "#22c55e" },
-];
-
-const statusText: Record<string, string> = { todo: "待办", doing: "进行中", done: "已完成", closed: "已关闭" };
-const priorityText: Record<string, string> = { high: "高", medium: "中", low: "低" };
 
 const PAGE_SIZE = 10;
 
@@ -66,11 +51,28 @@ const emptyTask = {
 };
 
 const TaskList: React.FC = () => {
+    const { t } = useTranslation("rd");
+    const enums = useEnumLabels();
     const navigate = useRdNavigate();
     const { user } = useAuth();
     const { isAdmin, userOrgIds, orgs, maxOrgRole, selectedOrgId } = useRdOrg();
     const [currentPage, setCurrentPage] = useState(1);
     const [filters, setFilters] = useState({ search: "", status: "", priority: "", assignee: "" });
+
+    const statusOptions: SelectOption[] = [
+        { id: "", name: t("tasks.status.all"), color: "#6c757d" },
+        { id: "todo", name: enums.rdTaskStatus.todo, color: "#3b82f6" },
+        { id: "doing", name: enums.rdTaskStatus.doing, color: "#eab308" },
+        { id: "done", name: enums.rdTaskStatus.done, color: "#22c55e" },
+        { id: "closed", name: enums.rdTaskStatus.closed, color: "#6b7280" },
+    ];
+
+    const priorityOptions: SelectOption[] = [
+        { id: "", name: t("tasks.priority.all"), color: "#6c757d" },
+        { id: "high", name: enums.rdPriority.high, color: "#ef4444" },
+        { id: "medium", name: enums.rdPriority.medium, color: "#f59e0b" },
+        { id: "low", name: enums.rdPriority.low, color: "#22c55e" },
+    ];
 
     // Modal state
     const [modalVisible, setModalVisible] = useState(false);
@@ -124,11 +126,11 @@ const TaskList: React.FC = () => {
 
     const handleSubmit = async () => {
         if (!form.title.trim()) {
-            message.warn("请输入任务标题");
+            message.warn(t("tasks.message.titleRequired"));
             return;
         }
         if (!isAdmin && !form.organizationId) {
-            message.warn("请选择所属组织");
+            message.warn(t("tasks.message.orgRequired"));
             return;
         }
 
@@ -147,35 +149,37 @@ const TaskList: React.FC = () => {
         try {
             if (editingTask) {
                 await RdAPI.updateTask(editingTask.id, data);
-                message.success("任务更新成功");
+                message.success(t("tasks.message.updateSuccess"));
             } else {
-                await RdAPI.createTask({ ...data, creator: user?.name || user?.account || "未知" });
-                message.success("任务创建成功");
+                await RdAPI.createTask({ ...data, creator: user?.name || user?.account || i18n.t("common:unknown") });
+                message.success(t("tasks.message.createSuccess"));
             }
             setModalVisible(false);
             fetchData();
         } catch (err: any) {
-            message.error(err?.message || "操作失败，请稍后重试");
+            message.error(err?.message || t("tasks.message.operationFailed"));
         }
     };
 
     const handleDelete = async (task: Task) => {
         await confirm({
-            title: "确认删除",
+            title: t("tasks.message.deleteConfirmTitle"),
             content: (
                 <div>
-                    确定要删除任务 "<strong>{task.title}</strong>" 吗？
+                    {t("tasks.message.deleteConfirmPrefix")}
+                    <strong>{task.title}</strong>
+                    {t("tasks.message.deleteConfirmSuffix")}
                 </div>
             ),
-            confirmText: "删除",
-            cancelText: "取消",
+            confirmText: t("tasks.actions.delete"),
+            cancelText: t("tasks.modal.cancel"),
             onConfirm: async () => {
                 try {
                     await RdAPI.deleteTask(task.id, task.organizationId);
-                    message.success("任务已删除");
+                    message.success(t("tasks.message.deleteSuccess"));
                     fetchData();
                 } catch (err: any) {
-                    message.error(err?.message || "删除失败");
+                    message.error(err?.message || t("tasks.message.deleteFailed"));
                 }
             },
         });
@@ -215,12 +219,12 @@ const TaskList: React.FC = () => {
         <div className={styles.listPage}>
             <div className={styles.pageHeader}>
                 <div>
-                    <h1 className={styles.pageTitle}>任务管理</h1>
-                    <p className={styles.pageDescription}>管理开发任务，跟踪执行进度</p>
+                    <h1 className={styles.pageTitle}>{t("tasks.page.title")}</h1>
+                    <p className={styles.pageDescription}>{t("tasks.page.description")}</p>
                 </div>
                 {OrgPermission.canCreateTask(maxOrgRole) && (
                     <button className={styles.createBtn} onClick={openCreate}>
-                        <FaPlus /> 新建任务
+                        <FaPlus /> {t("tasks.actions.create")}
                     </button>
                 )}
             </div>
@@ -228,7 +232,7 @@ const TaskList: React.FC = () => {
             <div className={styles.filterSection}>
                 <div className={styles.filterHeader}>
                     <h3 className={styles.filterTitle}>
-                        <FaFilter /> 筛选条件
+                        <FaFilter /> {t("tasks.filters.title")}
                     </h3>
                     <button
                         className={styles.clearBtn}
@@ -237,14 +241,14 @@ const TaskList: React.FC = () => {
                             setCurrentPage(1);
                         }}
                     >
-                        清除筛选
+                        {t("tasks.filters.clear")}
                     </button>
                 </div>
                 <div className={styles.filterForm}>
                     <div className={styles.filterGroup}>
-                        <label className={styles.filterLabel}>搜索</label>
+                        <label className={styles.filterLabel}>{t("tasks.filters.search")}</label>
                         <Input
-                            placeholder="标题或描述"
+                            placeholder={t("tasks.filters.searchPlaceholder")}
                             value={filters.search}
                             onChange={(val) => handleFilterChange("search", val)}
                             allowClear
@@ -252,9 +256,9 @@ const TaskList: React.FC = () => {
                         />
                     </div>
                     <div className={styles.filterGroup}>
-                        <label className={styles.filterLabel}>负责人</label>
+                        <label className={styles.filterLabel}>{t("tasks.filters.assignee")}</label>
                         <Input
-                            placeholder="搜索负责人"
+                            placeholder={t("tasks.filters.assigneePlaceholder")}
                             value={filters.assignee}
                             onChange={(val) => handleFilterChange("assignee", val)}
                             allowClear
@@ -262,9 +266,9 @@ const TaskList: React.FC = () => {
                         />
                     </div>
                     <div className={styles.filterGroup}>
-                        <label className={styles.filterLabel}>状态</label>
+                        <label className={styles.filterLabel}>{t("tasks.filters.status")}</label>
                         <CustomSelect
-                            name="状态"
+                            name={t("tasks.filters.status")}
                             options={statusOptions}
                             value={statusOptions.find((o) => o.id === filters.status) || null}
                             onChange={(o) => handleFilterChange("status", (o?.id as string) || "")}
@@ -272,9 +276,9 @@ const TaskList: React.FC = () => {
                         />
                     </div>
                     <div className={styles.filterGroup}>
-                        <label className={styles.filterLabel}>优先级</label>
+                        <label className={styles.filterLabel}>{t("tasks.filters.priority")}</label>
                         <CustomSelect
-                            name="优先级"
+                            name={t("tasks.filters.priority")}
                             options={priorityOptions}
                             value={priorityOptions.find((o) => o.id === filters.priority) || null}
                             onChange={(o) => handleFilterChange("priority", (o?.id as string) || "")}
@@ -288,52 +292,56 @@ const TaskList: React.FC = () => {
                 <table className={styles.table}>
                     <thead>
                         <tr>
-                            <th>标题</th>
-                            <th>状态</th>
-                            <th>优先级</th>
-                            <th>负责人</th>
-                            <th>截止日期</th>
-                            <th>预估工时</th>
-                            <th>操作</th>
+                            <th>{t("tasks.table.title")}</th>
+                            <th>{t("tasks.table.status")}</th>
+                            <th>{t("tasks.table.priority")}</th>
+                            <th>{t("tasks.table.assignee")}</th>
+                            <th>{t("tasks.table.deadline")}</th>
+                            <th>{t("tasks.table.estimatedHours")}</th>
+                            <th>{t("tasks.table.actions")}</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {tasks.map((t) => (
-                            <tr key={t.id}>
+                        {tasks.map((task) => (
+                            <tr key={task.id}>
                                 <td
                                     className={styles.titleCell}
-                                    data-label="标题"
-                                    onClick={() => navigate(`/rd/tasks/${encodeId(t.id, "task")}`)}
+                                    data-label={t("tasks.table.title")}
+                                    onClick={() => navigate(`/rd/tasks/${encodeId(task.id, "task")}`)}
                                 >
-                                    {t.title}
+                                    {task.title}
                                 </td>
-                                <td data-label="状态">
-                                    <span className={`${styles.badge} ${styles[`status_${t.status}`]}`}>{statusText[t.status]}</span>
-                                </td>
-                                <td data-label="优先级">
-                                    <span className={`${styles.badge} ${styles[`priority_${t.priority}`]}`}>
-                                        {priorityText[t.priority]}
+                                <td data-label={t("tasks.table.status")}>
+                                    <span className={`${styles.badge} ${styles[`status_${task.status}`]}`}>
+                                        {enums.rdTaskStatus[task.status]}
                                     </span>
                                 </td>
-                                <td data-label="负责人">
-                                    <AssigneeDisplay name={t.assignee} avatar={t.assigneeAvatar} />
+                                <td data-label={t("tasks.table.priority")}>
+                                    <span className={`${styles.badge} ${styles[`priority_${task.priority}`]}`}>
+                                        {enums.rdPriority[task.priority]}
+                                    </span>
                                 </td>
-                                <td data-label="截止日期">{t.deadline ? formatDateTime(t.deadline) : "-"}</td>
-                                <td data-label="预估工时">{t.estimatedHours ? `${t.estimatedHours}h` : "-"}</td>
-                                <td data-label="操作">
+                                <td data-label={t("tasks.table.assignee")}>
+                                    <AssigneeDisplay name={task.assignee} avatar={task.assigneeAvatar} />
+                                </td>
+                                <td data-label={t("tasks.table.deadline")}>{task.deadline ? formatDateTime(task.deadline) : "-"}</td>
+                                <td data-label={t("tasks.table.estimatedHours")}>
+                                    {task.estimatedHours ? `${task.estimatedHours}h` : "-"}
+                                </td>
+                                <td data-label={t("tasks.table.actions")}>
                                     <div className={styles.actionButtons}>
                                         <button
                                             className={`${styles.actionBtn} ${styles.view}`}
-                                            title="查看"
-                                            onClick={() => navigate(`/rd/tasks/${encodeId(t.id, "task")}`)}
+                                            title={t("tasks.actions.view")}
+                                            onClick={() => navigate(`/rd/tasks/${encodeId(task.id, "task")}`)}
                                         >
                                             <FaEye />
                                         </button>
                                         {OrgPermission.canEdit(maxOrgRole) && (
                                             <button
                                                 className={`${styles.actionBtn} ${styles.edit}`}
-                                                title="编辑"
-                                                onClick={() => openEdit(t)}
+                                                title={t("tasks.actions.edit")}
+                                                onClick={() => openEdit(task)}
                                             >
                                                 <FaEdit />
                                             </button>
@@ -341,8 +349,8 @@ const TaskList: React.FC = () => {
                                         {OrgPermission.canDelete(maxOrgRole) && (
                                             <button
                                                 className={`${styles.actionBtn} ${styles.delete}`}
-                                                title="删除"
-                                                onClick={() => handleDelete(t)}
+                                                title={t("tasks.actions.delete")}
+                                                onClick={() => handleDelete(task)}
                                             >
                                                 <FaTrash />
                                             </button>
@@ -357,7 +365,7 @@ const TaskList: React.FC = () => {
                                     <div className={styles.emptyCellIcon}>
                                         <FaTasks />
                                     </div>
-                                    <div className={styles.emptyCellText}>暂无任务数据</div>
+                                    <div className={styles.emptyCellText}>{t("tasks.table.empty")}</div>
                                 </td>
                             </tr>
                         )}
@@ -367,7 +375,7 @@ const TaskList: React.FC = () => {
 
             {
                 <div className={styles.pagination}>
-                    <span className={styles.paginationInfo}>共 {total} 条记录</span>
+                    <span className={styles.paginationInfo}>{t("tasks.pagination.total", { total })}</span>
                     <div className={styles.paginationControls}>
                         <button disabled={currentPage === 1} onClick={() => setCurrentPage(1)}>
                             <FaAngleDoubleLeft />
@@ -406,16 +414,16 @@ const TaskList: React.FC = () => {
             {/* Create/Edit Modal */}
             <Modal
                 visible={modalVisible}
-                title={editingTask ? "编辑任务" : "新建任务"}
+                title={editingTask ? t("tasks.modal.editTitle") : t("tasks.modal.createTitle")}
                 onClose={() => setModalVisible(false)}
                 width={640}
                 footer={
                     <div className={taskStyles.modalFooter}>
                         <button onClick={() => setModalVisible(false)} className={taskStyles.modalCancelBtn}>
-                            取消
+                            {t("tasks.modal.cancel")}
                         </button>
                         <button onClick={handleSubmit} className={taskStyles.modalSubmitBtn}>
-                            {editingTask ? "保存修改" : "创建任务"}
+                            {editingTask ? t("tasks.modal.save") : t("tasks.modal.create")}
                         </button>
                     </div>
                 }
@@ -423,10 +431,10 @@ const TaskList: React.FC = () => {
                 <div className={taskStyles.formContainer}>
                     <div>
                         <label className={taskStyles.formLabel}>
-                            标题 <span className={taskStyles.formLabelRequired}>*</span>
+                            {t("tasks.modal.titleLabel")} <span className={taskStyles.formLabelRequired}>*</span>
                         </label>
                         <Input
-                            placeholder="请输入任务标题"
+                            placeholder={t("tasks.modal.titlePlaceholder")}
                             value={form.title}
                             onChange={(val) => handleFormChange("title", val)}
                             size="large"
@@ -436,10 +444,10 @@ const TaskList: React.FC = () => {
                     {(isAdmin || orgs.length > 1) && (
                         <div>
                             <label className={taskStyles.formLabel}>
-                                所属组织 {!isAdmin && <span className={taskStyles.formLabelRequired}>*</span>}
+                                {t("tasks.modal.orgLabel")} {!isAdmin && <span className={taskStyles.formLabelRequired}>*</span>}
                             </label>
                             <CustomSelect
-                                name="所属组织"
+                                name={t("tasks.modal.orgLabel")}
                                 options={orgs.map((o) => ({ id: o.orgId, name: o.orgName, color: "#6c757d" }))}
                                 value={
                                     orgs.find((o) => o.orgId === form.organizationId)
@@ -459,9 +467,9 @@ const TaskList: React.FC = () => {
 
                     <div className={taskStyles.formRow}>
                         <div className={taskStyles.formField}>
-                            <label className={taskStyles.formLabel}>状态</label>
+                            <label className={taskStyles.formLabel}>{t("tasks.modal.statusLabel")}</label>
                             <CustomSelect
-                                name="状态"
+                                name={t("tasks.modal.statusLabel")}
                                 options={statusOptions.filter((o) => o.id !== "")}
                                 value={statusOptions.find((o) => o.id === form.status) || null}
                                 onChange={(o) => handleFormChange("status", (o?.id as string) || "todo")}
@@ -469,9 +477,9 @@ const TaskList: React.FC = () => {
                             />
                         </div>
                         <div className={taskStyles.formField}>
-                            <label className={taskStyles.formLabel}>优先级</label>
+                            <label className={taskStyles.formLabel}>{t("tasks.modal.priorityLabel")}</label>
                             <CustomSelect
-                                name="优先级"
+                                name={t("tasks.modal.priorityLabel")}
                                 options={priorityOptions.filter((o) => o.id !== "")}
                                 value={priorityOptions.find((o) => o.id === form.priority) || null}
                                 onChange={(o) => handleFormChange("priority", (o?.id as string) || "medium")}
@@ -482,9 +490,9 @@ const TaskList: React.FC = () => {
 
                     <div className={taskStyles.formRow}>
                         <div className={taskStyles.formField}>
-                            <label className={taskStyles.formLabel}>负责人</label>
+                            <label className={taskStyles.formLabel}>{t("tasks.modal.assigneeLabel")}</label>
                             <CustomSelect
-                                name="负责人"
+                                name={t("tasks.modal.assigneeLabel")}
                                 options={memberOptions}
                                 value={
                                     memberOptions.find((o) => o.id === form.assignee) ||
@@ -495,9 +503,9 @@ const TaskList: React.FC = () => {
                             />
                         </div>
                         <div className={taskStyles.formField}>
-                            <label className={taskStyles.formLabel}>截止日期</label>
+                            <label className={taskStyles.formLabel}>{t("tasks.modal.deadlineLabel")}</label>
                             <DatePicker
-                                placeholder="请选择截止日期"
+                                placeholder={t("tasks.modal.deadlinePlaceholder")}
                                 value={form.deadline ? new Date(form.deadline) : undefined}
                                 onChange={(date) => {
                                     const str = date
@@ -513,9 +521,9 @@ const TaskList: React.FC = () => {
 
                     <div className={taskStyles.formRow}>
                         <div className={taskStyles.formField}>
-                            <label className={taskStyles.formLabel}>预估工时 (h)</label>
+                            <label className={taskStyles.formLabel}>{t("tasks.modal.estimatedHoursLabel")}</label>
                             <Input
-                                placeholder="如 8"
+                                placeholder={t("tasks.modal.estimatedHoursPlaceholder")}
                                 value={String(form.estimatedHours || "")}
                                 onChange={(val) => handleFormChange("estimatedHours", Number(val) || 0)}
                                 type="number"
@@ -523,9 +531,9 @@ const TaskList: React.FC = () => {
                             />
                         </div>
                         <div className={taskStyles.formField}>
-                            <label className={taskStyles.formLabel}>关联需求 ID</label>
+                            <label className={taskStyles.formLabel}>{t("tasks.modal.requirementLabel")}</label>
                             <Input
-                                placeholder="选填"
+                                placeholder={t("tasks.modal.requirementPlaceholder")}
                                 value={form.requirementId}
                                 onChange={(val) => handleFormChange("requirementId", val)}
                                 size="large"
@@ -534,9 +542,9 @@ const TaskList: React.FC = () => {
                     </div>
 
                     <div>
-                        <label className={taskStyles.formLabel}>描述</label>
+                        <label className={taskStyles.formLabel}>{t("tasks.modal.descriptionLabel")}</label>
                         <textarea
-                            placeholder="请输入任务描述"
+                            placeholder={t("tasks.modal.descriptionPlaceholder")}
                             value={form.description}
                             onChange={(e) => handleFormChange("description", e.target.value)}
                             rows={4}

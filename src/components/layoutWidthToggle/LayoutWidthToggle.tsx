@@ -1,16 +1,26 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { StretchHorizontal } from "lucide-react";
 import { useLayoutWidth } from "@/contexts/LayoutWidthContext";
 import styles from "./LayoutWidthToggle.module.css";
 
-const MODE_META = {
-    default: { label: "默认", nextLabel: "较宽" },
-    wide: { label: "较宽", nextLabel: "全宽" },
-    full: { label: "全宽", nextLabel: "默认" },
-} as const;
-
 const LayoutWidthToggle: React.FC = () => {
+    const { t } = useTranslation("components");
     const { mode, cycleMode } = useLayoutWidth();
+    const MODE_META = {
+        default: {
+            label: t("layoutWidthToggle.modes.default.label"),
+            nextLabel: t("layoutWidthToggle.modes.default.nextLabel"),
+        },
+        wide: {
+            label: t("layoutWidthToggle.modes.wide.label"),
+            nextLabel: t("layoutWidthToggle.modes.wide.nextLabel"),
+        },
+        full: {
+            label: t("layoutWidthToggle.modes.full.label"),
+            nextLabel: t("layoutWidthToggle.modes.full.nextLabel"),
+        },
+    } as const;
     const currentMode = MODE_META[mode];
 
     return (
@@ -18,8 +28,8 @@ const LayoutWidthToggle: React.FC = () => {
             type="button"
             className={styles.toggle}
             onClick={cycleMode}
-            aria-label={`当前布局宽度：${currentMode.label}，点击切换到${currentMode.nextLabel}`}
-            title={`布局宽度：${currentMode.label}，点击切换到${currentMode.nextLabel}`}
+            aria-label={t("layoutWidthToggle.ariaLabel", { label: currentMode.label, nextLabel: currentMode.nextLabel })}
+            title={t("layoutWidthToggle.title", { label: currentMode.label, nextLabel: currentMode.nextLabel })}
         >
             <StretchHorizontal className={styles.icon} size={16} />
             <span className={styles.label}>{currentMode.label}</span>

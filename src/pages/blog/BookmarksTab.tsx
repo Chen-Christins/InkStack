@@ -1,20 +1,23 @@
 import React, { useState, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { FaFolder, FaBookmark, FaRegClock, FaRegEye, FaRegUser, FaTrash, FaCheck, FaRegBookmark } from "react-icons/fa";
 import styles from "./BlogPage.module.css";
 import bmStyles from "./Bookmarks.module.css";
 import message from "@/components/message/Message";
-import { MOCK_ARTICLES, type BlogArticle } from "./MockBlog";
+import { getMockArticles, type BlogArticle } from "./MockBlog";
+
+type FolderNameKey = "folders.all" | "folders.fe" | "folders.sec";
 
 interface Folder {
     id: string;
-    name: string;
+    name: FolderNameKey;
     articleIds: string[];
 }
 
 const MOCK_FOLDERS: Folder[] = [
-    { id: "all", name: "全部收藏", articleIds: ["1", "2", "4", "5"] },
-    { id: "fe", name: "前端进阶", articleIds: ["1", "4"] },
-    { id: "sec", name: "安全", articleIds: ["2", "7"] },
+    { id: "all", name: "folders.all", articleIds: ["1", "2", "4", "5"] },
+    { id: "fe", name: "folders.fe", articleIds: ["1", "4"] },
+    { id: "sec", name: "folders.sec", articleIds: ["2", "7"] },
 ];
 
 interface ReadLater extends BlogArticle {
@@ -22,31 +25,33 @@ interface ReadLater extends BlogArticle {
     read: boolean;
 }
 
-const INITIAL_READ_LATER: ReadLater[] = [
-    { ...MOCK_ARTICLES[2], addedAt: "2026-07-11", read: false },
-    { ...MOCK_ARTICLES[5], addedAt: "2026-07-09", read: false },
-    { ...MOCK_ARTICLES[7], addedAt: "2026-07-05", read: true },
-];
-
 type Tab = "collections" | "readlater";
 
 const BookmarksTab: React.FC = () => {
+    const { t, i18n } = useTranslation("blog");
     const [tab, setTab] = useState<Tab>("collections");
     const [activeFolder, setActiveFolder] = useState("all");
     const [folders, setFolders] = useState<Folder[]>(MOCK_FOLDERS);
-    const [readLater, setReadLater] = useState<ReadLater[]>(INITIAL_READ_LATER);
+    const [readLater, setReadLater] = useState<ReadLater[]>(() => {
+        const mock = getMockArticles();
+        return [
+            { ...mock[2], addedAt: "2026-07-11", read: false },
+            { ...mock[5], addedAt: "2026-07-09", read: false },
+            { ...mock[7], addedAt: "2026-07-05", read: true },
+        ];
+    });
 
     const folderArticles = useMemo(() => {
         const f = folders.find((x) => x.id === activeFolder);
         if (!f) {
             return [];
         }
-        return MOCK_ARTICLES.filter((a) => f.articleIds.includes(a.id));
-    }, [folders, activeFolder]);
+        return getMockArticles().filter((a) => f.articleIds.includes(a.id));
+    }, [folders, activeFolder, i18n.language]);
 
     const removeFromFolder = (articleId: string) => {
         setFolders((prev) => prev.map((f) => ({ ...f, articleIds: f.articleIds.filter((id) => id !== articleId) })));
-        message.success("已移出收藏夹");
+        message.success(t("message.removedFromFolder"));
     };
 
     const toggleRead = (id: string) => {
@@ -55,7 +60,7 @@ const BookmarksTab: React.FC = () => {
 
     const removeReadLater = (id: string) => {
         setReadLater((prev) => prev.filter((r) => r.id !== id));
-        message.success("已移除");
+        message.success(t("message.removed"));
     };
 
     return (
@@ -65,10 +70,10 @@ const BookmarksTab: React.FC = () => {
                     className={`${styles.tab} ${tab === "collections" ? styles.tabActive : ""}`}
                     onClick={() => setTab("collections")}
                 >
-                    <FaFolder style={{ marginRight: 6 }} /> 收藏夹
+                    <FaFolder style={{ marginRight: 6 }} /> {t("bookmarksTab")}
                 </button>
                 <button className={`${styles.tab} ${tab === "readlater" ? styles.tabActive : ""}`} onClick={() => setTab("readlater")}>
-                    <FaBookmark style={{ marginRight: 6 }} /> 稍后读
+                    <FaBookmark style={{ marginRight: 6 }} /> {t("readLaterTab")}
                     <span className={styles.tabCount}>{readLater.filter((r) => !r.read).length}</span>
                 </button>
             </div>
@@ -83,7 +88,7 @@ const BookmarksTab: React.FC = () => {
                                 onClick={() => setActiveFolder(f.id)}
                             >
                                 <FaFolder />
-                                <span className={bmStyles.folderName}>{f.name}</span>
+                                <span className={bmStyles.folderName}>{t(f.name)}</span>
                                 <span className={bmStyles.folderCount}>{f.articleIds.length}</span>
                             </button>
                         ))}
@@ -104,7 +109,11 @@ const BookmarksTab: React.FC = () => {
                                         </span>
                                     </div>
                                 </div>
-                                <button className={bmStyles.iconBtn} title="移出收藏夹" onClick={() => removeFromFolder(a.id)}>
+                                <button
+                                    className={bmStyles.iconBtn}
+                                    title={t("removeFromFolder")}
+                                    onClick={() => removeFromFolder(a.id)}
+                                >
                                     <FaTrash />
                                 </button>
                             </div>
@@ -114,7 +123,7 @@ const BookmarksTab: React.FC = () => {
                                 <div className={styles.emptyIcon}>
                                     <FaRegBookmark />
                                 </div>
-                                该收藏夹暂无文章
+                                {t("emptyFolder")}
                             </div>
                         )}
                     </div>
@@ -130,20 +139,20 @@ const BookmarksTab: React.FC = () => {
                                 <p className={styles.articleSummary}>{r.summary}</p>
                                 <div className={styles.articleMeta}>
                                     <span className={styles.metaItem}>
-                                        <FaRegClock /> 加入于 {r.addedAt}
+                                        <FaRegClock /> {t("addedAt", { date: r.addedAt })}
                                     </span>
-                                    {r.read && <span className={bmStyles.readTag}>已读</span>}
+                                    {r.read && <span className={bmStyles.readTag}>{t("read")}</span>}
                                 </div>
                             </div>
                             <div className={bmStyles.rowActions}>
                                 <button
                                     className={`${bmStyles.iconBtn} ${r.read ? bmStyles.iconActive : ""}`}
-                                    title={r.read ? "标记未读" : "标记已读"}
+                                    title={r.read ? t("markUnread") : t("markRead")}
                                     onClick={() => toggleRead(r.id)}
                                 >
                                     <FaCheck />
                                 </button>
-                                <button className={bmStyles.iconBtn} title="移除" onClick={() => removeReadLater(r.id)}>
+                                <button className={bmStyles.iconBtn} title={t("remove")} onClick={() => removeReadLater(r.id)}>
                                     <FaTrash />
                                 </button>
                             </div>
@@ -154,7 +163,7 @@ const BookmarksTab: React.FC = () => {
                             <div className={styles.emptyIcon}>
                                 <FaBookmark />
                             </div>
-                            稍后读列表为空
+                            {t("emptyReadLater")}
                         </div>
                     )}
                 </div>

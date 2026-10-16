@@ -1,5 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "@/contexts/AuthContext";
 import { FaLock, FaSignInAlt, FaArrowLeft } from "react-icons/fa";
 import Loading from "../loading/Loading";
@@ -18,22 +19,26 @@ interface AuthRequiredProps {
 
 const AuthRequired: React.FC<AuthRequiredProps> = ({
     children,
-    message = "您需要登录后才能查看此内容。",
-    title = "请先登录",
-    buttonText = "立即登录",
+    message,
+    title,
+    buttonText,
     showBackButton = true,
     backUrl,
     fill = false,
 }) => {
     const navigate = useNavigate();
+    const { t } = useTranslation("auth");
     const { isAuthenticated, loading: authLoading } = useAuth();
     const wrapperClass = `${styles.wrapper} ${fill ? styles.fill : ""}`;
+    const resolvedMessage = message ?? t("requiredMessage");
+    const resolvedTitle = title ?? t("signInPrompt");
+    const resolvedButtonText = buttonText ?? t("loginNow");
 
     // 认证状态加载中
     if (authLoading) {
         return (
             <div className={styles.loadingContainer}>
-                <Loading size="medium" text="验证登录状态..." />
+                <Loading size="medium" text={t("verifying")} />
             </div>
         );
     }
@@ -58,8 +63,8 @@ const AuthRequired: React.FC<AuthRequiredProps> = ({
                 <div className={styles.iconCircle}>
                     <FaLock />
                 </div>
-                <h2 className={styles.title}>{title}</h2>
-                <p className={styles.subtext}>{message}</p>
+                <h2 className={styles.title}>{resolvedTitle}</h2>
+                <p className={styles.subtext}>{resolvedMessage}</p>
                 <div className={styles.actions}>
                     <button
                         onClick={() =>
@@ -68,12 +73,12 @@ const AuthRequired: React.FC<AuthRequiredProps> = ({
                         className={styles.loginBtn}
                     >
                         <FaSignInAlt />
-                        {buttonText}
+                        {resolvedButtonText}
                     </button>
                     {showBackButton && (
                         <button onClick={handleBack} className={styles.backBtn}>
                             <FaArrowLeft style={{ marginRight: 6 }} />
-                            返回上一页
+                            {t("back")}
                         </button>
                     )}
                 </div>

@@ -507,7 +507,9 @@
     max-width: 800px;
     width: 90%;
     max-height: 80vh;
-    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
     animation: modalSlideIn 0.2s ease-out;
 }
 
@@ -528,6 +530,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    flex-shrink: 0;
 }
 
 .modalTitle {
@@ -558,6 +561,11 @@
 
 .modalBody {
     padding: 24px;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-primary) var(--bg-secondary);
 }
 
 .modalFooter {
@@ -568,6 +576,7 @@
     align-items: center;
     justify-content: flex-end;
     gap: 12px;
+    flex-shrink: 0;
 }
 
 .table {

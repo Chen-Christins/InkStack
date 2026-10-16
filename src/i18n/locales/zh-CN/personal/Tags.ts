@@ -1,0 +1,30 @@
+const section = {
+    title: "我的标签",
+    createLabel: "新建标签",
+    loading: "正在加载标签...",
+    emptyTitle: "暂无标签数据",
+    emptyHint: '点击"新增标签"按钮创建第一个标签',
+    unknownDescription: "暂无",
+    unknownTime: "未知时间",
+    articleCount: "{{value}} 篇文章",
+    createdOn: "创建于 {{value}}",
+    editLabel: "编辑标签",
+    nameLabel: "标签名称",
+    namePlaceholder: "请输入标签名称",
+    descLabel: "标签描述",
+    descPlaceholder: "请输入标签描述",
+    colorLabel: "标签颜色",
+    cancel: "取消",
+    saving: "保存中...",
+    update: "更新",
+    create: "创建",
+    deleteConfirmTitle: "确认删除",
+    deleteConfirmContent: '确定要删除标签 "{{name}}" 吗？删除后关联文章将失去此标签。',
+    delete: "删除",
+    message: {
+        saveFailed: "保存标签失败，请重试",
+        deleteFailed: "删除标签失败，请重试",
+    },
+} as const;
+
+export default section;

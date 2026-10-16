@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { encodeId } from "@/utils/HashId.ts";
 import { FaCheckCircle, FaExclamationCircle, FaArrowRight, FaCalendarAlt, FaClipboardList, FaTasks, FaEye } from "react-icons/fa";
 import Skeleton from "@/components/skeleton/Skeleton";
@@ -28,6 +29,7 @@ const STATUS_MAP: { [key: number]: string } = {
 };
 
 const AssignmentList: React.FC = () => {
+    const { t } = useTranslation("assignment");
     const navigate = useNavigate();
     const [filter, setFilter] = useState<"all" | "open" | "closed">("all");
     const {
@@ -53,19 +55,19 @@ const AssignmentList: React.FC = () => {
             case "open":
                 return (
                     <span className={`${styles.statusBadge} ${styles.statusSubmitted}`}>
-                        <FaCheckCircle /> 开启中
+                        <FaCheckCircle /> {t("list.status.open")}
                     </span>
                 );
             case "closed":
                 return (
                     <span className={`${styles.statusBadge} ${styles.statusLate}`}>
-                        <FaExclamationCircle /> 已关闭
+                        <FaExclamationCircle /> {t("list.status.closed")}
                     </span>
                 );
             default:
                 return (
                     <span className={`${styles.statusBadge} ${styles.statusSubmitted}`}>
-                        <FaCheckCircle /> 开启中
+                        <FaCheckCircle /> {t("list.status.open")}
                     </span>
                 );
         }
@@ -82,30 +84,30 @@ const AssignmentList: React.FC = () => {
     return (
         <div className={styles.container}>
             <div className={styles.mainContent}>
-                <AuthRequired message="您需要登录后才能查看和管理您的作业列表。">
+                <AuthRequired message={t("list.authRequired")}>
                     <>
                         <div className={styles.pageHeader}>
                             <h1 className={styles.pageTitle}>
-                                <FaTasks /> 我的任务
+                                <FaTasks /> {t("list.pageTitle")}
                             </h1>
                             <div className={styles.filterBar}>
                                 <button
                                     className={`${styles.filterBtn} ${filter === "all" ? styles.active : ""}`}
                                     onClick={() => setFilter("all")}
                                 >
-                                    全部
+                                    {t("list.filter.all")}
                                 </button>
                                 <button
                                     className={`${styles.filterBtn} ${filter === "open" ? styles.active : ""}`}
                                     onClick={() => setFilter("open")}
                                 >
-                                    开启中
+                                    {t("list.filter.open")}
                                 </button>
                                 <button
                                     className={`${styles.filterBtn} ${filter === "closed" ? styles.active : ""}`}
                                     onClick={() => setFilter("closed")}
                                 >
-                                    已关闭
+                                    {t("list.filter.closed")}
                                 </button>
                             </div>
                         </div>
@@ -113,10 +115,10 @@ const AssignmentList: React.FC = () => {
                         {error ? (
                             <div className={styles.errorState}>
                                 <ErrorState
-                                    title="加载失败"
-                                    message={error instanceof Error ? error.message : "获取作业列表失败"}
+                                    title={t("list.loadFailed")}
+                                    message={error instanceof Error ? error.message : t("list.fetchFailed")}
                                     icon={<FaExclamationCircle />}
-                                    actionText="返回作业列表"
+                                    actionText={t("list.backToList")}
                                     onAction={() => navigate("/assignments")}
                                 />
                             </div>
@@ -159,7 +161,7 @@ const AssignmentList: React.FC = () => {
                                         <div className={styles.cardFooter}>
                                             <div className={styles.deadline}>
                                                 <FaCalendarAlt />
-                                                {formatDate(item.end_time)} 截止
+                                                {t("list.deadline", { value: formatDate(item.end_time) })}
                                             </div>
                                             <div className={styles.buttonGroup}>
                                                 <button
@@ -167,7 +169,7 @@ const AssignmentList: React.FC = () => {
                                                     onClick={() =>
                                                         navigate(`/assignment/submissions/${encodeId(item.id, "assignment")}`)
                                                     }
-                                                    title="查看提交详情"
+                                                    title={t("list.viewSubmissions")}
                                                 >
                                                     <FaEye />
                                                 </button>
@@ -175,7 +177,8 @@ const AssignmentList: React.FC = () => {
                                                     className={`${styles.actionBtn} ${STATUS_MAP[item.status] === "closed" ? styles.btnSecondary : styles.btnPrimary}`}
                                                     onClick={() => navigate(`/assignment/submit/${encodeId(item.id, "assignment")}`)}
                                                 >
-                                                    {STATUS_MAP[item.status] === "closed" ? "查看详情" : "去提交"} <FaArrowRight />
+                                                    {STATUS_MAP[item.status] === "closed" ? t("list.viewDetails") : t("list.goSubmit")}{" "}
+                                                    <FaArrowRight />
                                                 </button>
                                             </div>
                                         </div>
@@ -185,8 +188,8 @@ const AssignmentList: React.FC = () => {
                         ) : (
                             <div className={styles.emptyState}>
                                 <FaClipboardList className={styles.emptyIcon} />
-                                <h3 className={styles.emptyText}>暂无作业</h3>
-                                <p className={styles.emptySubtext}>当前筛选条件下没有找到相关作业</p>
+                                <h3 className={styles.emptyText}>{t("list.empty.title")}</h3>
+                                <p className={styles.emptySubtext}>{t("list.empty.subtext")}</p>
                             </div>
                         )}
                     </>

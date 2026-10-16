@@ -1,9 +1,12 @@
+import { useTranslation } from "react-i18next";
 import Navbar from "../components/navbar/Navbar";
 
 function SampleNavBar() {
+    const { t } = useTranslation("sample");
+
     return (
         <div style={{ padding: "20px" }}>
-            <h2>导航栏示例</h2>
+            <h2>{t("navBar.title")}</h2>
             <Navbar />
         </div>
     );

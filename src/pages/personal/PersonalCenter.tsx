@@ -17,8 +17,10 @@ import {
     FaBookmark,
 } from "react-icons/fa";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import Loading from "@/components/loading/Loading";
-import { isAdmin, PlatformRole, PlatformRoleLabel } from "@/types/Roles.ts";
+import { isAdmin, PlatformRole } from "@/types/Roles.ts";
+import { useEnumLabels } from "@/i18n/UseEnumLabels";
 import Skeleton from "@/components/skeleton/Skeleton";
 import ThemeToggle from "@/components/themeToggle/ThemeToggle";
 import Notification from "@/components/notification/Notification";
@@ -77,6 +79,8 @@ const TAB_IDS: TabId[] = [
 const PersonalCenter: React.FC = () => {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
+    const { t } = useTranslation("personal");
+    const enums = useEnumLabels();
     const { user, isAuthenticated, logout, loading: authLoading } = useAuth();
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -106,7 +110,7 @@ const PersonalCenter: React.FC = () => {
     const currentUser = user
         ? {
               id: user.id,
-              name: user.name || user.account || "用户",
+              name: user.name || user.account || t("center.defaultUserName"),
               avatar: user.avatar || "https://picsum.photos/id/64/200", // 默认头像
               role: user.role,
               email: user.email,
@@ -127,56 +131,56 @@ const PersonalCenter: React.FC = () => {
     const navItems: NavItem[] = [
         {
             id: "articles",
-            label: "我的文章",
+            label: t("center.nav.articles"),
             icon: <FaFileAlt />,
             path: "/personal?tab=articles",
         },
         {
             id: "assignments",
-            label: "我的任务",
+            label: t("center.nav.assignments"),
             icon: <FaTasks />,
             path: "/personal?tab=assignments",
         },
         {
             id: "edit",
-            label: "编辑资料",
+            label: t("center.nav.edit"),
             icon: <FaUserEdit />,
             path: "/personal?tab=edit",
         },
-        { id: "tags", label: "我的标签", icon: <FaTag />, path: "/personal?tab=tags" },
+        { id: "tags", label: t("center.nav.tags"), icon: <FaTag />, path: "/personal?tab=tags" },
         {
             id: "stats",
-            label: "数据统计",
+            label: t("center.nav.stats"),
             icon: <FaChartBar />,
             path: "/personal?tab=stats",
         },
         {
             id: "organizations",
-            label: "我的组织",
+            label: t("center.nav.organizations"),
             icon: <FaUsers />,
             path: "/personal?tab=organizations",
         },
         {
             id: "following",
-            label: "我的关注",
+            label: t("center.nav.following"),
             icon: <FaUserPlus />,
             path: "/personal?tab=following",
         },
         {
             id: "followers",
-            label: "我的粉丝",
+            label: t("center.nav.followers"),
             icon: <FaUserFriends />,
             path: "/personal?tab=followers",
         },
         {
             id: "notifications",
-            label: "通知中心",
+            label: t("center.nav.notifications"),
             icon: <FaBell />,
             path: "/personal?tab=notifications",
         },
         {
             id: "security",
-            label: "账户安全",
+            label: t("center.nav.security"),
             icon: <FaShieldAlt />,
             path: "/personal?tab=security",
         },
@@ -186,7 +190,7 @@ const PersonalCenter: React.FC = () => {
     if (import.meta.env.DEV) {
         navItems.push({
             id: "bookmarks",
-            label: "我的收藏",
+            label: t("center.nav.bookmarks"),
             icon: <FaBookmark />,
             path: "/personal?tab=bookmarks",
         });
@@ -324,7 +328,7 @@ const PersonalCenter: React.FC = () => {
                             fontWeight: "600",
                         }}
                     >
-                        请先登录
+                        {t("center.loginRequiredTitle")}
                     </h2>
                     <p
                         style={{
@@ -334,7 +338,7 @@ const PersonalCenter: React.FC = () => {
                             lineHeight: "1.6",
                         }}
                     >
-                        您需要登录后才能访问个人中心，查看和管理您的文章、标签及数据统计。
+                        {t("center.loginRequiredDesc")}
                     </p>
                     <button
                         onClick={handleLoginRedirect}
@@ -351,7 +355,7 @@ const PersonalCenter: React.FC = () => {
                             width: "100%",
                         }}
                     >
-                        立即登录
+                        {t("center.loginNow")}
                     </button>
                     <button
                         onClick={() => navigate("/")}
@@ -366,7 +370,7 @@ const PersonalCenter: React.FC = () => {
                             textDecoration: "underline",
                         }}
                     >
-                        返回首页
+                        {t("center.backHome")}
                     </button>
                 </div>
             </div>
@@ -446,7 +450,7 @@ const PersonalCenter: React.FC = () => {
     if (loading) {
         return (
             <div className={styles.pageContainer}>
-                <Loading size="large" text="正在加载个人数据..." />
+                <Loading size="large" text={t("center.loadingData")} />
             </div>
         );
     }
@@ -467,12 +471,12 @@ const PersonalCenter: React.FC = () => {
                             <span className={styles.adminLogoIcon}>
                                 <FaUserCircle />
                             </span>
-                            <span className={styles.adminLogoText}>个人中心</span>
+                            <span className={styles.adminLogoText}>{t("center.title")}</span>
                         </div>
                         <button
                             className={styles.toggleSidebarBtn}
                             onClick={toggleSidebar}
-                            title={sidebarCollapsed ? "展开侧边栏" : "收起侧边栏"}
+                            title={sidebarCollapsed ? t("center.expandSidebar") : t("center.collapseSidebar")}
                         >
                             {sidebarCollapsed ? <FaBars /> : <FaTimes />}
                         </button>
@@ -506,14 +510,14 @@ const PersonalCenter: React.FC = () => {
                     <header className={styles.adminTopBar}>
                         <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
                             {/* 移动端菜单按钮 */}
-                            <button className={styles.mobileMenuBtn} onClick={toggleMobileMenu} aria-label="打开菜单">
+                            <button className={styles.mobileMenuBtn} onClick={toggleMobileMenu} aria-label={t("center.openMenu")}>
                                 <FaBars />
                             </button>
 
                             {/* 面包屑导航 */}
                             <nav className={styles.adminBreadcrumb}>
                                 <span className={styles.breadcrumbActive}>
-                                    {navItems.find((item) => item.id === activeTab)?.label || "个人中心"}
+                                    {navItems.find((item) => item.id === activeTab)?.label || t("center.title")}
                                 </span>
                             </nav>
                         </div>
@@ -537,37 +541,37 @@ const PersonalCenter: React.FC = () => {
                                 <div className={styles.profileName}>
                                     {currentUser.name}
                                     <span className={styles.profileRoleTag}>
-                                        {PlatformRoleLabel[currentUser.role as PlatformRole] || currentUser.role}
+                                        {enums.platformRole[currentUser.role as PlatformRole] || currentUser.role}
                                     </span>
                                 </div>
                                 <div className={styles.profileMeta}>
                                     <span className={styles.profileEmail}>{currentUser.email}</span>
                                     <button className={styles.profileEditBtn} onClick={() => setActiveTab("edit")}>
                                         <FaUserEdit />
-                                        编辑资料
+                                        {t("center.editProfile")}
                                     </button>
                                 </div>
                             </div>
                             <div className={styles.profileStats}>
                                 <div className={styles.profileStatItem} onClick={() => setActiveTab("articles")}>
                                     <div className={styles.profileStatValue}>{stats?.total_articles ?? "-"}</div>
-                                    <div className={styles.profileStatLabel}>文章</div>
+                                    <div className={styles.profileStatLabel}>{t("center.profileStats.articles")}</div>
                                 </div>
                                 <div className={styles.profileStatItem} onClick={() => setActiveTab("following")}>
                                     <div className={styles.profileStatValue}>{user?.following_count ?? 0}</div>
-                                    <div className={styles.profileStatLabel}>关注</div>
+                                    <div className={styles.profileStatLabel}>{t("center.profileStats.following")}</div>
                                 </div>
                                 <div className={styles.profileStatItem} onClick={() => setActiveTab("followers")}>
                                     <div className={styles.profileStatValue}>{user?.follower_count ?? 0}</div>
-                                    <div className={styles.profileStatLabel}>粉丝</div>
+                                    <div className={styles.profileStatLabel}>{t("center.profileStats.followers")}</div>
                                 </div>
                                 <div className={styles.profileStatItem} onClick={() => setActiveTab("tags")}>
                                     <div className={styles.profileStatValue}>{stats?.total_tags ?? "-"}</div>
-                                    <div className={styles.profileStatLabel}>标签</div>
+                                    <div className={styles.profileStatLabel}>{t("center.profileStats.tags")}</div>
                                 </div>
                                 <div className={styles.profileStatItem} onClick={() => setActiveTab("organizations")}>
                                     <div className={styles.profileStatValue}>{stats?.total_organizations ?? "-"}</div>
-                                    <div className={styles.profileStatLabel}>组织</div>
+                                    <div className={styles.profileStatLabel}>{t("center.profileStats.organizations")}</div>
                                 </div>
                             </div>
                         </div>

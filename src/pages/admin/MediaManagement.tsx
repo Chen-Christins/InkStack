@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import {
     FaFilter,
     FaTrash,
@@ -87,6 +88,7 @@ interface FilterOptions {
 }
 
 const MediaManagement: React.FC = () => {
+    const { t } = useTranslation("admin");
     // 状态管理
     const [mediaFiles, setMediaFiles] = useState<MediaFile[]>([]);
     const [filters, setFilters] = useState<FilterOptions>({
@@ -109,7 +111,7 @@ const MediaManagement: React.FC = () => {
     const mockFolders: Folder[] = [
         {
             id: "folder_1",
-            name: "文章图片",
+            name: t("mediaMock.folders.articlesImages.name"),
             path: "/articles/images",
             fileCount: 45,
             size: 15728640,
@@ -117,7 +119,7 @@ const MediaManagement: React.FC = () => {
         },
         {
             id: "folder_2",
-            name: "用户头像",
+            name: t("mediaMock.folders.userAvatars.name"),
             path: "/users/avatars",
             fileCount: 120,
             size: 8388608,
@@ -125,7 +127,7 @@ const MediaManagement: React.FC = () => {
         },
         {
             id: "folder_3",
-            name: "视频素材",
+            name: t("mediaMock.folders.videoAssets.name"),
             path: "/videos",
             fileCount: 15,
             size: 1073741824,
@@ -133,7 +135,7 @@ const MediaManagement: React.FC = () => {
         },
         {
             id: "folder_4",
-            name: "文档资料",
+            name: t("mediaMock.folders.documents.name"),
             path: "/documents",
             fileCount: 32,
             size: 52428800,
@@ -141,7 +143,7 @@ const MediaManagement: React.FC = () => {
         },
         {
             id: "folder_5",
-            name: "备份文件",
+            name: t("mediaMock.folders.backups.name"),
             path: "/backups",
             fileCount: 8,
             size: 2147483648,
@@ -154,7 +156,7 @@ const MediaManagement: React.FC = () => {
         () => [
             {
                 id: "media_1",
-                name: "react-logo.png",
+                name: t("mediaMock.files.reactLogo.name"),
                 originalName: "react-logo-original.png",
                 type: "image",
                 mimeType: "image/png",
@@ -164,19 +166,19 @@ const MediaManagement: React.FC = () => {
                 dimensions: { width: 512, height: 512 },
                 author: {
                     id: "user_1",
-                    name: "管理员",
+                    name: t("mediaMock.files.reactLogo.authorName"),
                 },
                 folder: "/articles/images",
                 tags: ["react", "logo", "frontend"],
-                alt: "React Logo",
-                description: "React官方标志图片",
+                alt: t("mediaMock.files.reactLogo.alt"),
+                description: t("mediaMock.files.reactLogo.description"),
                 createdAt: "2024-11-20 10:30:00",
                 downloads: 45,
                 isPublic: true,
             },
             {
                 id: "media_2",
-                name: "tutorial-video.mp4",
+                name: t("mediaMock.files.tutorialVideo.name"),
                 originalName: "react-tutorial-complete.mp4",
                 type: "video",
                 mimeType: "video/mp4",
@@ -187,18 +189,18 @@ const MediaManagement: React.FC = () => {
                 duration: 1800, // 30分钟
                 author: {
                     id: "user_2",
-                    name: "内容创作者",
+                    name: t("mediaMock.files.tutorialVideo.authorName"),
                 },
                 folder: "/videos",
                 tags: ["tutorial", "react", "video"],
-                description: "React完整教程视频",
+                description: t("mediaMock.files.tutorialVideo.description"),
                 createdAt: "2024-11-20 09:15:00",
                 downloads: 128,
                 isPublic: true,
             },
             {
                 id: "media_3",
-                name: "user-avatar-1.jpg",
+                name: t("mediaMock.files.userAvatar.name"),
                 originalName: "profile-pic.jpg",
                 type: "image",
                 mimeType: "image/jpeg",
@@ -208,18 +210,18 @@ const MediaManagement: React.FC = () => {
                 dimensions: { width: 200, height: 200 },
                 author: {
                     id: "user_3",
-                    name: "张三",
+                    name: t("mediaMock.files.userAvatar.authorName"),
                 },
                 folder: "/users/avatars",
                 tags: ["avatar", "user"],
-                alt: "用户头像",
+                alt: t("mediaMock.files.userAvatar.alt"),
                 createdAt: "2024-11-19 14:20:00",
                 downloads: 12,
                 isPublic: false,
             },
             {
                 id: "media_4",
-                name: "background-music.mp3",
+                name: t("mediaMock.files.backgroundMusic.name"),
                 originalName: "background-music-01.mp3",
                 type: "audio",
                 mimeType: "audio/mpeg",
@@ -228,18 +230,18 @@ const MediaManagement: React.FC = () => {
                 duration: 240, // 4分钟
                 author: {
                     id: "user_1",
-                    name: "管理员",
+                    name: t("mediaMock.files.backgroundMusic.authorName"),
                 },
                 folder: "/audio",
                 tags: ["music", "background", "audio"],
-                description: "背景音乐文件",
+                description: t("mediaMock.files.backgroundMusic.description"),
                 createdAt: "2024-11-19 11:45:00",
                 downloads: 67,
                 isPublic: true,
             },
             {
                 id: "media_5",
-                name: "project-documentation.pdf",
+                name: t("mediaMock.files.projectDocumentation.name"),
                 originalName: "API_Documentation_v2.pdf",
                 type: "document",
                 mimeType: "application/pdf",
@@ -248,18 +250,18 @@ const MediaManagement: React.FC = () => {
                 thumbnailUrl: "/media/thumbnails/project-documentation-thumb.jpg",
                 author: {
                     id: "user_4",
-                    name: "技术文档编写者",
+                    name: t("mediaMock.files.projectDocumentation.authorName"),
                 },
                 folder: "/documents",
                 tags: ["documentation", "pdf", "api"],
-                description: "项目API文档第二版",
+                description: t("mediaMock.files.projectDocumentation.description"),
                 createdAt: "2024-11-18 16:30:00",
                 downloads: 234,
                 isPublic: true,
             },
             {
                 id: "media_6",
-                name: "website-backup.zip",
+                name: t("mediaMock.files.websiteBackup.name"),
                 originalName: "website-backup-2024-11-18.zip",
                 type: "archive",
                 mimeType: "application/zip",
@@ -267,18 +269,18 @@ const MediaManagement: React.FC = () => {
                 url: "/media/website-backup.zip",
                 author: {
                     id: "user_1",
-                    name: "管理员",
+                    name: t("mediaMock.files.websiteBackup.authorName"),
                 },
                 folder: "/backups",
                 tags: ["backup", "archive", "zip"],
-                description: "网站完整备份文件",
+                description: t("mediaMock.files.websiteBackup.description"),
                 createdAt: "2024-11-18 02:00:00",
                 downloads: 8,
                 isPublic: false,
             },
             {
                 id: "media_7",
-                name: "chart-data.xlsx",
+                name: t("mediaMock.files.chartData.name"),
                 originalName: "monthly-report-2024-11.xlsx",
                 type: "document",
                 mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -287,18 +289,18 @@ const MediaManagement: React.FC = () => {
                 thumbnailUrl: "/media/thumbnails/chart-data-thumb.jpg",
                 author: {
                     id: "user_5",
-                    name: "数据分析师",
+                    name: t("mediaMock.files.chartData.authorName"),
                 },
                 folder: "/documents",
                 tags: ["excel", "data", "chart"],
-                description: "11月份数据报告表格",
+                description: t("mediaMock.files.chartData.description"),
                 createdAt: "2024-11-17 15:20:00",
                 downloads: 45,
                 isPublic: true,
             },
             {
                 id: "media_8",
-                name: "code-snippet.js",
+                name: t("mediaMock.files.codeSnippet.name"),
                 originalName: "utility-functions.js",
                 type: "document",
                 mimeType: "application/javascript",
@@ -307,18 +309,18 @@ const MediaManagement: React.FC = () => {
                 thumbnailUrl: "/media/thumbnails/code-snippet-thumb.jpg",
                 author: {
                     id: "user_6",
-                    name: "前端开发",
+                    name: t("mediaMock.files.codeSnippet.authorName"),
                 },
                 folder: "/code",
                 tags: ["javascript", "code", "utility"],
-                description: "常用工具函数代码片段",
+                description: t("mediaMock.files.codeSnippet.description"),
                 createdAt: "2024-11-17 10:15:00",
                 downloads: 89,
                 isPublic: true,
             },
             {
                 id: "media_9",
-                name: "presentation.pptx",
+                name: t("mediaMock.files.presentation.name"),
                 originalName: "company-introduction-2024.pptx",
                 type: "document",
                 mimeType: "application/vnd.openxmlformats-officedocument.presentationml.presentation",
@@ -327,18 +329,18 @@ const MediaManagement: React.FC = () => {
                 thumbnailUrl: "/media/thumbnails/presentation-thumb.jpg",
                 author: {
                     id: "user_7",
-                    name: "市场部",
+                    name: t("mediaMock.files.presentation.authorName"),
                 },
                 folder: "/documents",
                 tags: ["powerpoint", "presentation", "company"],
-                description: "公司介绍演示文稿",
+                description: t("mediaMock.files.presentation.description"),
                 createdAt: "2024-11-16 14:45:00",
                 downloads: 156,
                 isPublic: true,
             },
             {
                 id: "media_10",
-                name: "product-image.jpg",
+                name: t("mediaMock.files.productImage.name"),
                 originalName: "product-hero-banner.jpg",
                 type: "image",
                 mimeType: "image/jpeg",
@@ -348,19 +350,19 @@ const MediaManagement: React.FC = () => {
                 dimensions: { width: 1200, height: 600 },
                 author: {
                     id: "user_8",
-                    name: "设计师",
+                    name: t("mediaMock.files.productImage.authorName"),
                 },
                 folder: "/articles/images",
                 tags: ["product", "banner", "marketing"],
-                alt: "产品横幅图片",
-                description: "产品展示横幅图片",
+                alt: t("mediaMock.files.productImage.alt"),
+                description: t("mediaMock.files.productImage.description"),
                 createdAt: "2024-11-16 09:30:00",
                 downloads: 234,
                 isPublic: true,
             },
             {
                 id: "media_11",
-                name: "intro-video.webm",
+                name: t("mediaMock.files.introVideo.name"),
                 originalName: "website-intro-animation.webm",
                 type: "video",
                 mimeType: "video/webm",
@@ -371,18 +373,18 @@ const MediaManagement: React.FC = () => {
                 duration: 45, // 45秒
                 author: {
                     id: "user_9",
-                    name: "视频制作师",
+                    name: t("mediaMock.files.introVideo.authorName"),
                 },
                 folder: "/videos",
                 tags: ["animation", "intro", "webm"],
-                description: "网站开场动画视频",
+                description: t("mediaMock.files.introVideo.description"),
                 createdAt: "2024-11-15 13:20:00",
                 downloads: 178,
                 isPublic: true,
             },
             {
                 id: "media_12",
-                name: "icon-set.svg",
+                name: t("mediaMock.files.iconSet.name"),
                 originalName: "ui-icons-complete.svg",
                 type: "image",
                 mimeType: "image/svg+xml",
@@ -391,19 +393,19 @@ const MediaManagement: React.FC = () => {
                 thumbnailUrl: "/media/thumbnails/icon-set-thumb.jpg",
                 author: {
                     id: "user_10",
-                    name: "UI设计师",
+                    name: t("mediaMock.files.iconSet.authorName"),
                 },
                 folder: "/assets/icons",
                 tags: ["icons", "svg", "ui"],
-                alt: "UI图标集合",
-                description: "完整的UI图标集合SVG文件",
+                alt: t("mediaMock.files.iconSet.alt"),
+                description: t("mediaMock.files.iconSet.description"),
                 createdAt: "2024-11-15 11:10:00",
                 downloads: 267,
                 isPublic: true,
             },
             {
                 id: "media_13",
-                name: "podcast-episode.mp3",
+                name: t("mediaMock.files.podcastEpisode.name"),
                 originalName: "tech-talk-episode-42.mp3",
                 type: "audio",
                 mimeType: "audio/mpeg",
@@ -412,18 +414,18 @@ const MediaManagement: React.FC = () => {
                 duration: 1800, // 30分钟
                 author: {
                     id: "user_11",
-                    name: "播客主播",
+                    name: t("mediaMock.files.podcastEpisode.authorName"),
                 },
                 folder: "/podcasts",
                 tags: ["podcast", "tech", "audio"],
-                description: "技术播客第42期",
+                description: t("mediaMock.files.podcastEpisode.description"),
                 createdAt: "2024-11-14 16:45:00",
                 downloads: 342,
                 isPublic: true,
             },
             {
                 id: "media_14",
-                name: "database-backup.sql",
+                name: t("mediaMock.files.databaseBackup.name"),
                 originalName: "production-backup-2024-11-14.sql",
                 type: "document",
                 mimeType: "application/sql",
@@ -432,18 +434,18 @@ const MediaManagement: React.FC = () => {
                 thumbnailUrl: "/media/thumbnails/database-backup-thumb.jpg",
                 author: {
                     id: "user_1",
-                    name: "管理员",
+                    name: t("mediaMock.files.databaseBackup.authorName"),
                 },
                 folder: "/backups",
                 tags: ["database", "sql", "backup"],
-                description: "生产数据库备份文件",
+                description: t("mediaMock.files.databaseBackup.description"),
                 createdAt: "2024-11-14 03:00:00",
                 downloads: 5,
                 isPublic: false,
             },
             {
                 id: "media_15",
-                name: "font-family.woff2",
+                name: t("mediaMock.files.fontFamily.name"),
                 originalName: "custom-font-regular.woff2",
                 type: "other",
                 mimeType: "font/woff2",
@@ -451,17 +453,17 @@ const MediaManagement: React.FC = () => {
                 url: "/media/font-family.woff2",
                 author: {
                     id: "user_12",
-                    name: "字体设计师",
+                    name: t("mediaMock.files.fontFamily.authorName"),
                 },
                 folder: "/assets/fonts",
                 tags: ["font", "woff2", "custom"],
-                description: "自定义字体文件",
+                description: t("mediaMock.files.fontFamily.description"),
                 createdAt: "2024-11-13 12:30:00",
                 downloads: 89,
                 isPublic: true,
             },
         ],
-        [],
+        [t],
     );
 
     // 加载数据
@@ -516,20 +518,20 @@ const MediaManagement: React.FC = () => {
 
     // 筛选选项数据
     const typeOptions: SelectOption[] = [
-        { id: "", name: "全部类型", color: "#6c757d" },
-        { id: "image", name: "图片", color: "#007bff" },
-        { id: "video", name: "视频", color: "#dc3545" },
-        { id: "audio", name: "音频", color: "#28a745" },
-        { id: "document", name: "文档", color: "#17a2b8" },
-        { id: "archive", name: "压缩包", color: "#6c757d" },
-        { id: "other", name: "其他", color: "#6c757d" },
+        { id: "", name: t("media.type.all"), color: "#6c757d" },
+        { id: "image", name: t("media.type.image"), color: "#007bff" },
+        { id: "video", name: t("media.type.video"), color: "#dc3545" },
+        { id: "audio", name: t("media.type.audio"), color: "#28a745" },
+        { id: "document", name: t("media.type.document"), color: "#17a2b8" },
+        { id: "archive", name: t("media.type.archive"), color: "#6c757d" },
+        { id: "other", name: t("media.type.other"), color: "#6c757d" },
     ];
 
     const folderOptions: SelectOption[] = [
-        { id: "", name: "全部文件夹", color: "#6c757d" },
+        { id: "", name: t("media.folder.all"), color: "#6c757d" },
         ...mockFolders.map((folder) => ({
             id: folder.path,
-            name: `${folder.name} (${folder.fileCount}个文件)`,
+            name: `${folder.name} (${t("media.folder.fileCountShort", { value: folder.fileCount })})`,
             color: "#007bff",
         })),
     ];
@@ -583,10 +585,10 @@ const MediaManagement: React.FC = () => {
     // 删除文件
     const deleteFiles = async (fileIds: string[]) => {
         await confirm({
-            title: "删除文件",
-            content: `确定要删除选中的 ${fileIds.length} 个文件吗？删除后无法恢复。`,
-            confirmText: "确认删除",
-            cancelText: "取消",
+            title: t("media.confirmDelete.title"),
+            content: t("media.confirmDelete.content", { value: fileIds.length }),
+            confirmText: t("media.confirmDelete.confirm"),
+            cancelText: t("media.confirmDelete.cancel"),
             onConfirm: async () => {
                 setMediaFiles((prev) => prev.filter((file) => !fileIds.includes(file.id)));
                 setSelectedFiles([]);
@@ -708,7 +710,7 @@ const MediaManagement: React.FC = () => {
     if (loading) {
         return (
             <div className={styles.mediaManagement}>
-                <Loading text="加载媒体库中..." size="large" />
+                <Loading text={t("media.loading")} size="large" />
             </div>
         );
     }
@@ -718,8 +720,8 @@ const MediaManagement: React.FC = () => {
             {/* 页面头部 */}
             <div className={styles.pageHeader}>
                 <div>
-                    <h1 className={styles.pageTitle}>媒体库管理</h1>
-                    <p className={styles.pageDescription}>管理图片、视频、文档等媒体文件</p>
+                    <h1 className={styles.pageTitle}>{t("media.title")}</h1>
+                    <p className={styles.pageDescription}>{t("media.description")}</p>
                 </div>
             </div>
 
@@ -738,7 +740,7 @@ const MediaManagement: React.FC = () => {
                             <div className={styles.folderInfo}>
                                 <div className={styles.folderName}>{folder.name}</div>
                                 <div className={styles.folderMeta}>
-                                    <span>{folder.fileCount} 个文件</span>
+                                    <span>{t("media.folder.fileCount", { value: folder.fileCount })}</span>
                                     <span>{formatFileSize(folder.size)}</span>
                                 </div>
                             </div>
@@ -752,35 +754,35 @@ const MediaManagement: React.FC = () => {
                 <div className={styles.filterHeader}>
                     <h3 className={styles.filterTitle}>
                         <FaFilter />
-                        筛选条件
+                        {t("media.filter.title")}
                     </h3>
                     <div className={styles.filterActions}>
                         <div className={styles.viewToggle}>
                             <button
                                 className={`${styles.viewButton} ${viewMode === "grid" ? styles.active : ""}`}
                                 onClick={() => setViewMode("grid")}
-                                title="网格视图"
+                                title={t("media.filter.gridView")}
                             >
                                 <FaTh />
                             </button>
                             <button
                                 className={`${styles.viewButton} ${viewMode === "list" ? styles.active : ""}`}
                                 onClick={() => setViewMode("list")}
-                                title="列表视图"
+                                title={t("media.filter.listView")}
                             >
                                 <FaList />
                             </button>
                         </div>
                         <button className={`${styles.btn} ${styles.btnOutline} ${styles.btnSm}`} onClick={clearFilters}>
-                            清除筛选
+                            {t("media.filter.clear")}
                         </button>
                     </div>
                 </div>
                 <div className={styles.filterForm}>
                     <div className={styles.filterGroup}>
-                        <label className={styles.filterLabel}>搜索文件</label>
+                        <label className={styles.filterLabel}>{t("media.filter.searchLabel")}</label>
                         <Input
-                            placeholder="文件名、描述或标签"
+                            placeholder={t("media.filter.searchPlaceholder")}
                             value={filters.search}
                             onChange={(value) => handleFilterChange("search", value)}
                             allowClear={true}
@@ -789,25 +791,25 @@ const MediaManagement: React.FC = () => {
                         />
                     </div>
                     <div className={styles.filterGroup}>
-                        <label className={styles.filterLabel}>文件类型</label>
+                        <label className={styles.filterLabel}>{t("media.filter.typeLabel")}</label>
                         <CustomSelect
-                            name="类型"
+                            name={t("media.filter.typeName")}
                             options={typeOptions}
                             value={typeOptions.find((option) => option.id === filters.type) || null}
                             onChange={handleSelectChange("type")}
-                            placeholder="选择类型..."
+                            placeholder={t("media.filter.typePlaceholder")}
                             className="adminCustomSelect"
                             hideBadge={true}
                         />
                     </div>
                     <div className={styles.filterGroup}>
-                        <label className={styles.filterLabel}>文件夹</label>
+                        <label className={styles.filterLabel}>{t("media.filter.folderLabel")}</label>
                         <CustomSelect
-                            name="文件夹"
+                            name={t("media.filter.folderName")}
                             options={folderOptions}
                             value={folderOptions.find((option) => option.id === filters.folder) || null}
                             onChange={handleSelectChange("folder")}
-                            placeholder="选择文件夹..."
+                            placeholder={t("media.filter.folderPlaceholder")}
                             className="adminCustomSelect"
                             hideBadge={true}
                         />
@@ -818,26 +820,26 @@ const MediaManagement: React.FC = () => {
             {/* 批量操作栏 */}
             {selectedFiles.length > 0 && (
                 <div className={styles.batchActions}>
-                    <div className={styles.batchInfo}>已选择 {selectedFiles.length} 个文件</div>
+                    <div className={styles.batchInfo}>{t("media.batch.selected", { value: selectedFiles.length })}</div>
                     <div className={styles.batchButtons}>
                         <button className={`${styles.btn} ${styles.btnOutline} ${styles.btnSm}`}>
                             <FaCopy />
-                            复制
+                            {t("media.batch.copy")}
                         </button>
                         <button className={`${styles.btn} ${styles.btnOutline} ${styles.btnSm}`}>
                             <FaCut />
-                            剪切
+                            {t("media.batch.cut")}
                         </button>
                         <button className={`${styles.btn} ${styles.btnOutline} ${styles.btnSm}`}>
                             <FaFolder />
-                            移动
+                            {t("media.batch.move")}
                         </button>
                         <button
                             className={`${styles.btn} ${styles.btnDanger} ${styles.btnSm}`}
                             onClick={() => deleteFiles(selectedFiles)}
                         >
                             <FaTrash />
-                            删除
+                            {t("media.batch.delete")}
                         </button>
                     </div>
                 </div>
@@ -846,11 +848,11 @@ const MediaManagement: React.FC = () => {
             {/* 文件统计 */}
             <div className={styles.statsBar}>
                 <div className={styles.statItem}>
-                    <span className={styles.statLabel}>总文件数：</span>
+                    <span className={styles.statLabel}>{t("media.stats.totalFiles")}</span>
                     <span className={styles.statValue}>{filteredFiles.length}</span>
                 </div>
                 <div className={styles.statItem}>
-                    <span className={styles.statLabel}>总大小：</span>
+                    <span className={styles.statLabel}>{t("media.stats.totalSize")}</span>
                     <span className={styles.statValue}>
                         {formatFileSize(filteredFiles.reduce((total, file) => total + file.size, 0))}
                     </span>
@@ -908,24 +910,24 @@ const MediaManagement: React.FC = () => {
                                     <div className={styles.fileActions}>
                                         <button
                                             className={`${styles.actionButton} ${styles.preview}`}
-                                            title="预览"
+                                            title={t("media.actions.preview")}
                                             onClick={() => handlePreviewFile(file)}
                                         >
                                             <FaEye />
                                         </button>
                                         <button
                                             className={`${styles.actionButton} ${styles.download}`}
-                                            title="下载"
+                                            title={t("media.actions.download")}
                                             onClick={() => downloadFile(file)}
                                         >
                                             <FaDownload />
                                         </button>
-                                        <button className={`${styles.actionButton} ${styles.edit}`} title="编辑">
+                                        <button className={`${styles.actionButton} ${styles.edit}`} title={t("media.actions.edit")}>
                                             <FaEdit />
                                         </button>
                                         <button
                                             className={`${styles.actionButton} ${styles.delete}`}
-                                            title="删除"
+                                            title={t("media.actions.delete")}
                                             onClick={() => deleteFiles([file.id])}
                                         >
                                             <FaTrash />
@@ -942,7 +944,7 @@ const MediaManagement: React.FC = () => {
                                     color: "var(--text-secondary)",
                                 }}
                             >
-                                暂无数据
+                                {t("media.empty")}
                             </div>
                         )}
                     </div>
@@ -956,13 +958,13 @@ const MediaManagement: React.FC = () => {
                                     onChange={(e) => handleSelectAll(e.target.checked)}
                                 />
                             </div>
-                            <div className={styles.listName}>文件名</div>
-                            <div className={styles.listType}>类型</div>
-                            <div className={styles.listSize}>大小</div>
-                            <div className={styles.listAuthor}>上传者</div>
-                            <div className={styles.listDate}>上传时间</div>
-                            <div className={styles.listDownloads}>下载</div>
-                            <div className={styles.listActions}>操作</div>
+                            <div className={styles.listName}>{t("media.table.name")}</div>
+                            <div className={styles.listType}>{t("media.table.type")}</div>
+                            <div className={styles.listSize}>{t("media.table.size")}</div>
+                            <div className={styles.listAuthor}>{t("media.table.author")}</div>
+                            <div className={styles.listDate}>{t("media.table.createdAt")}</div>
+                            <div className={styles.listDownloads}>{t("media.table.downloads")}</div>
+                            <div className={styles.listActions}>{t("media.table.actions")}</div>
                         </div>
                         {currentItems.length > 0 ? (
                             currentItems.map((file) => (
@@ -997,21 +999,21 @@ const MediaManagement: React.FC = () => {
                                     <div className={styles.listActions}>
                                         <button
                                             className={`${styles.actionButton} ${styles.small}`}
-                                            title="预览"
+                                            title={t("media.actions.preview")}
                                             onClick={() => handlePreviewFile(file)}
                                         >
                                             <FaEye />
                                         </button>
                                         <button
                                             className={`${styles.actionButton} ${styles.small}`}
-                                            title="下载"
+                                            title={t("media.actions.download")}
                                             onClick={() => downloadFile(file)}
                                         >
                                             <FaDownload />
                                         </button>
                                         <button
                                             className={`${styles.actionButton} ${styles.small}`}
-                                            title="删除"
+                                            title={t("media.actions.delete")}
                                             onClick={() => deleteFiles([file.id])}
                                         >
                                             <FaTrash />
@@ -1027,7 +1029,7 @@ const MediaManagement: React.FC = () => {
                                     color: "var(--text-secondary)",
                                 }}
                             >
-                                暂无数据
+                                {t("media.empty")}
                             </div>
                         )}
                     </div>
@@ -1037,7 +1039,11 @@ const MediaManagement: React.FC = () => {
                 {totalPages >= 1 && (
                     <div className={styles.paginationContainer}>
                         <div className={styles.paginationInfo}>
-                            显示 {startIndex + 1} - {Math.min(endIndex, filteredFiles.length)} 条， 共 {filteredFiles.length} 个文件
+                            {t("media.pagination.info", {
+                                start: startIndex + 1,
+                                end: Math.min(endIndex, filteredFiles.length),
+                                total: filteredFiles.length,
+                            })}
                         </div>
                         <div className={styles.paginationControls}>
                             <button className={styles.paginationButton} onClick={() => setCurrentPage(1)} disabled={currentPage === 1}>
@@ -1105,25 +1111,37 @@ const MediaManagement: React.FC = () => {
                             ) : (
                                 <div className={styles.filePreviewPlaceholder}>
                                     {getFileIcon(previewFile.type, previewFile.mimeType)}
-                                    <p>无法预览此文件类型</p>
+                                    <p>{t("media.preview.unsupported")}</p>
                                 </div>
                             )}
                         </div>
                         <div className={styles.previewFooter}>
                             <div className={styles.previewInfo}>
-                                <span>大小：{formatFileSize(previewFile.size)}</span>
+                                <span>
+                                    {t("media.preview.size")}
+                                    {formatFileSize(previewFile.size)}
+                                </span>
                                 {previewFile.dimensions && (
                                     <span>
-                                        尺寸：{previewFile.dimensions.width}×{previewFile.dimensions.height}
+                                        {t("media.preview.dimensions")}
+                                        {previewFile.dimensions.width}×{previewFile.dimensions.height}
                                     </span>
                                 )}
-                                {previewFile.duration && <span>时长：{formatDuration(previewFile.duration)}</span>}
-                                <span>上传者：{previewFile.author.name}</span>
+                                {previewFile.duration && (
+                                    <span>
+                                        {t("media.preview.duration")}
+                                        {formatDuration(previewFile.duration)}
+                                    </span>
+                                )}
+                                <span>
+                                    {t("media.preview.author")}
+                                    {previewFile.author.name}
+                                </span>
                             </div>
                             <div className={styles.previewActions}>
                                 <button className={`${styles.btn} ${styles.btnPrimary}`} onClick={() => downloadFile(previewFile)}>
                                     <FaDownload />
-                                    下载
+                                    {t("media.preview.download")}
                                 </button>
                             </div>
                         </div>

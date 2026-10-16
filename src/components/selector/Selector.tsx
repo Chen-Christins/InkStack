@@ -9,6 +9,7 @@ import React, {
     type ChangeEvent,
     type ReactNode,
 } from "react";
+import { useTranslation } from "react-i18next";
 import styles from "./Selector.module.css";
 
 // 定义选项类型
@@ -46,7 +47,7 @@ const Selector = React.forwardRef<HTMLDivElement, SelectorProps>((props, ref: Fo
         value: propsValue,
         defaultValue,
         onChange,
-        placeholder = "请选择",
+        placeholder,
         disabled = false,
         loading = false,
         allowClear = false,
@@ -62,6 +63,9 @@ const Selector = React.forwardRef<HTMLDivElement, SelectorProps>((props, ref: Fo
         onDropdownVisibleChange,
         ...restProps
     } = props;
+
+    const { t } = useTranslation("components");
+    const resolvedPlaceholder = placeholder ?? t("selector.placeholder");
 
     // 状态管理
     const [internalValue, setInternalValue] = useState<string | number | (string | number)[]>(
@@ -93,7 +97,7 @@ const Selector = React.forwardRef<HTMLDivElement, SelectorProps>((props, ref: Fo
     const getDisplayText = useCallback((): string => {
         if (mode === "multiple" && Array.isArray(value)) {
             if (value.length === 0) {
-                return placeholder;
+                return resolvedPlaceholder;
             }
             const selectedLabels = value.map((val) => {
                 const option = options.find((opt) => opt.value === val);
@@ -103,12 +107,12 @@ const Selector = React.forwardRef<HTMLDivElement, SelectorProps>((props, ref: Fo
         }
 
         if (!value && value !== 0) {
-            return placeholder;
+            return resolvedPlaceholder;
         }
 
         const selectedOption = options.find((opt) => opt.value === value);
         return selectedOption ? String(selectedOption.label) : String(value);
-    }, [value, options, mode, placeholder]);
+    }, [value, options, mode, resolvedPlaceholder]);
 
     // 处理选择
     const handleSelect = useCallback(
@@ -257,7 +261,7 @@ const Selector = React.forwardRef<HTMLDivElement, SelectorProps>((props, ref: Fo
                             onChange={handleSearchChange}
                             onCompositionStart={handleCompositionStart}
                             onCompositionEnd={handleCompositionEnd}
-                            placeholder={getDisplayText() === placeholder ? placeholder : ""}
+                            placeholder={getDisplayText() === resolvedPlaceholder ? resolvedPlaceholder : ""}
                             disabled={disabled || loading}
                         />
                     ) : (
@@ -287,7 +291,7 @@ const Selector = React.forwardRef<HTMLDivElement, SelectorProps>((props, ref: Fo
                 <div className={dropdownClasses}>
                     <div className={styles.dropdownContent}>
                         {filteredOptions().length === 0 ? (
-                            <div className={styles.noData}>暂无数据</div>
+                            <div className={styles.noData}>{t("selector.noData")}</div>
                         ) : (
                             filteredOptions().map((option, index) => {
                                 // 修复 includes 方法的使用

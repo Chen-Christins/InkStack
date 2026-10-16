@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import * as echarts from "echarts";
 import { FaArrowDown, FaArrowUp, FaBug, FaChartLine, FaClock, FaClipboardCheck, FaCodeBranch } from "react-icons/fa";
 import { useSearchParams } from "react-router-dom";
@@ -17,6 +18,7 @@ const parseTrendPeriod = (value: string | null): TrendPeriod => (value === "7" ?
 
 const TrendAnalysis: React.FC = () => {
     const [searchParams, setSearchParams] = useSearchParams();
+    const { t } = useTranslation("rd");
     const { selectedOrgId, loading: orgLoading } = useRdOrg();
     const [trendData, setTrendData] = useState<RdTrendAnalysisData | null>(null);
     const [loading, setLoading] = useState(true);
@@ -58,7 +60,7 @@ const TrendAnalysis: React.FC = () => {
             if (requestId !== requestIdRef.current) {
                 return;
             }
-            setError(err?.message || "趋势分析数据加载失败");
+            setError(err?.message || t("trend.errorTitle"));
             setTrendData(null);
         } finally {
             if (requestId !== requestIdRef.current) {
@@ -66,7 +68,7 @@ const TrendAnalysis: React.FC = () => {
             }
             setLoading(false);
         }
-    }, [orgLoading, periodDays, selectedOrgId]);
+    }, [orgLoading, periodDays, selectedOrgId, t]);
 
     useEffect(() => {
         loadTrends();
@@ -77,24 +79,24 @@ const TrendAnalysis: React.FC = () => {
             return [];
         }
         return [
-            { name: "需求交付", value: trendData.workDistribution.requirementDelivery },
-            { name: "缺陷修复", value: trendData.workDistribution.bugFix },
-            { name: "研发任务", value: trendData.workDistribution.rdTask },
-            { name: "代码审查", value: trendData.workDistribution.codeReview },
+            { name: t("trend.distRequirementDelivery"), value: trendData.workDistribution.requirementDelivery },
+            { name: t("trend.distBugFix"), value: trendData.workDistribution.bugFix },
+            { name: t("trend.distRdTask"), value: trendData.workDistribution.rdTask },
+            { name: t("trend.distCodeReview"), value: trendData.workDistribution.codeReview },
         ];
-    }, [trendData]);
+    }, [trendData, t]);
 
     const teamHealth = useMemo(() => {
         if (!trendData) {
             return [];
         }
         return [
-            { label: "交付吞吐", value: trendData.teamHealth.throughput, tone: "success" as HealthTone },
-            { label: "缺陷压力", value: trendData.teamHealth.bugPressure, tone: "danger" as HealthTone },
-            { label: "审查效率", value: trendData.teamHealth.reviewEfficiency, tone: "primary" as HealthTone },
-            { label: "返工风险", value: trendData.teamHealth.reworkRisk, tone: "warning" as HealthTone },
+            { label: t("trend.healthThroughput"), value: trendData.teamHealth.throughput, tone: "success" as HealthTone },
+            { label: t("trend.healthBugPressure"), value: trendData.teamHealth.bugPressure, tone: "danger" as HealthTone },
+            { label: t("trend.healthReviewEfficiency"), value: trendData.teamHealth.reviewEfficiency, tone: "primary" as HealthTone },
+            { label: t("trend.healthReworkRisk"), value: trendData.teamHealth.reworkRisk, tone: "warning" as HealthTone },
         ];
-    }, [trendData]);
+    }, [trendData, t]);
 
     useEffect(() => {
         if (!trendData || trendData.series.length === 0) {
@@ -124,9 +126,19 @@ const TrendAnalysis: React.FC = () => {
                     axisLabel: { color: textColor },
                 },
                 series: [
-                    { name: "新增需求", type: "line", smooth: true, data: trendData.series.map((item) => item.requirements) },
-                    { name: "完成项", type: "line", smooth: true, data: trendData.series.map((item) => item.completed) },
-                    { name: "新增缺陷", type: "line", smooth: true, data: trendData.series.map((item) => item.bugs) },
+                    {
+                        name: t("trend.seriesRequirements"),
+                        type: "line",
+                        smooth: true,
+                        data: trendData.series.map((item) => item.requirements),
+                    },
+                    {
+                        name: t("trend.seriesCompleted"),
+                        type: "line",
+                        smooth: true,
+                        data: trendData.series.map((item) => item.completed),
+                    },
+                    { name: t("trend.seriesBugs"), type: "line", smooth: true, data: trendData.series.map((item) => item.bugs) },
                 ],
             });
             charts.push(chart);
@@ -151,9 +163,19 @@ const TrendAnalysis: React.FC = () => {
                     axisLabel: { color: textColor },
                 },
                 series: [
-                    { name: "任务总量", type: "bar", stack: "total", data: trendData.series.map((item) => item.tasks) },
-                    { name: "返工数", type: "bar", stack: "risk", data: trendData.series.map((item) => item.reopened) },
-                    { name: "平均周期", type: "line", smooth: true, data: trendData.series.map((item) => item.cycleTime) },
+                    { name: t("trend.seriesTasks"), type: "bar", stack: "total", data: trendData.series.map((item) => item.tasks) },
+                    {
+                        name: t("trend.seriesReopened"),
+                        type: "bar",
+                        stack: "risk",
+                        data: trendData.series.map((item) => item.reopened),
+                    },
+                    {
+                        name: t("trend.seriesCycleTime"),
+                        type: "line",
+                        smooth: true,
+                        data: trendData.series.map((item) => item.cycleTime),
+                    },
                 ],
             });
             charts.push(chart);
@@ -167,7 +189,7 @@ const TrendAnalysis: React.FC = () => {
                 legend: { bottom: 0, textStyle: { color: textColor } },
                 series: [
                     {
-                        name: "工作占比",
+                        name: t("trend.seriesWorkDistribution"),
                         type: "pie",
                         radius: ["46%", "70%"],
                         center: ["50%", "43%"],
@@ -187,22 +209,22 @@ const TrendAnalysis: React.FC = () => {
             window.removeEventListener("resize", handleResize);
             charts.forEach((chart) => chart.dispose());
         };
-    }, [axisLabelInterval, periodDays, trendData, workDistribution]);
+    }, [axisLabelInterval, periodDays, trendData, workDistribution, t]);
 
     if ((loading || orgLoading) && !trendData) {
-        return <Loading text="加载趋势分析数据..." />;
+        return <Loading text={t("trend.loading")} />;
     }
 
     if (error && !trendData) {
-        return <ErrorState title="趋势分析加载失败" message={error} actionText="重新加载" onAction={loadTrends} />;
+        return <ErrorState title={t("trend.errorTitle")} message={error} actionText={t("trend.retry")} onAction={loadTrends} />;
     }
 
     if (!trendData || trendData.series.length === 0) {
         return (
             <ErrorState
-                title="暂无趋势数据"
-                message="当前组织和时间范围内没有可展示的趋势分析数据。"
-                actionText="重新加载"
+                title={t("trend.emptyTitle")}
+                message={t("trend.emptyMessage")}
+                actionText={t("trend.retry")}
                 onAction={loadTrends}
             />
         );
@@ -212,15 +234,15 @@ const TrendAnalysis: React.FC = () => {
 
     return (
         <div className={styles.trends}>
-            {loading && <Loading text="刷新趋势数据..." overlay />}
+            {loading && <Loading text={t("trend.refreshing")} overlay />}
 
             <div className={styles.pageHeader}>
                 <div>
-                    <h1 className={styles.pageTitle}>趋势分析</h1>
-                    <p className={styles.pageDescription}>基于近 {periodDays} 天研发数据，总结其吞吐、质量与效率走势</p>
+                    <h1 className={styles.pageTitle}>{t("trend.pageTitle")}</h1>
+                    <p className={styles.pageDescription}>{t("trend.pageDescription", { days: periodDays })}</p>
                 </div>
                 <div className={styles.pageActions}>
-                    <div className={styles.periodSwitch} aria-label="趋势时间范围">
+                    <div className={styles.periodSwitch} aria-label={t("trend.periodAria")}>
                         <Button
                             size="small"
                             color={periodDays === 7 ? "primary" : "secondary"}
@@ -228,7 +250,7 @@ const TrendAnalysis: React.FC = () => {
                             className={styles.periodButton}
                             onClick={() => handlePeriodChange(7)}
                         >
-                            7 天
+                            {t("trend.period7")}
                         </Button>
                         <Button
                             size="small"
@@ -237,7 +259,7 @@ const TrendAnalysis: React.FC = () => {
                             className={styles.periodButton}
                             onClick={() => handlePeriodChange(30)}
                         >
-                            30 天
+                            {t("trend.period30")}
                         </Button>
                     </div>
                 </div>
@@ -249,11 +271,10 @@ const TrendAnalysis: React.FC = () => {
                         <FaClipboardCheck />
                     </div>
                     <div className={styles.metricValue}>{summary.completedTotal}</div>
-                    <div className={styles.metricLabel}>累计完成项</div>
+                    <div className={styles.metricLabel}>{t("trend.completedTotal")}</div>
                     <div className={summary.taskDelta >= 0 ? styles.metricMeta : styles.metricMetaWarn}>
                         {summary.taskDelta >= 0 ? <FaArrowUp /> : <FaArrowDown />}
-                        较上一日任务量 {summary.taskDelta >= 0 ? "+" : ""}
-                        {summary.taskDelta}
+                        {t("trend.taskDelta", { value: `${summary.taskDelta >= 0 ? "+" : ""}${summary.taskDelta}` })}
                     </div>
                 </div>
                 <div className={styles.metricCard}>
@@ -261,28 +282,28 @@ const TrendAnalysis: React.FC = () => {
                         <FaBug />
                     </div>
                     <div className={styles.metricValue}>{summary.bugTotal}</div>
-                    <div className={styles.metricLabel}>新增缺陷</div>
-                    <div className={styles.metricMetaMuted}>缺陷新增保持低位震荡</div>
+                    <div className={styles.metricLabel}>{t("trend.bugTotal")}</div>
+                    <div className={styles.metricMetaMuted}>{t("trend.bugHint")}</div>
                 </div>
                 <div className={styles.metricCard}>
                     <div className={`${styles.metricIcon} ${styles.success}`}>
                         <FaCodeBranch />
                     </div>
                     <div className={styles.metricValue}>{summary.avgReviewPassRate}%</div>
-                    <div className={styles.metricLabel}>平均审查通过率</div>
+                    <div className={styles.metricLabel}>{t("trend.avgReviewPassRate")}</div>
                     <div className={styles.metricMeta}>
-                        <FaArrowUp /> 质量门禁趋势向好
+                        <FaArrowUp /> {t("trend.reviewHint")}
                     </div>
                 </div>
                 <div className={styles.metricCard}>
                     <div className={`${styles.metricIcon} ${styles.warning}`}>
                         <FaClock />
                     </div>
-                    <div className={styles.metricValue}>{summary.avgCycleTime} 天</div>
-                    <div className={styles.metricLabel}>平均交付周期</div>
+                    <div className={styles.metricValue}>{t("trend.avgCycleTimeValue", { value: summary.avgCycleTime })}</div>
+                    <div className={styles.metricLabel}>{t("trend.avgCycleTime")}</div>
                     <div className={summary.cycleDelta <= 0 ? styles.metricMeta : styles.metricMetaWarn}>
                         {summary.cycleDelta <= 0 ? <FaArrowDown /> : <FaArrowUp />}
-                        较上一日 {summary.cycleDelta} 天
+                        {t("trend.cycleDelta", { value: summary.cycleDelta })}
                     </div>
                 </div>
             </div>
@@ -290,32 +311,32 @@ const TrendAnalysis: React.FC = () => {
             <div className={styles.chartGrid}>
                 <section className={styles.chartCard}>
                     <div className={styles.chartHeader}>
-                        <h2>研发吞吐趋势</h2>
-                        <span>需求 / 完成项 / 缺陷</span>
+                        <h2>{t("trend.throughputTitle")}</h2>
+                        <span>{t("trend.throughputSubtitle")}</span>
                     </div>
                     <div ref={throughputRef} className={styles.chartContainer} />
                 </section>
 
                 <section className={styles.chartCard}>
                     <div className={styles.chartHeader}>
-                        <h2>任务积压与周期</h2>
-                        <span>任务总量 / 返工 / 平均周期</span>
+                        <h2>{t("trend.backlogTitle")}</h2>
+                        <span>{t("trend.backlogSubtitle")}</span>
                     </div>
                     <div ref={backlogRef} className={styles.chartContainer} />
                 </section>
 
                 <section className={styles.chartCard}>
                     <div className={styles.chartHeader}>
-                        <h2>工作类型分布</h2>
-                        <span>近 {periodDays} 天占比</span>
+                        <h2>{t("trend.distributionTitle")}</h2>
+                        <span>{t("trend.distributionSubtitle", { days: periodDays })}</span>
                     </div>
                     <div ref={distributionRef} className={styles.chartContainer} />
                 </section>
 
                 <section className={styles.chartCard}>
                     <div className={styles.chartHeader}>
-                        <h2>团队健康度</h2>
-                        <span>综合效率指标</span>
+                        <h2>{t("trend.healthTitle")}</h2>
+                        <span>{t("trend.healthSubtitle")}</span>
                     </div>
                     <div className={styles.healthList}>
                         {teamHealth.map((item) => (
@@ -336,7 +357,7 @@ const TrendAnalysis: React.FC = () => {
             <section className={styles.insightSection}>
                 <div className={styles.insightTitle}>
                     <FaChartLine />
-                    趋势判断
+                    {t("trend.insightTitle")}
                 </div>
                 <div className={styles.insightGrid}>
                     {trendData.insights.map((item) => (

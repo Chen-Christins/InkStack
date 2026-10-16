@@ -1,6 +1,11 @@
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
+import i18n from "@/i18n";
 import type { EventEnvelope, ProposalView } from "../contracts/agent";
 import { AgentGatewayClient } from "./AgentGatewayClient.ts";
+
+beforeEach(async () => {
+    await i18n.changeLanguage("zh-CN");
+});
 
 function envelope(sid: string, seq: number, text = `event-${seq}`): EventEnvelope {
     return {

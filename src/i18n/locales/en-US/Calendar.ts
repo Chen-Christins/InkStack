@@ -1,0 +1,36 @@
+const calendar = {
+    title: "Site Calendar",
+    placeholder: "Select date",
+    yearMonth: "{{month}} {{year}}",
+    yearLabel: "{{year}}",
+    decade: "{{range}}",
+    today: "Today",
+    hour: "Hr",
+    minute: "Min",
+    second: "Sec",
+    weekdays: {
+        sun: "Su",
+        mon: "Mo",
+        tue: "Tu",
+        wed: "We",
+        thu: "Th",
+        fri: "Fr",
+        sat: "Sa",
+    },
+    months: {
+        jan: "Jan",
+        feb: "Feb",
+        mar: "Mar",
+        apr: "Apr",
+        may: "May",
+        jun: "Jun",
+        jul: "Jul",
+        aug: "Aug",
+        sep: "Sep",
+        oct: "Oct",
+        nov: "Nov",
+        dec: "Dec",
+    },
+} as const;
+
+export default calendar;

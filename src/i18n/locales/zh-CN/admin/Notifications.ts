@@ -1,0 +1,62 @@
+const section = {
+    page: {
+        title: "发送通知",
+        description: "向用户推送系统通知、公告或文章更新提醒",
+    },
+    type: {
+        system: "系统通知",
+        announcement: "公告",
+        article: "文章推送",
+    },
+    target: {
+        all: "所有用户",
+        users: "指定用户",
+    },
+    level: {
+        info: "普通",
+        warning: "警告",
+        danger: "紧急",
+    },
+    form: {
+        settingsTitle: "通知设置",
+        typeLabel: "通知类型",
+        typePlaceholder: "选择通知类型",
+        targetLabel: "发送目标",
+        targetPlaceholder: "选择发送目标",
+        userIdLabel: "目标用户ID",
+        userIdPlaceholder: "多个ID用逗号分隔，例如: 1,2,3",
+        broadcastLabel: "设为广播",
+        broadcastHint: "开启后该通知将在页面顶部跑马灯持续滚动展示",
+        broadcastLevelLabel: "广播级别",
+        broadcastLevelPlaceholder: "选择广播级别",
+        startTimeLabel: "开始时间（可选，留空立即可见）",
+        startTimePlaceholder: "即时生效",
+        endTimeLabel: "结束时间（可选，留空手动关闭）",
+        endTimePlaceholder: "手动关闭",
+        contentTitle: "通知内容",
+        titleLabel: "通知标题",
+        titlePlaceholder: "请输入通知标题",
+        contentLabel: "通知内容",
+        contentPlaceholder: "请输入通知内容，支持纯文本",
+        sending: "发送中...",
+        send: "发送通知",
+    },
+    broadcasts: {
+        title: "当前广播",
+        closeTitle: "手动关闭此广播",
+        close: "关闭",
+    },
+    message: {
+        broadcastClosed: "广播已关闭",
+        closeFailed: "关闭失败",
+        titleRequired: "请输入通知标题",
+        contentRequired: "请输入通知内容",
+        targetRequired: "请输入目标用户ID",
+        endBeforeStart: "结束时间必须晚于开始时间",
+        broadcastCreated: "广播已创建",
+        sendSuccess: "通知发送成功",
+        sendFailed: "发送失败，请稍后重试",
+    },
+} as const;
+
+export default section;

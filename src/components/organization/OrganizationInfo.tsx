@@ -1,7 +1,10 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { FaBuilding, FaCheckCircle, FaLock, FaUserFriends, FaArrowLeft, FaPlus, FaUser, FaUserAlt, FaGithub } from "react-icons/fa";
 import type { OrganizationDetail, MemberStats } from "@/types/Organization.ts";
+import { OrgMembershipStatus } from "@/types/Enums.ts";
+import { useEnumLabels } from "@/i18n/UseEnumLabels";
 import styles from "./Organization.module.css";
 
 interface OrganizationInfoProps {
@@ -13,6 +16,8 @@ interface OrganizationInfoProps {
 
 const OrganizationInfo: React.FC<OrganizationInfoProps> = ({ org, stats, repoCount, onJoin }) => {
     const navigate = useNavigate();
+    const enums = useEnumLabels();
+    const { t } = useTranslation("organization");
 
     if (!org) {
         return null;
@@ -22,7 +27,7 @@ const OrganizationInfo: React.FC<OrganizationInfoProps> = ({ org, stats, repoCou
         <>
             <div className={styles.cardHeader}>
                 <button className={styles.backBtn} onClick={() => navigate(-1)}>
-                    <FaArrowLeft /> 返回
+                    <FaArrowLeft /> {t("info.back")}
                 </button>
                 <div className={styles.headerContent}>
                     <div className={styles.titleGroup}>
@@ -34,18 +39,18 @@ const OrganizationInfo: React.FC<OrganizationInfoProps> = ({ org, stats, repoCou
                     <div className={styles.headerRight}>
                         <span className={org.status === "active" ? styles.statusActive : styles.statusInactive}>
                             {org.status === "active" ? <FaCheckCircle /> : <FaLock />}
-                            {org.status === "active" ? "正常" : "停用"}
+                            {org.status === "active" ? t("info.status.active") : t("info.status.inactive")}
                         </span>
-                        {org.user_in_org === "已加入" || org.user_in_org === "申请中" ? (
-                            <span className={styles.joined}>{org.user_in_org}</span>
+                        {org.user_in_org === OrgMembershipStatus.JOINED || org.user_in_org === OrgMembershipStatus.PENDING ? (
+                            <span className={styles.joined}>{enums.orgMembershipStatus[org.user_in_org]}</span>
                         ) : (
                             <button
                                 className={styles.joinBtn}
                                 onClick={onJoin}
                                 disabled={org.status !== "active"}
-                                title={org.status !== "active" ? "该组织已停用，无法加入" : ""}
+                                title={org.status !== "active" ? t("info.joinDisabled") : ""}
                             >
-                                <FaPlus /> {org.user_in_org === "已退出" ? "重新加入" : "申请加入"}
+                                <FaPlus /> {org.user_in_org === OrgMembershipStatus.LEFT ? t("info.rejoin") : t("info.applyJoin")}
                             </button>
                         )}
                     </div>
@@ -60,35 +65,35 @@ const OrganizationInfo: React.FC<OrganizationInfoProps> = ({ org, stats, repoCou
                         <FaUserFriends />
                     </div>
                     <div className={styles.statValue}>{stats.totalMembers}</div>
-                    <div className={styles.statLabel}>总成员数</div>
+                    <div className={styles.statLabel}>{t("info.stats.totalMembers")}</div>
                 </div>
                 <div className={styles.statCard}>
                     <div className={`${styles.statIcon} ${styles.success}`}>
                         <FaCheckCircle />
                     </div>
                     <div className={styles.statValue}>{stats.activeMembers}</div>
-                    <div className={styles.statLabel}>活跃成员</div>
+                    <div className={styles.statLabel}>{t("info.stats.activeMembers")}</div>
                 </div>
                 <div className={styles.statCard}>
                     <div className={`${styles.statIcon} ${styles.warning}`}>
                         <FaUser />
                     </div>
                     <div className={styles.statValue}>{stats.orgAdminMembers}</div>
-                    <div className={styles.statLabel}>组织管理员</div>
+                    <div className={styles.statLabel}>{t("info.stats.orgAdmins")}</div>
                 </div>
                 <div className={styles.statCard}>
                     <div className={`${styles.statIcon} ${styles.error}`}>
                         <FaUserAlt />
                     </div>
                     <div className={styles.statValue}>{stats.regularMembers}</div>
-                    <div className={styles.statLabel}>普通成员</div>
+                    <div className={styles.statLabel}>{t("info.stats.regularMembers")}</div>
                 </div>
                 <div className={styles.statCard}>
                     <div className={`${styles.statIcon} ${styles.info}`}>
                         <FaGithub />
                     </div>
                     <div className={styles.statValue}>{repoCount}</div>
-                    <div className={styles.statLabel}>代码仓库</div>
+                    <div className={styles.statLabel}>{t("info.stats.repos")}</div>
                 </div>
             </div>
         </>

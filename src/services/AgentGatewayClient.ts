@@ -11,6 +11,7 @@
  */
 
 import { agentRequest } from "./AgentRequest.ts";
+import i18n from "@/i18n";
 import type {
     CreateSessionRequest,
     CreateSessionResponse,
@@ -160,7 +161,7 @@ export class AgentGatewayClient {
             const message =
                 body && typeof body === "object" && "error" in body
                     ? String((body as { error: unknown }).error)
-                    : `请求失败 (HTTP ${res.status})`;
+                    : i18n.t("services:agentGateway.requestFailed", { status: res.status });
             throw new GatewayRequestError(res.status, message);
         }
         return body as T;
@@ -241,10 +242,13 @@ export class AgentGatewayClient {
                     signal: controller.signal,
                 });
                 if (!res.ok) {
-                    throw new GatewayRequestError(res.status, `事件流失败 (HTTP ${res.status})`);
+                    throw new GatewayRequestError(
+                        res.status,
+                        i18n.t("services:agentGateway.eventStreamFailed", { status: res.status }),
+                    );
                 }
                 if (!res.body) {
-                    throw new GatewayRequestError(500, "事件流无响应体");
+                    throw new GatewayRequestError(500, i18n.t("services:agentGateway.emptyEventStream"));
                 }
 
                 const reader = res.body.getReader();
@@ -270,12 +274,12 @@ export class AgentGatewayClient {
                     try {
                         const parsed: unknown = JSON.parse(data);
                         if (!isEventEnvelope(parsed)) {
-                            handlers.onProtocolError?.("事件帧不符合 EventEnvelope 契约");
+                            handlers.onProtocolError?.(i18n.t("services:agentGateway.invalidEnvelope"));
                             return;
                         }
                         const env = parsed;
                         if (env.sessionId !== sid) {
-                            handlers.onProtocolError?.(`事件帧 sessionId 不匹配（期望 ${sid}）`);
+                            handlers.onProtocolError?.(i18n.t("services:agentGateway.sessionIdMismatch", { sid }));
                             return;
                         }
                         // 断线边界允许服务端再次回放最后一帧；按 sid + seq 幂等消费，杜绝重复 UI/副作用。
@@ -286,7 +290,7 @@ export class AgentGatewayClient {
                         retries = 0; // 只有收到有效新事件才证明连接恢复；空 200 流不能无限重置重试预算
                         handlers.onEvent(env);
                     } catch {
-                        handlers.onProtocolError?.("事件帧 JSON 解析失败");
+                        handlers.onProtocolError?.(i18n.t("services:agentGateway.jsonParseFailed"));
                     }
                 };
 

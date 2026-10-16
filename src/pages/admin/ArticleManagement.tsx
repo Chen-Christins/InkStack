@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { encodeId } from "@/utils/HashId.ts";
 import {
     FaFileAlt,
@@ -32,7 +33,8 @@ import Input from "@/components/input/Input";
 import Loading from "@/components/loading/Loading";
 import { confirm } from "@/components/confirm/Confirm";
 import type { SelectOption } from "@/types";
-import { PlatformRoleLabel, PlatformRoleByKey } from "@/types/Roles.ts";
+import { PlatformRoleByKey, type PlatformRole } from "@/types/Roles.ts";
+import { useEnumLabels } from "@/i18n/UseEnumLabels";
 import styles from "./ArticleManagement.module.css";
 import ArticleService, { type ListAdminArticlesResponse, type ArticleStatsResponse } from "@/services/ArticleService.ts";
 import { CategoryService } from "@/services/CategoryService.ts";
@@ -101,6 +103,8 @@ const REVERSE_STATE_MAP: Record<string, number> = {
 
 const ArticleManagement: React.FC = () => {
     const navigate = useNavigate();
+    const { t } = useTranslation("admin");
+    const enums = useEnumLabels();
     // 状态管理
     const [articles, setArticles] = useState<Article[]>([]);
     const [stats, setStats] = useState<ArticleStats>({
@@ -119,7 +123,9 @@ const ArticleManagement: React.FC = () => {
     });
     const [currentPage, setCurrentPage] = useState(1);
     const [loading, setLoading] = useState(true);
-    const [categoryOptions, setCategoryOptions] = useState<SelectOption[]>([{ id: "", name: "全部分类", color: "#6c757d" }]);
+    const [categoryOptions, setCategoryOptions] = useState<SelectOption[]>([
+        { id: "", name: t("articles.filter.allCategories"), color: "#6c757d" },
+    ]);
 
     const [totalArticles, setTotalArticles] = useState(0);
     const articlesPerPage = 15; // 每页显示15条数据
@@ -135,7 +141,7 @@ const ArticleManagement: React.FC = () => {
                         name: cat.name,
                         color: cat.color || "#007bff",
                     }));
-                    setCategoryOptions([{ id: "", name: "全部分类", color: "#6c757d" }, ...options]);
+                    setCategoryOptions([{ id: "", name: t("articles.filter.allCategories"), color: "#6c757d" }, ...options]);
                 }
             } catch (error) {
                 console.error("获取分类失败:", error);
@@ -212,8 +218,8 @@ const ArticleManagement: React.FC = () => {
                         summary: article.summary.substring(0, 45) + "...",
                         author: article.author,
                         authorEmail: article.email,
-                        authorRole: PlatformRoleLabel[article.author_role as keyof typeof PlatformRoleLabel] || "用户", // 使用API提供的author_role字段
-                        category: "默认分类", // 占位符，API未提供
+                        authorRole: enums.platformRole[article.author_role as PlatformRole] || t("articles.common.user"), // 使用API提供的author_role字段
+                        category: t("articles.common.defaultCategory"), // 占位符，API未提供
                         tags: [], // 占位符，API未提供
                         status: STATE_MAP[article.state] || "draft",
                         featured: false, // 占位符，API未提供
@@ -221,7 +227,9 @@ const ArticleManagement: React.FC = () => {
                         likes: article.praise ?? 0,
                         comments: article.comment_count ?? 0,
                         readTime: 0, // 占位符，API未提供
-                        publishedAt: article.publish_time ? formatToChinaTime(Number(article.publish_time)) : "暂未发布",
+                        publishedAt: article.publish_time
+                            ? formatToChinaTime(Number(article.publish_time))
+                            : t("articles.common.notPublished"),
                         createdAt: formatToChinaTime(Number(article.publish_time)),
                         updatedAt: formatToChinaTime(Number(article.update_time)),
                         reviewedAt: undefined,
@@ -256,26 +264,26 @@ const ArticleManagement: React.FC = () => {
 
     // 筛选选项数据
     const statusOptions: SelectOption[] = [
-        { id: "", name: "全部状态", color: "#6c757d" },
-        { id: "pending", name: "待审核", color: "#ffc107" },
-        { id: "published", name: "已发布", color: "#007bff" },
-        { id: "rejected", name: "已拒绝", color: "#dc3545" },
-        { id: "private", name: "私密", color: "#9129e7ff" },
+        { id: "", name: t("articles.status.all"), color: "#6c757d" },
+        { id: "pending", name: t("articles.status.pending"), color: "#ffc107" },
+        { id: "published", name: t("articles.status.published"), color: "#007bff" },
+        { id: "rejected", name: t("articles.status.rejected"), color: "#dc3545" },
+        { id: "private", name: t("articles.status.private"), color: "#9129e7ff" },
     ];
 
     const authorRoleOptions: SelectOption[] = [
-        { id: "", name: "全部角色", color: "#6c757d" },
-        { id: "admin", name: "管理员", color: "#dc3545" },
-        { id: "editor", name: "编辑", color: "#28a745" },
-        { id: "checker", name: "审核员", color: "#007bff" },
-        { id: "user", name: "普通用户", color: "#6c757d" },
+        { id: "", name: t("articles.authorRole.all"), color: "#6c757d" },
+        { id: "admin", name: t("articles.authorRole.admin"), color: "#dc3545" },
+        { id: "editor", name: t("articles.authorRole.editor"), color: "#28a745" },
+        { id: "checker", name: t("articles.authorRole.checker"), color: "#007bff" },
+        { id: "user", name: t("articles.authorRole.user"), color: "#6c757d" },
     ];
 
     const dateRangeOptions: SelectOption[] = [
-        { id: "", name: "全部时间", color: "#6c757d" },
-        { id: "7days", name: "最近7天", color: "#17a2b8" },
-        { id: "30days", name: "最近30天", color: "#17a2b8" },
-        { id: "90days", name: "最近90天", color: "#17a2b8" },
+        { id: "", name: t("articles.dateRange.all"), color: "#6c757d" },
+        { id: "7days", name: t("articles.dateRange.days7"), color: "#17a2b8" },
+        { id: "30days", name: t("articles.dateRange.days30"), color: "#17a2b8" },
+        { id: "90days", name: t("articles.dateRange.days90"), color: "#17a2b8" },
     ];
 
     // 处理CustomSelect选择
@@ -312,17 +320,19 @@ const ArticleManagement: React.FC = () => {
     // 审批文章 - 通过
     const approveArticle = async (article: Article) => {
         await confirm({
-            title: "审批通过",
+            title: t("articles.approve.title"),
             content: (
                 <div>
                     <p>
-                        确定要通过文章 "<strong>{article.title}</strong>" 的审核吗？
+                        {t("articles.approve.contentPrefix")}
+                        <strong>{article.title}</strong>
+                        {t("articles.approve.contentSuffix")}
                     </p>
-                    <p>文章通过后将会发布到系统中。</p>
+                    <p>{t("articles.approve.note")}</p>
                 </div>
             ),
-            confirmText: "通过审核",
-            cancelText: "取消",
+            confirmText: t("articles.approve.confirm"),
+            cancelText: t("articles.common.cancel"),
             onConfirm: async () => {
                 try {
                     await ArticleService.verifyArticle({
@@ -332,7 +342,9 @@ const ArticleManagement: React.FC = () => {
 
                     message.success(
                         <span>
-                            文章「<strong>{article.title}</strong>」审核通过，已发布
+                            {t("articles.approve.successPrefix")}
+                            <strong>{article.title}</strong>
+                            {t("articles.approve.successSuffix")}
                         </span>,
                     );
 
@@ -343,7 +355,7 @@ const ArticleManagement: React.FC = () => {
                                       ...a,
                                       status: "published",
                                       reviewedAt: new Date().toISOString().split("T")[0],
-                                      reviewedBy: "当前管理员",
+                                      reviewedBy: t("articles.common.currentAdmin"),
                                       updatedAt: new Date().toISOString().split("T")[0],
                                   }
                                 : a,
@@ -352,7 +364,7 @@ const ArticleManagement: React.FC = () => {
                     fetchStats();
                 } catch (error) {
                     console.error("审核失败:", error);
-                    message.error("操作失败，请重试");
+                    message.error(t("articles.common.actionFailed"));
                 }
             },
         });
@@ -361,20 +373,23 @@ const ArticleManagement: React.FC = () => {
     // 审批文章 - 拒绝
     const rejectArticle = async (article: Article, reason: string) => {
         await confirm({
-            title: "审批拒绝",
+            title: t("articles.reject.title"),
             content: (
                 <div>
                     <p>
-                        确定要拒绝文章 "<strong>{article.title}</strong>" 的审核吗？
+                        {t("articles.reject.contentPrefix")}
+                        <strong>{article.title}</strong>
+                        {t("articles.reject.contentSuffix")}
                     </p>
                     <p>
-                        拒绝原因：<strong>{reason}</strong>
+                        {t("articles.reject.reasonPrefix")}
+                        <strong>{reason}</strong>
                     </p>
-                    <p style={{ color: "var(--warning-color)" }}>作者将需要修改后重新提交审核。</p>
+                    <p style={{ color: "var(--warning-color)" }}>{t("articles.reject.note")}</p>
                 </div>
             ),
-            confirmText: "拒绝审核",
-            cancelText: "取消",
+            confirmText: t("articles.reject.confirm"),
+            cancelText: t("articles.common.cancel"),
             onConfirm: async () => {
                 try {
                     await ArticleService.verifyArticle({
@@ -384,7 +399,9 @@ const ArticleManagement: React.FC = () => {
 
                     message.success(
                         <span>
-                            文章「<strong>{article.title}</strong>」已拒绝
+                            {t("articles.reject.successPrefix")}
+                            <strong>{article.title}</strong>
+                            {t("articles.reject.successSuffix")}
                         </span>,
                     );
 
@@ -396,7 +413,7 @@ const ArticleManagement: React.FC = () => {
                                       status: "rejected",
                                       rejectionReason: reason,
                                       reviewedAt: new Date().toISOString().split("T")[0],
-                                      reviewedBy: "当前管理员",
+                                      reviewedBy: t("articles.common.currentAdmin"),
                                       updatedAt: new Date().toISOString().split("T")[0],
                                   }
                                 : a,
@@ -405,7 +422,7 @@ const ArticleManagement: React.FC = () => {
                     fetchStats();
                 } catch (error) {
                     console.error("拒绝失败:", error);
-                    message.error("操作失败，请重试");
+                    message.error(t("articles.common.actionFailed"));
                 }
             },
         });
@@ -414,17 +431,19 @@ const ArticleManagement: React.FC = () => {
     // 下架文章
     const unpublishArticle = async (article: Article) => {
         await confirm({
-            title: "下架文章",
+            title: t("articles.unpublish.title"),
             content: (
                 <div>
                     <p>
-                        确定要下架文章 "<strong>{article.title}</strong>" 吗？
+                        {t("articles.unpublish.contentPrefix")}
+                        <strong>{article.title}</strong>
+                        {t("articles.unpublish.contentSuffix")}
                     </p>
-                    <p style={{ color: "var(--warning-color)" }}>下架后文章将不再对用户可见。</p>
+                    <p style={{ color: "var(--warning-color)" }}>{t("articles.unpublish.note")}</p>
                 </div>
             ),
-            confirmText: "确认下架",
-            cancelText: "取消",
+            confirmText: t("articles.unpublish.confirm"),
+            cancelText: t("articles.common.cancel"),
             onConfirm: async () => {
                 try {
                     // 下架转为私密状态
@@ -435,7 +454,9 @@ const ArticleManagement: React.FC = () => {
 
                     message.success(
                         <span>
-                            文章「<strong>{article.title}</strong>」已下架
+                            {t("articles.unpublish.successPrefix")}
+                            <strong>{article.title}</strong>
+                            {t("articles.unpublish.successSuffix")}
                         </span>,
                     );
 
@@ -453,7 +474,7 @@ const ArticleManagement: React.FC = () => {
                     fetchStats();
                 } catch (error) {
                     console.error("下架失败:", error);
-                    message.error("操作失败，请重试");
+                    message.error(t("articles.common.actionFailed"));
                 }
             },
         });
@@ -472,17 +493,19 @@ const ArticleManagement: React.FC = () => {
     // 删除文章
     const deleteArticle = async (articleId: string, articleTitle: string) => {
         await confirm({
-            title: "删除文章",
+            title: t("articles.delete.title"),
             content: (
                 <div>
                     <p>
-                        确定要删除文章 "<strong>{articleTitle}</strong>" 吗？
+                        {t("articles.delete.contentPrefix")}
+                        <strong>{articleTitle}</strong>
+                        {t("articles.delete.contentSuffix")}
                     </p>
-                    <p style={{ color: "var(--error)" }}>此操作不可恢复。</p>
+                    <p style={{ color: "var(--error)" }}>{t("articles.delete.note")}</p>
                 </div>
             ),
-            confirmText: "确认删除",
-            cancelText: "取消",
+            confirmText: t("articles.delete.confirm"),
+            cancelText: t("articles.common.cancel"),
             onConfirm: async () => {
                 try {
                     await ArticleService.deleteArticle({ ids: articleId });
@@ -495,7 +518,7 @@ const ArticleManagement: React.FC = () => {
                     }
                 } catch (error) {
                     console.error("删除失败:", error);
-                    message.error("删除失败，请重试");
+                    message.error(t("articles.delete.failed"));
                 }
             },
         });
@@ -552,7 +575,7 @@ const ArticleManagement: React.FC = () => {
     if (loading) {
         return (
             <div className={styles.articleManagement}>
-                <Loading text="加载文章数据中..." size="large" />
+                <Loading text={t("articles.loading")} size="large" />
             </div>
         );
     }
@@ -562,13 +585,13 @@ const ArticleManagement: React.FC = () => {
             {/* 页面头部 */}
             <div className={styles.pageHeader}>
                 <div>
-                    <h1 className={styles.pageTitle}>文章管理</h1>
-                    <p className={styles.pageDescription}>管理系统中的所有文章内容，包括审核流程和发布管理</p>
+                    <h1 className={styles.pageTitle}>{t("articles.title")}</h1>
+                    <p className={styles.pageDescription}>{t("articles.description")}</p>
                 </div>
                 <div className={styles.headerActions}>
                     <button className={`${styles.btn} ${styles.btnPrimary}`}>
                         <FaPlus />
-                        新增文章
+                        {t("articles.addArticle")}
                     </button>
                 </div>
             </div>
@@ -580,35 +603,35 @@ const ArticleManagement: React.FC = () => {
                         <FaFileAlt />
                     </div>
                     <div className={styles.statValue}>{stats.totalArticles}</div>
-                    <div className={styles.statLabel}>总文章数</div>
+                    <div className={styles.statLabel}>{t("articles.stats.total")}</div>
                 </div>
                 <div className={styles.statCard}>
                     <div className={`${styles.statIcon} ${styles.warning}`}>
                         <FaHourglassHalf />
                     </div>
                     <div className={styles.statValue}>{stats.pendingArticles}</div>
-                    <div className={styles.statLabel}>待审核</div>
+                    <div className={styles.statLabel}>{t("articles.stats.pending")}</div>
                 </div>
                 <div className={styles.statCard}>
                     <div className={`${styles.statIcon} ${styles.success}`}>
                         <FaEye />
                     </div>
                     <div className={styles.statValue}>{stats.publishedArticles}</div>
-                    <div className={styles.statLabel}>已发布</div>
+                    <div className={styles.statLabel}>{t("articles.stats.published")}</div>
                 </div>
                 <div className={styles.statCard}>
                     <div className={`${styles.statIcon} ${styles.error}`}>
                         <FaTimes />
                     </div>
                     <div className={styles.statValue}>{stats.rejectedArticles}</div>
-                    <div className={styles.statLabel}>已拒绝</div>
+                    <div className={styles.statLabel}>{t("articles.stats.rejected")}</div>
                 </div>
                 <div className={styles.statCard}>
                     <div className={`${styles.statIcon} ${styles.reported}`}>
                         <FaFlag />
                     </div>
                     <div className={styles.statValue}>{stats.reportedArticles}</div>
-                    <div className={styles.statLabel}>被举报</div>
+                    <div className={styles.statLabel}>{t("articles.stats.reported")}</div>
                 </div>
             </div>
 
@@ -617,19 +640,19 @@ const ArticleManagement: React.FC = () => {
                 <div className={styles.filterHeader}>
                     <h3 className={styles.filterTitle}>
                         <FaFilter />
-                        筛选条件
+                        {t("articles.filter.title")}
                     </h3>
                     <div className={styles.filterActions}>
                         <button className={`${styles.btn} ${styles.btnOutline} ${styles.btnSm}`} onClick={clearFilters}>
-                            清除筛选
+                            {t("articles.filter.clear")}
                         </button>
                     </div>
                 </div>
                 <div className={styles.filterForm}>
                     <div className={styles.filterGroup}>
-                        <label className={styles.filterLabel}>搜索文章</label>
+                        <label className={styles.filterLabel}>{t("articles.filter.searchLabel")}</label>
                         <Input
-                            placeholder="标题、内容或作者"
+                            placeholder={t("articles.filter.searchPlaceholder")}
                             value={filters.search}
                             onChange={(value) => handleFilterChange("search", value)}
                             allowClear={true}
@@ -638,49 +661,49 @@ const ArticleManagement: React.FC = () => {
                         />
                     </div>
                     <div className={styles.filterGroup}>
-                        <label className={styles.filterLabel}>文章状态</label>
+                        <label className={styles.filterLabel}>{t("articles.filter.statusLabel")}</label>
                         <CustomSelect
-                            name="文章状态"
+                            name={t("articles.filter.statusLabel")}
                             options={statusOptions}
                             value={statusOptions.find((option) => option.id === filters.status) || null}
                             onChange={handleSelectChange("status")}
-                            placeholder="选择状态..."
+                            placeholder={t("articles.filter.statusPlaceholder")}
                             className="adminCustomSelect"
                             hideBadge={true}
                         />
                     </div>
                     <div className={styles.filterGroup}>
-                        <label className={styles.filterLabel}>文章分类</label>
+                        <label className={styles.filterLabel}>{t("articles.filter.categoryLabel")}</label>
                         <CustomSelect
-                            name="文章分类"
+                            name={t("articles.filter.categoryLabel")}
                             options={categoryOptions}
                             value={categoryOptions.find((option) => option.id === filters.category) || null}
                             onChange={handleSelectChange("category")}
-                            placeholder="选择分类..."
+                            placeholder={t("articles.filter.categoryPlaceholder")}
                             className="adminCustomSelect"
                             hideBadge={true}
                         />
                     </div>
                     <div className={styles.filterGroup}>
-                        <label className={styles.filterLabel}>作者角色</label>
+                        <label className={styles.filterLabel}>{t("articles.filter.authorRoleLabel")}</label>
                         <CustomSelect
-                            name="作者角色"
+                            name={t("articles.filter.authorRoleLabel")}
                             options={authorRoleOptions}
                             value={authorRoleOptions.find((option) => option.id === filters.authorRole) || null}
                             onChange={handleSelectChange("authorRole")}
-                            placeholder="选择角色..."
+                            placeholder={t("articles.filter.authorRolePlaceholder")}
                             className="adminCustomSelect"
                             hideBadge={true}
                         />
                     </div>
                     <div className={styles.filterGroup}>
-                        <label className={styles.filterLabel}>创建时间</label>
+                        <label className={styles.filterLabel}>{t("articles.filter.dateRangeLabel")}</label>
                         <CustomSelect
-                            name="创建时间"
+                            name={t("articles.filter.dateRangeLabel")}
                             options={dateRangeOptions}
                             value={dateRangeOptions.find((option) => option.id === filters.dateRange) || null}
                             onChange={handleSelectChange("dateRange")}
-                            placeholder="选择时间范围..."
+                            placeholder={t("articles.filter.dateRangePlaceholder")}
                             className="adminCustomSelect"
                             hideBadge={true}
                         />
@@ -691,21 +714,23 @@ const ArticleManagement: React.FC = () => {
             {/* 文章表格 */}
             <div className={styles.tableContainer}>
                 <div className={styles.tableHeader}>
-                    <h3 className={styles.tableTitle}>文章列表</h3>
+                    <h3 className={styles.tableTitle}>{t("articles.table.title")}</h3>
                     <div className={styles.tableActions}>
-                        <span style={{ fontSize: "14px", color: "var(--text-secondary)" }}>共 {totalArticles} 篇文章</span>
+                        <span style={{ fontSize: "14px", color: "var(--text-secondary)" }}>
+                            {t("articles.table.total", { total: totalArticles })}
+                        </span>
                     </div>
                 </div>
                 <table className={styles.articlesTable}>
                     <thead>
                         <tr>
-                            <th>文章信息</th>
-                            <th>作者</th>
-                            <th>分类</th>
-                            <th>状态</th>
-                            <th>统计数据</th>
-                            <th>发布时间</th>
-                            <th>操作</th>
+                            <th>{t("articles.table.headers.info")}</th>
+                            <th>{t("articles.table.headers.author")}</th>
+                            <th>{t("articles.table.headers.category")}</th>
+                            <th>{t("articles.table.headers.status")}</th>
+                            <th>{t("articles.table.headers.stats")}</th>
+                            <th>{t("articles.table.headers.publishedAt")}</th>
+                            <th>{t("articles.table.headers.actions")}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -731,7 +756,7 @@ const ArticleManagement: React.FC = () => {
                                                 <div className={styles.userEmail}>
                                                     {article.featured && (
                                                         <span className={styles.featuredTag}>
-                                                            <FaStar /> 置顶
+                                                            <FaStar /> {t("articles.table.featured")}
                                                         </span>
                                                     )}
                                                     {article.summary && (
@@ -747,7 +772,7 @@ const ArticleManagement: React.FC = () => {
                                                     )}
                                                     {article.isReported && (
                                                         <span className={styles.reportedTag} style={{ marginLeft: "8px" }}>
-                                                            <FaFlag /> 举报 {article.reportCount}
+                                                            <FaFlag /> {t("articles.table.reported", { value: article.reportCount })}
                                                         </span>
                                                     )}
                                                 </div>
@@ -773,22 +798,22 @@ const ArticleManagement: React.FC = () => {
                                             <span className={styles.statusIndicator}></span>
                                             {article.status === "pending" && (
                                                 <>
-                                                    <FaHourglassHalf /> 待审核
+                                                    <FaHourglassHalf /> {t("articles.status.pending")}
                                                 </>
                                             )}
                                             {article.status === "published" && (
                                                 <>
-                                                    <FaEye /> 已发布
+                                                    <FaEye /> {t("articles.status.published")}
                                                 </>
                                             )}
                                             {article.status === "rejected" && (
                                                 <>
-                                                    <FaTimes /> 已拒绝
+                                                    <FaTimes /> {t("articles.status.rejected")}
                                                 </>
                                             )}
                                             {article.status === "private" && (
                                                 <>
-                                                    <FaClipboardCheck /> 私密
+                                                    <FaClipboardCheck /> {t("articles.status.private")}
                                                 </>
                                             )}
                                         </span>
@@ -797,7 +822,9 @@ const ArticleManagement: React.FC = () => {
                                             article.status === "published") && (
                                             <div className={styles.reviewInfo}>
                                                 {article.reviewedBy && (
-                                                    <div className={styles.reviewedBy}>审核人：{article.reviewedBy}</div>
+                                                    <div className={styles.reviewedBy}>
+                                                        {t("articles.table.reviewedBy", { name: article.reviewedBy })}
+                                                    </div>
                                                 )}
                                                 {article.reviewedAt && <div className={styles.reviewedAt}>{article.reviewedAt}</div>}
                                             </div>
@@ -815,7 +842,7 @@ const ArticleManagement: React.FC = () => {
                                                 <FaComment /> {article.comments}
                                             </div>
                                             <div>
-                                                <FaClock /> {article.readTime}分钟
+                                                <FaClock /> {t("articles.table.readTime", { value: article.readTime })}
                                             </div>
                                         </div>
                                     </td>
@@ -841,15 +868,15 @@ const ArticleManagement: React.FC = () => {
                                                 <>
                                                     <button
                                                         className={`${styles.actionButton} ${styles.approve}`}
-                                                        title="通过审核"
+                                                        title={t("articles.action.approve")}
                                                         onClick={() => approveArticle(article)}
                                                     >
                                                         <FaThumbsUp />
                                                     </button>
                                                     <button
                                                         className={`${styles.actionButton} ${styles.reject}`}
-                                                        title="拒绝审核"
-                                                        onClick={() => rejectArticle(article, "内容质量不达标")}
+                                                        title={t("articles.action.reject")}
+                                                        onClick={() => rejectArticle(article, t("articles.action.rejectReason"))}
                                                     >
                                                         <FaThumbsDown />
                                                     </button>
@@ -860,7 +887,7 @@ const ArticleManagement: React.FC = () => {
                                             {article.status === "published" && (
                                                 <button
                                                     className={`${styles.actionButton} ${styles.unpublish}`}
-                                                    title="下架文章"
+                                                    title={t("articles.action.unpublish")}
                                                     onClick={() => unpublishArticle(article)}
                                                 >
                                                     <FaBan />
@@ -869,21 +896,21 @@ const ArticleManagement: React.FC = () => {
 
                                             <button
                                                 className={`${styles.actionButton} ${styles.edit}`}
-                                                title="编辑文章"
+                                                title={t("articles.action.edit")}
                                                 onClick={() => handleEditArticle(article.id)}
                                             >
                                                 <FaEdit />
                                             </button>
                                             <button
                                                 className={`${styles.actionButton} ${styles.edit}`}
-                                                title="查看详情"
+                                                title={t("articles.action.view")}
                                                 onClick={() => handleViewArticle(article.id)}
                                             >
                                                 <FaEye />
                                             </button>
                                             <button
                                                 className={`${styles.actionButton} ${styles.delete}`}
-                                                title="删除文章"
+                                                title={t("articles.action.delete")}
                                                 onClick={() => deleteArticle(article.id, article.title)}
                                             >
                                                 <FaTrash />
@@ -902,7 +929,7 @@ const ArticleManagement: React.FC = () => {
                                         color: "var(--text-secondary)",
                                     }}
                                 >
-                                    暂无数据
+                                    {t("articles.table.empty")}
                                 </td>
                             </tr>
                         )}
@@ -913,8 +940,11 @@ const ArticleManagement: React.FC = () => {
                 {totalPages >= 1 && (
                     <div className={styles.paginationContainer}>
                         <div className={styles.paginationInfo}>
-                            显示 {totalArticles > 0 ? startIndex + 1 : 0} - {Math.min(endIndex, totalArticles)} 条， 共 {totalArticles}{" "}
-                            条记录
+                            {t("articles.pagination.info", {
+                                start: totalArticles > 0 ? startIndex + 1 : 0,
+                                end: Math.min(endIndex, totalArticles),
+                                total: totalArticles,
+                            })}
                         </div>
                         <div className={styles.paginationControls}>
                             <button className={styles.paginationButton} onClick={() => setCurrentPage(1)} disabled={currentPage === 1}>

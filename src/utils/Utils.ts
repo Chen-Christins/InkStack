@@ -1,3 +1,5 @@
+import i18n from "@/i18n";
+
 /**
  * 格式化日期时间为 YYYY-MM-DD HH:mm:ss（本地时间，自动补零）。
  * 接受 ISO 字符串、时间戳（毫秒/秒）或 Date 对象。
@@ -30,31 +32,31 @@ export function formatRelativeTime(input: string | number | Date): string {
 
     const seconds = Math.floor(diff / 1000);
     if (seconds < 60) {
-        return "刚刚";
+        return i18n.t("common:time.justNow");
     }
 
     const minutes = Math.floor(seconds / 60);
     if (minutes < 60) {
-        return `${minutes} 分钟前`;
+        return i18n.t("common:time.minutesAgo", { value: minutes });
     }
 
     const hours = Math.floor(minutes / 60);
     if (hours < 24) {
-        return `${hours} 小时前`;
+        return i18n.t("common:time.hoursAgo", { value: hours });
     }
 
     const days = Math.floor(hours / 24);
     if (days < 30) {
-        return `${days} 天前`;
+        return i18n.t("common:time.daysAgo", { value: days });
     }
 
     const months = Math.floor(days / 30);
     if (months < 12) {
-        return `${months} 个月前`;
+        return i18n.t("common:time.monthsAgo", { value: months });
     }
 
     const years = Math.floor(months / 12);
-    return `${years} 年前`;
+    return i18n.t("common:time.yearsAgo", { value: years });
 }
 
 export function formatToChinaTime(timestamp: number) {

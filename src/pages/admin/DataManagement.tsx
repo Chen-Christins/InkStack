@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import {
     FaDatabase,
     FaDownload,
@@ -36,7 +37,8 @@ import DataService from "@/services/DataService.ts";
 import http from "@/infra/Http.ts";
 import type { BackupRecord, DataStats, ExportRecord } from "@/services/DataService.ts";
 import type { SelectOption } from "@/types";
-import { BackupStatusLabel, type BackupStatus } from "@/types/Enums.ts";
+import type { BackupStatus } from "@/types/Enums.ts";
+import { useEnumLabels } from "@/i18n/UseEnumLabels";
 import styles from "./DataManagement.module.css";
 
 // 筛选条件接口
@@ -48,6 +50,9 @@ interface FilterOptions {
 }
 
 const DataManagement: React.FC = () => {
+    const { t } = useTranslation("admin");
+    const enums = useEnumLabels();
+
     // 状态管理
     const [activeTab, setActiveTab] = useState<"overview" | "backups" | "exports">("overview");
     const [backups, setBackups] = useState<BackupRecord[]>([]);
@@ -187,25 +192,25 @@ const DataManagement: React.FC = () => {
 
     // 筛选选项数据
     const backupTypeOptions: SelectOption[] = [
-        { id: "", name: "全部类型", color: "#6c757d" },
-        { id: "full", name: "完整备份", color: "#007bff" },
-        { id: "incremental", name: "增量备份", color: "#17a2b8" },
-        { id: "manual", name: "手动备份", color: "#6c757d" },
+        { id: "", name: t("data.type.all"), color: "#6c757d" },
+        { id: "full", name: t("data.type.fullBackup"), color: "#007bff" },
+        { id: "incremental", name: t("data.type.incrementalBackup"), color: "#17a2b8" },
+        { id: "manual", name: t("data.type.manualBackup"), color: "#6c757d" },
     ];
 
     const exportTypeOptions: SelectOption[] = [
-        { id: "", name: "全部类型", color: "#6c757d" },
-        { id: "articles", name: "文章数据", color: "#007bff" },
-        { id: "users", name: "用户数据", color: "#17a2b8" },
-        { id: "comments", name: "评论数据", color: "#28a745" },
-        { id: "full", name: "完整数据", color: "#007bff" },
+        { id: "", name: t("data.type.all"), color: "#6c757d" },
+        { id: "articles", name: t("data.type.articles"), color: "#007bff" },
+        { id: "users", name: t("data.type.users"), color: "#17a2b8" },
+        { id: "comments", name: t("data.type.comments"), color: "#28a745" },
+        { id: "full", name: t("data.type.fullData"), color: "#007bff" },
     ];
 
     const statusOptions: SelectOption[] = [
-        { id: "", name: "全部状态", color: "#6c757d" },
-        { id: "completed", name: "已完成", color: "#28a745" },
-        { id: "processing", name: "处理中", color: "#ffc107" },
-        { id: "failed", name: "失败", color: "#dc3545" },
+        { id: "", name: t("data.statusFilter.all"), color: "#6c757d" },
+        { id: "completed", name: t("data.statusFilter.completed"), color: "#28a745" },
+        { id: "processing", name: t("data.statusFilter.processing"), color: "#ffc107" },
+        { id: "failed", name: t("data.statusFilter.failed"), color: "#dc3545" },
     ];
 
     // 处理选择变化
@@ -239,17 +244,21 @@ const DataManagement: React.FC = () => {
     // 创建备份
     const createBackup = async (type: "full" | "incremental") => {
         await confirm({
-            title: "创建备份",
+            title: t("data.confirm.createBackup.title"),
             content: (
                 <div>
-                    <p>确定要创建{type === "full" ? "完整" : "增量"}备份吗？</p>
+                    <p>
+                        {type === "full"
+                            ? t("data.confirm.createBackup.contentFull")
+                            : t("data.confirm.createBackup.contentIncremental")}
+                    </p>
                     <p style={{ color: "var(--text-secondary)" }}>
-                        {type === "full" ? "完整备份包含所有系统数据，耗时较长" : "增量备份只包含变更数据，速度较快"}
+                        {type === "full" ? t("data.confirm.createBackup.noteFull") : t("data.confirm.createBackup.noteIncremental")}
                     </p>
                 </div>
             ),
-            confirmText: "确认备份",
-            cancelText: "取消",
+            confirmText: t("data.confirm.createBackup.confirm"),
+            cancelText: t("data.confirm.cancel"),
             onConfirm: async () => {
                 try {
                     const newBackup = await DataService.createBackup(type);
@@ -266,18 +275,22 @@ const DataManagement: React.FC = () => {
     // 导出数据
     const exportData = async (type: "articles" | "users" | "comments" | "full") => {
         await confirm({
-            title: "导出数据",
+            title: t("data.confirm.exportData.title"),
             content: (
                 <div>
                     <p>
-                        确定要导出
-                        {type === "articles" ? "文章" : type === "users" ? "用户" : type === "comments" ? "评论" : "完整"}
-                        数据吗？
+                        {type === "articles"
+                            ? t("data.confirm.exportData.contentArticles")
+                            : type === "users"
+                              ? t("data.confirm.exportData.contentUsers")
+                              : type === "comments"
+                                ? t("data.confirm.exportData.contentComments")
+                                : t("data.confirm.exportData.contentFull")}
                     </p>
                 </div>
             ),
-            confirmText: "确认导出",
-            cancelText: "取消",
+            confirmText: t("data.confirm.exportData.confirm"),
+            cancelText: t("data.confirm.cancel"),
             onConfirm: async () => {
                 try {
                     const newExport = await DataService.createExport(type);
@@ -298,26 +311,26 @@ const DataManagement: React.FC = () => {
         try {
             await http.download(url, (item as BackupRecord).name || (item as ExportRecord).name);
         } catch (err: any) {
-            message.error(err?.message || "下载失败");
+            message.error(err?.message || t("data.messages.downloadFailed"));
         }
     };
 
     // 删除记录
     const deleteRecord = async (item: BackupRecord | ExportRecord) => {
         await confirm({
-            title: "删除记录",
+            title: t("data.confirm.delete.title"),
             content: (
                 <div>
                     <p>
-                        确定要删除"
-                        {(item as BackupRecord).name || (item as ExportRecord).name}
-                        "记录吗？
+                        {t("data.confirm.delete.content", {
+                            name: (item as BackupRecord).name || (item as ExportRecord).name,
+                        })}
                     </p>
-                    <p style={{ color: "var(--error-color)" }}>删除后无法恢复，相关文件也会被删除。</p>
+                    <p style={{ color: "var(--error-color)" }}>{t("data.confirm.delete.warning")}</p>
                 </div>
             ),
-            confirmText: "确认删除",
-            cancelText: "取消",
+            confirmText: t("data.confirm.delete.confirm"),
+            cancelText: t("data.confirm.cancel"),
             onConfirm: async () => {
                 try {
                     if ("fileCount" in item) {
@@ -339,15 +352,15 @@ const DataManagement: React.FC = () => {
     // 清理数据
     const cleanupData = async () => {
         await confirm({
-            title: "清理数据",
+            title: t("data.confirm.cleanup.title"),
             content: (
                 <div>
-                    <p>确定要清理过期数据吗？</p>
-                    <p style={{ color: "var(--warning-color)" }}>这将删除30天前的临时文件和失效记录。</p>
+                    <p>{t("data.confirm.cleanup.content")}</p>
+                    <p style={{ color: "var(--warning-color)" }}>{t("data.confirm.cleanup.warning")}</p>
                 </div>
             ),
-            confirmText: "确认清理",
-            cancelText: "取消",
+            confirmText: t("data.confirm.cleanup.confirm"),
+            cancelText: t("data.confirm.cancel"),
             onConfirm: async () => {
                 try {
                     await DataService.cleanup();
@@ -408,7 +421,7 @@ const DataManagement: React.FC = () => {
     if (initialLoading) {
         return (
             <div className={styles.dataManagement}>
-                <Loading text="加载数据管理中..." size="large" />
+                <Loading text={t("data.loading")} size="large" />
             </div>
         );
     }
@@ -418,8 +431,8 @@ const DataManagement: React.FC = () => {
             {/* 页面头部 */}
             <div className={styles.pageHeader}>
                 <div>
-                    <h1 className={styles.pageTitle}>数据管理</h1>
-                    <p className={styles.pageDescription}>管理系统数据备份、导出和存储空间</p>
+                    <h1 className={styles.pageTitle}>{t("data.title")}</h1>
+                    <p className={styles.pageDescription}>{t("data.description")}</p>
                 </div>
             </div>
 
@@ -430,21 +443,21 @@ const DataManagement: React.FC = () => {
                     onClick={() => setActiveTab("overview")}
                 >
                     <FaChartLine />
-                    数据概览
+                    {t("data.tabs.overview")}
                 </button>
                 <button
                     className={`${styles.tabButton} ${activeTab === "backups" ? styles.active : ""}`}
                     onClick={() => setActiveTab("backups")}
                 >
                     <FaArchive />
-                    备份管理
+                    {t("data.tabs.backups")}
                 </button>
                 <button
                     className={`${styles.tabButton} ${activeTab === "exports" ? styles.active : ""}`}
                     onClick={() => setActiveTab("exports")}
                 >
                     <FaFileExport />
-                    导出管理
+                    {t("data.tabs.exports")}
                 </button>
             </div>
 
@@ -455,11 +468,11 @@ const DataManagement: React.FC = () => {
                         <div className={styles.storageHeader}>
                             <h3 className={styles.sectionTitle}>
                                 <FaHdd />
-                                存储概览
+                                {t("data.storage.title")}
                             </h3>
                             <button className={`${styles.btn} ${styles.btnOutline} ${styles.btnSm}`} onClick={cleanupData}>
                                 <FaBroom />
-                                清理数据
+                                {t("data.storage.cleanup")}
                             </button>
                         </div>
                         <div className={styles.storageCards}>
@@ -468,7 +481,7 @@ const DataManagement: React.FC = () => {
                                     <FaServer />
                                 </div>
                                 <div className={styles.storageInfo}>
-                                    <div className={styles.storageLabel}>总容量</div>
+                                    <div className={styles.storageLabel}>{t("data.storage.total")}</div>
                                     <div className={styles.storageValue}>{formatFileSize(stats.totalSize)}</div>
                                 </div>
                             </div>
@@ -477,7 +490,7 @@ const DataManagement: React.FC = () => {
                                     <FaDatabase />
                                 </div>
                                 <div className={styles.storageInfo}>
-                                    <div className={styles.storageLabel}>已使用</div>
+                                    <div className={styles.storageLabel}>{t("data.storage.used")}</div>
                                     <div className={styles.storageValue}>{formatFileSize(stats.usedSize)}</div>
                                 </div>
                             </div>
@@ -486,7 +499,7 @@ const DataManagement: React.FC = () => {
                                     <FaHdd />
                                 </div>
                                 <div className={styles.storageInfo}>
-                                    <div className={styles.storageLabel}>可用空间</div>
+                                    <div className={styles.storageLabel}>{t("data.storage.available")}</div>
                                     <div className={styles.storageValue}>{formatFileSize(stats.availableSize)}</div>
                                 </div>
                             </div>
@@ -505,7 +518,7 @@ const DataManagement: React.FC = () => {
                     <div className={styles.statsSection}>
                         <h3 className={styles.sectionTitle}>
                             <FaChartLine />
-                            数据统计
+                            {t("data.stats.title")}
                         </h3>
                         <div className={styles.statsGrid}>
                             <div className={styles.statCard}>
@@ -513,42 +526,42 @@ const DataManagement: React.FC = () => {
                                     <FaFileAlt />
                                 </div>
                                 <div className={styles.statValue}>{stats.articles}</div>
-                                <div className={styles.statLabel}>文章数量</div>
+                                <div className={styles.statLabel}>{t("data.stats.articles")}</div>
                             </div>
                             <div className={styles.statCard}>
                                 <div className={`${styles.statIcon} ${styles.success}`}>
                                     <FaUser />
                                 </div>
                                 <div className={styles.statValue}>{stats.users}</div>
-                                <div className={styles.statLabel}>用户数量</div>
+                                <div className={styles.statLabel}>{t("data.stats.users")}</div>
                             </div>
                             <div className={styles.statCard}>
                                 <div className={`${styles.statIcon} ${styles.info}`}>
                                     <FaComment />
                                 </div>
                                 <div className={styles.statValue}>{stats.comments}</div>
-                                <div className={styles.statLabel}>评论数量</div>
+                                <div className={styles.statLabel}>{t("data.stats.comments")}</div>
                             </div>
                             <div className={styles.statCard}>
                                 <div className={`${styles.statIcon} ${styles.warning}`}>
                                     <FaTags />
                                 </div>
                                 <div className={styles.statValue}>{stats.tags}</div>
-                                <div className={styles.statLabel}>标签数量</div>
+                                <div className={styles.statLabel}>{t("data.stats.tags")}</div>
                             </div>
                             <div className={styles.statCard}>
                                 <div className={`${styles.statIcon} ${styles.secondary}`}>
                                     <FaArchive />
                                 </div>
                                 <div className={styles.statValue}>{stats.backups}</div>
-                                <div className={styles.statLabel}>备份记录</div>
+                                <div className={styles.statLabel}>{t("data.stats.backups")}</div>
                             </div>
                             <div className={styles.statCard}>
                                 <div className={`${styles.statIcon} ${styles.error}`}>
                                     <FaDatabase />
                                 </div>
                                 <div className={styles.statValue}>{stats.totalRecords}</div>
-                                <div className={styles.statLabel}>总记录数</div>
+                                <div className={styles.statLabel}>{t("data.stats.totalRecords")}</div>
                             </div>
                         </div>
                     </div>
@@ -557,7 +570,7 @@ const DataManagement: React.FC = () => {
                     <div className={styles.quickActions}>
                         <h3 className={styles.sectionTitle}>
                             <FaSync />
-                            快速操作
+                            {t("data.quickActions.title")}
                         </h3>
                         <div className={styles.actionCards}>
                             <button className={styles.actionCard} onClick={() => createBackup("full")}>
@@ -565,8 +578,8 @@ const DataManagement: React.FC = () => {
                                     <FaCloudUploadAlt />
                                 </div>
                                 <div className={styles.actionContent}>
-                                    <div className={styles.actionTitle}>完整备份</div>
-                                    <div className={styles.actionDescription}>创建系统完整数据备份</div>
+                                    <div className={styles.actionTitle}>{t("data.quickActions.fullBackup")}</div>
+                                    <div className={styles.actionDescription}>{t("data.quickActions.fullBackupDesc")}</div>
                                 </div>
                             </button>
                             <button className={styles.actionCard} onClick={() => createBackup("incremental")}>
@@ -574,8 +587,8 @@ const DataManagement: React.FC = () => {
                                     <FaSave />
                                 </div>
                                 <div className={styles.actionContent}>
-                                    <div className={styles.actionTitle}>增量备份</div>
-                                    <div className={styles.actionDescription}>备份变更数据</div>
+                                    <div className={styles.actionTitle}>{t("data.quickActions.incrementalBackup")}</div>
+                                    <div className={styles.actionDescription}>{t("data.quickActions.incrementalBackupDesc")}</div>
                                 </div>
                             </button>
                             <button className={styles.actionCard} onClick={() => exportData("full")}>
@@ -583,8 +596,8 @@ const DataManagement: React.FC = () => {
                                     <FaFileExport />
                                 </div>
                                 <div className={styles.actionContent}>
-                                    <div className={styles.actionTitle}>导出数据</div>
-                                    <div className={styles.actionDescription}>导出系统数据</div>
+                                    <div className={styles.actionTitle}>{t("data.quickActions.exportData")}</div>
+                                    <div className={styles.actionDescription}>{t("data.quickActions.exportDataDesc")}</div>
                                 </div>
                             </button>
                             <button className={styles.actionCard}>
@@ -592,8 +605,8 @@ const DataManagement: React.FC = () => {
                                     <FaFileImport />
                                 </div>
                                 <div className={styles.actionContent}>
-                                    <div className={styles.actionTitle}>导入数据</div>
-                                    <div className={styles.actionDescription}>从文件导入数据</div>
+                                    <div className={styles.actionTitle}>{t("data.quickActions.importData")}</div>
+                                    <div className={styles.actionDescription}>{t("data.quickActions.importDataDesc")}</div>
                                 </div>
                             </button>
                         </div>
@@ -608,19 +621,25 @@ const DataManagement: React.FC = () => {
                         <div className={styles.filterHeader}>
                             <h3 className={styles.filterTitle}>
                                 <FaFilter />
-                                筛选条件
+                                {t("data.filter.title")}
                             </h3>
                             <div className={styles.filterActions}>
                                 <button className={`${styles.btn} ${styles.btnOutline} ${styles.btnSm}`} onClick={clearFilters}>
-                                    清除筛选
+                                    {t("data.filter.clear")}
                                 </button>
                             </div>
                         </div>
                         <div className={styles.filterForm}>
                             <div className={styles.filterGroup}>
-                                <label className={styles.filterLabel}>{activeTab === "backups" ? "搜索备份" : "搜索导出"}</label>
+                                <label className={styles.filterLabel}>
+                                    {activeTab === "backups" ? t("data.filter.searchBackups") : t("data.filter.searchExports")}
+                                </label>
                                 <Input
-                                    placeholder={activeTab === "backups" ? "备份名称或描述" : "导出名称"}
+                                    placeholder={
+                                        activeTab === "backups"
+                                            ? t("data.filter.searchBackupsPlaceholder")
+                                            : t("data.filter.searchExportsPlaceholder")
+                                    }
                                     value={filters.search}
                                     onChange={(value) => handleFilterChange("search", value)}
                                     allowClear={true}
@@ -629,9 +648,11 @@ const DataManagement: React.FC = () => {
                                 />
                             </div>
                             <div className={styles.filterGroup}>
-                                <label className={styles.filterLabel}>{activeTab === "backups" ? "备份类型" : "导出类型"}</label>
+                                <label className={styles.filterLabel}>
+                                    {activeTab === "backups" ? t("data.filter.backupType") : t("data.filter.exportType")}
+                                </label>
                                 <CustomSelect
-                                    name="类型"
+                                    name={t("data.filter.typeName")}
                                     options={activeTab === "backups" ? backupTypeOptions : exportTypeOptions}
                                     value={
                                         (activeTab === "backups"
@@ -639,19 +660,19 @@ const DataManagement: React.FC = () => {
                                             : exportTypeOptions.find((option) => option.id === filters.type)) || null
                                     }
                                     onChange={handleSelectChange("type")}
-                                    placeholder="选择类型..."
+                                    placeholder={t("data.filter.typePlaceholder")}
                                     className="adminCustomSelect"
                                     hideBadge={true}
                                 />
                             </div>
                             <div className={styles.filterGroup}>
-                                <label className={styles.filterLabel}>状态</label>
+                                <label className={styles.filterLabel}>{t("data.filter.statusLabel")}</label>
                                 <CustomSelect
-                                    name="状态"
+                                    name={t("data.filter.statusName")}
                                     options={statusOptions}
                                     value={statusOptions.find((option) => option.id === filters.status) || null}
                                     onChange={handleSelectChange("status")}
-                                    placeholder="选择状态..."
+                                    placeholder={t("data.filter.statusPlaceholder")}
                                     className="adminCustomSelect"
                                     hideBadge={true}
                                 />
@@ -662,14 +683,16 @@ const DataManagement: React.FC = () => {
                     {/* 数据表格 */}
                     <div className={styles.tableContainer}>
                         <div className={styles.tableHeader}>
-                            <h3 className={styles.tableTitle}>{activeTab === "backups" ? "备份记录" : "导出记录"}</h3>
+                            <h3 className={styles.tableTitle}>
+                                {activeTab === "backups" ? t("data.table.backupTitle") : t("data.table.exportTitle")}
+                            </h3>
                             <div className={styles.tableActions}>
                                 <button
                                     className={`${styles.btn} ${styles.btnPrimary} ${styles.btnSm}`}
                                     onClick={() => (activeTab === "backups" ? createBackup("full") : exportData("full"))}
                                 >
                                     <FaPlus />
-                                    {activeTab === "backups" ? "创建备份" : "导出数据"}
+                                    {activeTab === "backups" ? t("data.table.createBackup") : t("data.table.exportData")}
                                 </button>
                                 <span
                                     style={{
@@ -678,7 +701,7 @@ const DataManagement: React.FC = () => {
                                         marginLeft: "12px",
                                     }}
                                 >
-                                    共 {currentData.length} 条记录
+                                    {t("data.table.totalRecords", { total: currentData.length })}
                                 </span>
                             </div>
                         </div>
@@ -686,19 +709,19 @@ const DataManagement: React.FC = () => {
                         {activeTab === "backups" ? (
                             loadingBackups ? (
                                 <div style={{ padding: "60px 0" }}>
-                                    <Loading text="加载备份列表..." size="large" />
+                                    <Loading text={t("data.table.loadingBackups")} size="large" />
                                 </div>
                             ) : (
                                 <table className={`${styles.recordsTable} ${styles.backupRecordsTable}`}>
                                     <thead>
                                         <tr>
-                                            <th>备份信息</th>
-                                            <th>类型</th>
-                                            <th>大小</th>
-                                            <th>文件数量</th>
-                                            <th>状态</th>
-                                            <th>创建时间</th>
-                                            <th>操作</th>
+                                            <th>{t("data.table.headers.backupInfo")}</th>
+                                            <th>{t("data.table.headers.type")}</th>
+                                            <th>{t("data.table.headers.size")}</th>
+                                            <th>{t("data.table.headers.fileCount")}</th>
+                                            <th>{t("data.table.headers.status")}</th>
+                                            <th>{t("data.table.headers.createdAt")}</th>
+                                            <th>{t("data.table.headers.actions")}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -725,9 +748,9 @@ const DataManagement: React.FC = () => {
                                                     </td>
                                                     <td>
                                                         <span className={`${styles.typeBadge} ${styles[backup.type]}`}>
-                                                            {backup.type === "full" && "完整"}
-                                                            {backup.type === "incremental" && "增量"}
-                                                            {backup.type === "manual" && "手动"}
+                                                            {backup.type === "full" && t("data.type.full")}
+                                                            {backup.type === "incremental" && t("data.type.incremental")}
+                                                            {backup.type === "manual" && t("data.type.manual")}
                                                         </span>
                                                     </td>
                                                     <td>{formatFileSize(backup.size)}</td>
@@ -735,7 +758,7 @@ const DataManagement: React.FC = () => {
                                                     <td>
                                                         <span className={`${styles.statusBadge} ${styles[backup.status]}`}>
                                                             <span className={styles.statusIndicator}></span>
-                                                            {BackupStatusLabel[backup.status as BackupStatus] || backup.status}
+                                                            {enums.backupStatus[backup.status as BackupStatus] || backup.status}
                                                         </span>
                                                     </td>
                                                     <td>
@@ -755,7 +778,7 @@ const DataManagement: React.FC = () => {
                                                         <div className={styles.actionButtons}>
                                                             <button
                                                                 className={`${styles.actionButton} ${styles.download}`}
-                                                                title="下载备份"
+                                                                title={t("data.table.downloadBackup")}
                                                                 onClick={() => downloadFile(backup)}
                                                                 disabled={backup.status !== "completed"}
                                                             >
@@ -763,7 +786,7 @@ const DataManagement: React.FC = () => {
                                                             </button>
                                                             <button
                                                                 className={`${styles.actionButton} ${styles.delete}`}
-                                                                title="删除记录"
+                                                                title={t("data.table.deleteRecord")}
                                                                 onClick={() => deleteRecord(backup)}
                                                             >
                                                                 <FaTrash />
@@ -782,7 +805,7 @@ const DataManagement: React.FC = () => {
                                                         color: "var(--text-secondary)",
                                                     }}
                                                 >
-                                                    暂无数据
+                                                    {t("data.table.empty")}
                                                 </td>
                                             </tr>
                                         )}
@@ -791,20 +814,20 @@ const DataManagement: React.FC = () => {
                             )
                         ) : loadingExports ? (
                             <div style={{ padding: "60px 0" }}>
-                                <Loading text="加载导出列表..." size="large" />
+                                <Loading text={t("data.table.loadingExports")} size="large" />
                             </div>
                         ) : (
                             <table className={`${styles.recordsTable} ${styles.exportRecordsTable}`}>
                                 <thead>
                                     <tr>
-                                        <th>导出信息</th>
-                                        <th>类型</th>
-                                        <th>格式</th>
-                                        <th>大小</th>
-                                        <th>记录数量</th>
-                                        <th>状态</th>
-                                        <th>创建时间</th>
-                                        <th>操作</th>
+                                        <th>{t("data.table.headers.exportInfo")}</th>
+                                        <th>{t("data.table.headers.type")}</th>
+                                        <th>{t("data.table.headers.format")}</th>
+                                        <th>{t("data.table.headers.size")}</th>
+                                        <th>{t("data.table.headers.recordCount")}</th>
+                                        <th>{t("data.table.headers.status")}</th>
+                                        <th>{t("data.table.headers.createdAt")}</th>
+                                        <th>{t("data.table.headers.actions")}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -828,10 +851,10 @@ const DataManagement: React.FC = () => {
                                                 </td>
                                                 <td>
                                                     <span className={`${styles.typeBadge} ${styles[exportItem.type]}`}>
-                                                        {exportItem.type === "articles" && "文章"}
-                                                        {exportItem.type === "users" && "用户"}
-                                                        {exportItem.type === "comments" && "评论"}
-                                                        {exportItem.type === "full" && "完整"}
+                                                        {exportItem.type === "articles" && t("data.type.article")}
+                                                        {exportItem.type === "users" && t("data.type.user")}
+                                                        {exportItem.type === "comments" && t("data.type.comment")}
+                                                        {exportItem.type === "full" && t("data.type.full")}
                                                     </span>
                                                 </td>
                                                 <td>
@@ -844,7 +867,7 @@ const DataManagement: React.FC = () => {
                                                 <td>
                                                     <span className={`${styles.statusBadge} ${styles[exportItem.status]}`}>
                                                         <span className={styles.statusIndicator}></span>
-                                                        {BackupStatusLabel[exportItem.status as BackupStatus] || exportItem.status}
+                                                        {enums.backupStatus[exportItem.status as BackupStatus] || exportItem.status}
                                                     </span>
                                                 </td>
                                                 <td>{formatToChinaTime(Number(exportItem.createdAt))}</td>
@@ -852,7 +875,7 @@ const DataManagement: React.FC = () => {
                                                     <div className={styles.actionButtons}>
                                                         <button
                                                             className={`${styles.actionButton} ${styles.download}`}
-                                                            title="下载文件"
+                                                            title={t("data.table.downloadFile")}
                                                             onClick={() => downloadFile(exportItem)}
                                                             disabled={exportItem.status !== "completed"}
                                                         >
@@ -860,7 +883,7 @@ const DataManagement: React.FC = () => {
                                                         </button>
                                                         <button
                                                             className={`${styles.actionButton} ${styles.delete}`}
-                                                            title="删除记录"
+                                                            title={t("data.table.deleteRecord")}
                                                             onClick={() => deleteRecord(exportItem)}
                                                         >
                                                             <FaTrash />
@@ -879,7 +902,7 @@ const DataManagement: React.FC = () => {
                                                     color: "var(--text-secondary)",
                                                 }}
                                             >
-                                                暂无数据
+                                                {t("data.table.empty")}
                                             </td>
                                         </tr>
                                     )}
@@ -891,8 +914,11 @@ const DataManagement: React.FC = () => {
                         {totalPages >= 1 && (
                             <div className={styles.paginationContainer}>
                                 <div className={styles.paginationInfo}>
-                                    显示 {startIndex + 1} - {Math.min(endIndex, currentData.length)} 条， 共 {currentData.length}{" "}
-                                    条记录
+                                    {t("data.pagination.info", {
+                                        start: startIndex + 1,
+                                        end: Math.min(endIndex, currentData.length),
+                                        total: currentData.length,
+                                    })}
                                 </div>
                                 <div className={styles.paginationControls}>
                                     <button

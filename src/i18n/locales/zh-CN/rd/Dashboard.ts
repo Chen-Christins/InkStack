@@ -1,0 +1,65 @@
+const section = {
+    title: "研发仪表盘",
+    description: "项目全局概览与最近动态",
+    stats: {
+        totalRequirements: "需求总数",
+        openRequirements: "未关闭 {{value}}",
+        totalBugs: "缺陷总数",
+        unresolvedBugs: "未解决 {{value}}",
+        totalTasks: "任务总数",
+        overdueTasks: "已逾期 {{value}}",
+        totalReviews: "审查总数",
+        pendingReviews: "待审核 {{value}}",
+        pendingWorkItems: "待处理工作项",
+        requirementsAndBugs: "需求 + 缺陷",
+    },
+    table: {
+        title: "标题",
+        priority: "优先级",
+        status: "状态",
+        severity: "严重程度",
+        assignee: "负责人",
+        createdAt: "创建时间",
+        deadline: "截止日期",
+    },
+    viewAll: "查看全部 →",
+    requirements: {
+        title: "最近需求",
+        empty: "暂无需求",
+    },
+    bugs: {
+        title: "最近缺陷",
+        empty: "暂无缺陷",
+    },
+    tasks: {
+        title: "最近任务",
+        empty: "暂无任务",
+    },
+    status: {
+        new: "新建",
+        developing: "开发中",
+        testing: "测试中",
+        done: "已完成",
+        closed: "已关闭",
+        accepted: "已受理",
+        processing: "处理中",
+        verified: "已验证",
+        reopened: "已重开",
+        todo: "待办",
+        doing: "进行中",
+    },
+    priority: {
+        urgent: "紧急",
+        high: "高",
+        medium: "中",
+        low: "低",
+    },
+    severity: {
+        fatal: "致命",
+        serious: "严重",
+        normal: "一般",
+        minor: "轻微",
+    },
+} as const;
+
+export default section;

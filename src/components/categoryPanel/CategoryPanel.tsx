@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import type { Category } from "@/types";
 import { FaChevronDown, FaChevronRight, FaFileAlt, FaEye, FaFolderOpen } from "react-icons/fa";
 import styles from "./CategoryPanel.module.css";
@@ -53,6 +54,7 @@ const buildCategoryTree = (list: RawCategory[]): Category[] => {
 };
 
 const CategoryPanel: React.FC<CategoryPanelProps> = ({ selectedCategoryId, onCategoryClick }) => {
+    const { t } = useTranslation("components");
     const [expanded, setExpanded] = useState<Record<string, boolean>>({});
     const { data: categories = [], loading } = useAsyncResource<Category[]>(async (signal) => {
         const response = await CategoryService.queryCategory({ signal });
@@ -75,7 +77,7 @@ const CategoryPanel: React.FC<CategoryPanelProps> = ({ selectedCategoryId, onCat
     return (
         <div className={styles.categoryPanel}>
             <h3 className={styles.panelTitle}>
-                <FaFolderOpen className={styles.titleIcon} /> 文章分类
+                <FaFolderOpen className={styles.titleIcon} /> {t("categoryPanel.title")}
             </h3>
             {loading ? (
                 <div className={styles.skeletonList}>
@@ -90,7 +92,7 @@ const CategoryPanel: React.FC<CategoryPanelProps> = ({ selectedCategoryId, onCat
             ) : categories.length === 0 ? (
                 <div className={styles.emptyState}>
                     <FaFolderOpen className={styles.emptyIcon} />
-                    <span>暂无分类</span>
+                    <span>{t("categoryPanel.empty")}</span>
                 </div>
             ) : (
                 <ul className={styles.categoryList}>

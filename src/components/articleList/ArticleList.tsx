@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { FaChevronLeft, FaChevronRight, FaAngleDoubleLeft, FaAngleDoubleRight, FaCalendarAlt, FaUser, FaEye } from "react-icons/fa";
 import ArticleService from "@/services/ArticleService.ts";
 import styles from "./ArticleList.module.css";
@@ -33,6 +34,7 @@ const ArticleList: React.FC<ArticleListProps> = ({ labelId, labelName, categoryI
     const [articles, setArticles] = useState<ArticleListItem[]>([]);
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
+    const { t } = useTranslation("article");
 
     // 切换页码
     const handlePageChange = (page: number) => {
@@ -121,13 +123,13 @@ const ArticleList: React.FC<ArticleListProps> = ({ labelId, labelName, categoryI
                                 author: item.author,
                                 summary: item.summary,
                                 state: STATE_MAP[item.state],
-                                type: item.type === 1 ? "原创" : "转载",
-                                publish_time: item.publish_time ? formatToChinaTime(item.publish_time) : "暂未发布",
+                                type: item.type === 1 ? t("type.original") : t("type.repost"),
+                                publish_time: item.publish_time ? formatToChinaTime(item.publish_time) : t("unpublished"),
                                 views: item.views ?? 0,
                                 praise: item.praise ?? 0,
                                 favorites: item.favorites ?? 0,
                                 comment_count: 0,
-                                category: item.categories?.map((c) => c.name).join("、") || "未分类",
+                                category: item.categories?.map((c) => c.name).join("、") || t("uncategorized"),
                                 tags: [],
                                 categories: item.categories || [],
                             }) as ArticleListItem,
@@ -151,7 +153,7 @@ const ArticleList: React.FC<ArticleListProps> = ({ labelId, labelName, categoryI
         return () => {
             controller.abort();
         };
-    }, [currentPage, labelId, categoryId, searchKeyword]);
+    }, [currentPage, labelId, categoryId, searchKeyword, t]);
 
     const totalPages = Math.ceil(totalArticles / itemsPerPage);
     const startIndex = (currentPage - 1) * itemsPerPage;
@@ -191,7 +193,11 @@ const ArticleList: React.FC<ArticleListProps> = ({ labelId, labelName, categoryI
         <div className={styles.articleList}>
             <div className={styles.listHeader}>
                 <h2 className={styles.title}>
-                    {labelName ? `标签：${labelName}` : categoryName ? `分类：${categoryName}` : "最新文章"}
+                    {labelName
+                        ? t("list.labelTitle", { name: labelName })
+                        : categoryName
+                          ? t("list.categoryTitle", { name: categoryName })
+                          : t("list.latest")}
                 </h2>
                 {headerRight && <div className={styles.headerRight}>{headerRight}</div>}
             </div>
@@ -233,9 +239,9 @@ const ArticleList: React.FC<ArticleListProps> = ({ labelId, labelName, categoryI
                                         <FaEye /> {article.views ?? 0}
                                     </span>
                                 </div>
-                                <h3 className={styles.articleTitle}>{article.title || "无标题"}</h3>
+                                <h3 className={styles.articleTitle}>{article.title || t("untitled")}</h3>
                                 <p className={styles.articleSummary}>
-                                    {article.summary ? article.summary.replace(/�/g, "") + "..." : "无摘要"}
+                                    {article.summary ? article.summary.replace(/�/g, "") + "..." : t("list.noSummary")}
                                 </p>
                                 <Button
                                     variant="light"
@@ -245,7 +251,7 @@ const ArticleList: React.FC<ArticleListProps> = ({ labelId, labelName, categoryI
                                         navigate(`/article/${encodeId(article.id, "article")}`);
                                     }}
                                 >
-                                    阅读全文 →
+                                    {t("list.readMore")}
                                 </Button>
                             </div>
                         );
@@ -257,7 +263,11 @@ const ArticleList: React.FC<ArticleListProps> = ({ labelId, labelName, categoryI
             {totalArticles > 0 && (
                 <div className={styles.pagination}>
                     <div className={styles.paginationInfo}>
-                        显示 {startIndex + 1} - {Math.min(endIndex, totalArticles)} 条， 共 {totalArticles} 篇文章
+                        {t("list.paginationInfo", {
+                            start: startIndex + 1,
+                            end: Math.min(endIndex, totalArticles),
+                            total: totalArticles,
+                        })}
                     </div>
                     <div className={styles.paginationControls}>
                         <button className={styles.paginationButton} onClick={() => handlePageChange(1)} disabled={currentPage === 1}>

@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import * as echarts from "echarts";
 import {
     FaUsers,
@@ -23,10 +24,34 @@ import DashboardService, {
     type DashboardActivity,
     type DashboardRecentUser,
 } from "@/services/DashboardService.ts";
-import { PlatformRoleLabel } from "@/types/Roles.ts";
+import type { PlatformRole } from "@/types/Roles.ts";
+import { useEnumLabels } from "@/i18n/UseEnumLabels";
 import styles from "./Dashboard.module.css";
 
+/** 后端趋势接口返回的中文星期标签 → 星期索引（0=周日） */
+const WEEKDAY_INDEX: Record<string, number> = {
+    周日: 0,
+    周天: 0,
+    周一: 1,
+    周二: 2,
+    周三: 3,
+    周四: 4,
+    周五: 5,
+    周六: 6,
+    星期日: 0,
+    星期天: 0,
+    星期一: 1,
+    星期二: 2,
+    星期三: 3,
+    星期四: 4,
+    星期五: 5,
+    星期六: 6,
+};
+
 const Dashboard: React.FC = () => {
+    const { t } = useTranslation("admin");
+    const { t: tCal } = useTranslation("calendar");
+    const enums = useEnumLabels();
     const [selectedPeriod, setSelectedPeriod] = React.useState("7天");
     const chartRef = useRef<HTMLDivElement>(null);
     const chartInstance = useRef<echarts.ECharts | null>(null);
@@ -77,26 +102,26 @@ const Dashboard: React.FC = () => {
     // 快速操作数据
     const quickActions = [
         {
-            title: "创建文章",
-            description: "撰写新的博客文章",
+            title: t("dashboard.quickActions.createArticle.title"),
+            description: t("dashboard.quickActions.createArticle.description"),
             icon: <FaEdit />,
             path: "/article/create",
         },
         {
-            title: "添加用户",
-            description: "邀请新用户加入",
+            title: t("dashboard.quickActions.addUser.title"),
+            description: t("dashboard.quickActions.addUser.description"),
             icon: <FaUserPlus />,
             path: "/admin/users",
         },
         {
-            title: "系统设置",
-            description: "配置系统参数",
+            title: t("dashboard.quickActions.systemSettings.title"),
+            description: t("dashboard.quickActions.systemSettings.description"),
             icon: <FaCog />,
             path: "/admin/settings",
         },
         {
-            title: "查看统计",
-            description: "查看详细数据分析",
+            title: t("dashboard.quickActions.viewAnalytics.title"),
+            description: t("dashboard.quickActions.viewAnalytics.description"),
             icon: <FaChartBar />,
             path: "/admin/analytics",
         },
@@ -118,7 +143,7 @@ const Dashboard: React.FC = () => {
     const statCards = stats
         ? [
               {
-                  title: "总用户数",
+                  title: t("dashboard.stats.totalUsers"),
                   value: stats.total_users.toLocaleString(),
                   change: formatChange(stats.total_users_change),
                   changeType: getChangeType(stats.total_users_change),
@@ -126,7 +151,7 @@ const Dashboard: React.FC = () => {
                   iconColor: "blue" as const,
               },
               {
-                  title: "文章总数",
+                  title: t("dashboard.stats.totalArticles"),
                   value: stats.total_articles.toLocaleString(),
                   change: formatChange(stats.total_articles_change),
                   changeType: getChangeType(stats.total_articles_change),
@@ -134,7 +159,7 @@ const Dashboard: React.FC = () => {
                   iconColor: "green" as const,
               },
               {
-                  title: "评论总数",
+                  title: t("dashboard.stats.totalComments"),
                   value: stats.total_comments.toLocaleString(),
                   change: formatChange(stats.total_comments_change),
                   changeType: getChangeType(stats.total_comments_change),
@@ -142,16 +167,16 @@ const Dashboard: React.FC = () => {
                   iconColor: "orange" as const,
               },
               {
-                  title: "今日活动",
+                  title: t("dashboard.stats.todayActivity"),
                   value: stats.today_visits.toLocaleString(),
                   change: formatChange(stats.today_visits_change),
                   changeType: getChangeType(stats.today_visits_change),
                   icon: <FaEye />,
                   iconColor: "purple" as const,
-                  hint: "活动量 = 今日新增用户 + 文章 + 评论",
+                  hint: t("dashboard.stats.activityHint"),
               },
               {
-                  title: "新增用户",
+                  title: t("dashboard.stats.newUsers"),
                   value: stats.new_users_today.toLocaleString(),
                   change: formatChange(stats.new_users_today_change),
                   changeType: getChangeType(stats.new_users_today_change),
@@ -194,7 +219,7 @@ const Dashboard: React.FC = () => {
 
     // 角色名称映射
     const getRoleName = (role: number) => {
-        return PlatformRoleLabel[role as keyof typeof PlatformRoleLabel] || String(role);
+        return enums.platformRole[role as PlatformRole] || String(role);
     };
 
     // 获取变化指示器
@@ -238,6 +263,21 @@ const Dashboard: React.FC = () => {
         const chart = chartInstance.current;
         const data = trendData?.list || [];
 
+        // 将后端返回的中文星期标签（如“周一”）本地化
+        const localizedWeekdays = [
+            tCal("weekdays.sun"),
+            tCal("weekdays.mon"),
+            tCal("weekdays.tue"),
+            tCal("weekdays.wed"),
+            tCal("weekdays.thu"),
+            tCal("weekdays.fri"),
+            tCal("weekdays.sat"),
+        ];
+        const axisLabels = data.map((item) => {
+            const index = WEEKDAY_INDEX[item.label?.trim()];
+            return index === undefined ? item.label : localizedWeekdays[index];
+        });
+
         // ECharts配置
         const option = {
             tooltip: {
@@ -258,8 +298,8 @@ const Dashboard: React.FC = () => {
                     return `
                         <div style="padding: 4px 0;">
                             <div style="font-weight: 600; margin-bottom: 4px; color: #333;">${point.name}</div>
-                            <div style="color: #4361ee; font-weight: 500;">活动量: ${point.value.toLocaleString()}</div>
-                            <div style="font-size: 11px; color: #999999; margin-top: 4px;">（新增用户 + 文章 + 评论）</div>
+                            <div style="color: #4361ee; font-weight: 500;">${t("dashboard.chart.seriesName")}: ${point.value.toLocaleString()}</div>
+                            <div style="font-size: 11px; color: #999999; margin-top: 4px;">${t("dashboard.chart.tooltipNote")}</div>
                             <div style="font-size: 11px; color: #666666; margin-top: 2px;">${item.date}</div>
                         </div>
                     `;
@@ -274,7 +314,7 @@ const Dashboard: React.FC = () => {
             },
             xAxis: {
                 type: "category",
-                data: data.map((item) => item.label),
+                data: axisLabels,
                 axisLine: {
                     lineStyle: {
                         color: "#e1e5e9",
@@ -324,7 +364,7 @@ const Dashboard: React.FC = () => {
             },
             series: [
                 {
-                    name: "活动量",
+                    name: t("dashboard.chart.seriesName"),
                     type: "line",
                     data: data.map((item) => item.visits),
                     smooth: true,
@@ -400,7 +440,7 @@ const Dashboard: React.FC = () => {
         return () => {
             window.removeEventListener("resize", handleResize);
         };
-    }, [selectedPeriod, trendData]);
+    }, [selectedPeriod, trendData, t, tCal]);
 
     // 渲染活动趋势图表
     const renderVisitTrendChart = () => {
@@ -413,20 +453,20 @@ const Dashboard: React.FC = () => {
                 <div className={styles.echartContainer} ref={chartRef} />
                 <div className={styles.chartSummary}>
                     <div className={styles.summaryItem}>
-                        <span className={styles.summaryLabel} title="活动量 = 新增用户 + 文章 + 评论">
-                            总活动量
+                        <span className={styles.summaryLabel} title={t("dashboard.chart.activityHint")}>
+                            {t("dashboard.chart.summary.total")}
                         </span>
                         <span className={styles.summaryValue}>{totalVisits.toLocaleString()}</span>
                     </div>
                     <div className={styles.summaryItem}>
-                        <span className={styles.summaryLabel} title="活动量 = 新增用户 + 文章 + 评论">
-                            日均活动量
+                        <span className={styles.summaryLabel} title={t("dashboard.chart.activityHint")}>
+                            {t("dashboard.chart.summary.avg")}
                         </span>
                         <span className={styles.summaryValue}>{avgVisits.toLocaleString()}</span>
                     </div>
                     <div className={styles.summaryItem}>
-                        <span className={styles.summaryLabel} title="活动量峰值">
-                            峰值
+                        <span className={styles.summaryLabel} title={t("dashboard.chart.summary.peakHint")}>
+                            {t("dashboard.chart.summary.peak")}
                         </span>
                         <span className={styles.summaryValue}>{maxVisits.toLocaleString()}</span>
                     </div>
@@ -438,7 +478,7 @@ const Dashboard: React.FC = () => {
     if (loading) {
         return (
             <div className={styles.dashboard}>
-                <Loading text="加载仪表盘中..." size="large" />
+                <Loading text={t("dashboard.loading")} size="large" />
             </div>
         );
     }
@@ -447,8 +487,8 @@ const Dashboard: React.FC = () => {
         <div className={styles.dashboard}>
             {/* 页面头部 */}
             <div className={styles.pageHeader}>
-                <h1 className={styles.pageTitle}>仪表盘</h1>
-                <p className={styles.pageDescription}>欢迎回到管理后台！这里是您的数据中心，可以快速了解系统运行状况。</p>
+                <h1 className={styles.pageTitle}>{t("dashboard.title")}</h1>
+                <p className={styles.pageDescription}>{t("dashboard.description")}</p>
             </div>
 
             {/* 统计卡片 */}
@@ -474,9 +514,9 @@ const Dashboard: React.FC = () => {
                 <div className={styles.chartCard}>
                     <div className={styles.chartHeader}>
                         <h3 className={styles.chartTitle}>
-                            活动趋势
+                            {t("dashboard.chart.title")}
                             <span style={{ fontSize: "12px", color: "var(--text-tertiary)", fontWeight: 400, marginLeft: "8px" }}>
-                                （活动量 = 新增用户 + 文章 + 评论）
+                                {t("dashboard.chart.subtitle")}
                             </span>
                         </h3>
                         <div className={styles.chartActions}>
@@ -484,19 +524,19 @@ const Dashboard: React.FC = () => {
                                 className={`${styles.btn} ${styles.btnOutline} ${styles.btnSm} ${selectedPeriod === "7天" ? styles.active : ""}`}
                                 onClick={() => setSelectedPeriod("7天")}
                             >
-                                7天
+                                {t("dashboard.range.days7")}
                             </button>
                             <button
                                 className={`${styles.btn} ${styles.btnOutline} ${styles.btnSm} ${selectedPeriod === "30天" ? styles.active : ""}`}
                                 onClick={() => setSelectedPeriod("30天")}
                             >
-                                30天
+                                {t("dashboard.range.days30")}
                             </button>
                             <button
                                 className={`${styles.btn} ${styles.btnOutline} ${styles.btnSm} ${selectedPeriod === "90天" ? styles.active : ""}`}
                                 onClick={() => setSelectedPeriod("90天")}
                             >
-                                90天
+                                {t("dashboard.range.days90")}
                             </button>
                         </div>
                     </div>
@@ -505,7 +545,7 @@ const Dashboard: React.FC = () => {
 
                 {/* 快速操作 */}
                 <div className={styles.quickActionsCard}>
-                    <h3 className={styles.quickActionsTitle}>快速操作</h3>
+                    <h3 className={styles.quickActionsTitle}>{t("dashboard.quickActions.title")}</h3>
                     <div className={styles.quickActionsList}>
                         {quickActions.map((action, index) => (
                             <Link key={index} to={action.path} className={styles.quickActionItem}>
@@ -525,7 +565,7 @@ const Dashboard: React.FC = () => {
             <div className={styles.bottomGrid}>
                 {/* 最近活动 */}
                 <div className={styles.recentActivityCard}>
-                    <h3 className={styles.cardTitle}>最近活动</h3>
+                    <h3 className={styles.cardTitle}>{t("dashboard.recentActivity.title")}</h3>
                     <div className={styles.activityList}>
                         {activities.map((activity, index) => (
                             <div key={index} className={styles.activityItem}>
@@ -543,7 +583,7 @@ const Dashboard: React.FC = () => {
 
                 {/* 最近用户 */}
                 <div className={styles.recentUsersCard}>
-                    <h3 className={styles.cardTitle}>最近用户</h3>
+                    <h3 className={styles.cardTitle}>{t("dashboard.recentUsers.title")}</h3>
                     <div className={styles.userList}>
                         {recentUsers.map((user, index) => (
                             <div key={index} className={styles.userItem}>

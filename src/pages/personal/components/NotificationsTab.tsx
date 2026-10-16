@@ -1,5 +1,7 @@
 import React, { useState, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import type { TFunction } from "i18next";
 import {
     FaBellSlash,
     FaComment,
@@ -74,43 +76,43 @@ const TYPE_ICON_MAP: Record<string, { icon: React.ReactNode; className: string }
     assignment_deleted: { icon: <FaUserMinus />, className: styles.notifIconOrgMemberKicked },
 };
 
-const TYPE_OPTIONS: SelectOption[] = [
-    { id: "all", name: "全部类型", color: "#6c757d" },
-    { id: "system", name: "系统通知", color: "#3b82f6" },
-    { id: "comment", name: "评论", color: "#10b981" },
-    { id: "reply", name: "评论回复", color: "#10b981" },
-    { id: "praise", name: "文章点赞", color: "#f97316" },
-    { id: "follow", name: "关注", color: "#8b5cf6" },
-    { id: "article", name: "文章", color: "#f59e0b" },
-    { id: "article_state_changed", name: "文章状态变更", color: "#f59e0b" },
-    { id: "article_review_request", name: "待审核", color: "#f59e0b" },
-    { id: "article_review_approved", name: "审核通过", color: "#10b981" },
-    { id: "article_review_rejected", name: "审核拒绝", color: "#ef4444" },
-    { id: "comment_approved", name: "评论审核通过", color: "#10b981" },
-    { id: "comment_rejected", name: "评论未通过", color: "#ef4444" },
-    { id: "comment_spam", name: "评论垃圾标记", color: "#ef4444" },
-    { id: "comment_admin_deleted", name: "评论被删", color: "#dc2626" },
-    { id: "org_role_change", name: "角色变更", color: "#8b5cf6" },
-    { id: "org_join_request", name: "加入申请", color: "#f59e0b" },
-    { id: "org_join_approved", name: "申请通过", color: "#10b981" },
-    { id: "org_join_rejected", name: "申请拒绝", color: "#ef4444" },
-    { id: "org_member_kicked", name: "成员移出", color: "#dc2626" },
-    { id: "org_apply_request", name: "组织创建申请", color: "#f59e0b" },
-    { id: "org_apply_approved", name: "组织创建通过", color: "#10b981" },
-    { id: "org_apply_rejected", name: "组织创建拒绝", color: "#ef4444" },
-    { id: "org_deleted", name: "组织删除", color: "#dc2626" },
-    { id: "requirement_assigned", name: "需求分配", color: "#6366f1" },
-    { id: "bug_assigned", name: "缺陷分配", color: "#ef4444" },
-    { id: "task_assigned", name: "任务分配", color: "#10b981" },
-    { id: "assignment_created", name: "新作业发布", color: "#3b82f6" },
-    { id: "assignment_submitted", name: "作业提交", color: "#10b981" },
-    { id: "assignment_deleted", name: "作业删除", color: "#ef4444" },
-    { id: "account_deleted", name: "账户禁用", color: "#ef4444" },
-    { id: "account_recovered", name: "账户恢复", color: "#10b981" },
-    { id: "password_reset", name: "密码重置", color: "#8b5cf6" },
+const getTypeOptions = (t: TFunction<"personal">): SelectOption[] => [
+    { id: "all", name: t("notifications.typeOptions.all"), color: "#6c757d" },
+    { id: "system", name: t("notifications.typeOptions.system"), color: "#3b82f6" },
+    { id: "comment", name: t("notifications.typeOptions.comment"), color: "#10b981" },
+    { id: "reply", name: t("notifications.typeOptions.reply"), color: "#10b981" },
+    { id: "praise", name: t("notifications.typeOptions.praise"), color: "#f97316" },
+    { id: "follow", name: t("notifications.typeOptions.follow"), color: "#8b5cf6" },
+    { id: "article", name: t("notifications.typeOptions.article"), color: "#f59e0b" },
+    { id: "article_state_changed", name: t("notifications.typeOptions.articleStateChanged"), color: "#f59e0b" },
+    { id: "article_review_request", name: t("notifications.typeOptions.articleReviewRequest"), color: "#f59e0b" },
+    { id: "article_review_approved", name: t("notifications.typeOptions.articleReviewApproved"), color: "#10b981" },
+    { id: "article_review_rejected", name: t("notifications.typeOptions.articleReviewRejected"), color: "#ef4444" },
+    { id: "comment_approved", name: t("notifications.typeOptions.commentApproved"), color: "#10b981" },
+    { id: "comment_rejected", name: t("notifications.typeOptions.commentRejected"), color: "#ef4444" },
+    { id: "comment_spam", name: t("notifications.typeOptions.commentSpam"), color: "#ef4444" },
+    { id: "comment_admin_deleted", name: t("notifications.typeOptions.commentAdminDeleted"), color: "#dc2626" },
+    { id: "org_role_change", name: t("notifications.typeOptions.orgRoleChange"), color: "#8b5cf6" },
+    { id: "org_join_request", name: t("notifications.typeOptions.orgJoinRequest"), color: "#f59e0b" },
+    { id: "org_join_approved", name: t("notifications.typeOptions.orgJoinApproved"), color: "#10b981" },
+    { id: "org_join_rejected", name: t("notifications.typeOptions.orgJoinRejected"), color: "#ef4444" },
+    { id: "org_member_kicked", name: t("notifications.typeOptions.orgMemberKicked"), color: "#dc2626" },
+    { id: "org_apply_request", name: t("notifications.typeOptions.orgApplyRequest"), color: "#f59e0b" },
+    { id: "org_apply_approved", name: t("notifications.typeOptions.orgApplyApproved"), color: "#10b981" },
+    { id: "org_apply_rejected", name: t("notifications.typeOptions.orgApplyRejected"), color: "#ef4444" },
+    { id: "org_deleted", name: t("notifications.typeOptions.orgDeleted"), color: "#dc2626" },
+    { id: "requirement_assigned", name: t("notifications.typeOptions.requirementAssigned"), color: "#6366f1" },
+    { id: "bug_assigned", name: t("notifications.typeOptions.bugAssigned"), color: "#ef4444" },
+    { id: "task_assigned", name: t("notifications.typeOptions.taskAssigned"), color: "#10b981" },
+    { id: "assignment_created", name: t("notifications.typeOptions.assignmentCreated"), color: "#3b82f6" },
+    { id: "assignment_submitted", name: t("notifications.typeOptions.assignmentSubmitted"), color: "#10b981" },
+    { id: "assignment_deleted", name: t("notifications.typeOptions.assignmentDeleted"), color: "#ef4444" },
+    { id: "account_deleted", name: t("notifications.typeOptions.accountDeleted"), color: "#ef4444" },
+    { id: "account_recovered", name: t("notifications.typeOptions.accountRecovered"), color: "#10b981" },
+    { id: "password_reset", name: t("notifications.typeOptions.passwordReset"), color: "#8b5cf6" },
 ];
 
-function formatTime(timestamp: number): string {
+function formatTime(t: TFunction<"personal">, timestamp: number): string {
     const now = Date.now();
     const diff = now - timestamp * 1000;
     const minutes = Math.floor(diff / 60000);
@@ -118,16 +120,16 @@ function formatTime(timestamp: number): string {
     const days = Math.floor(diff / 86400000);
 
     if (minutes < 1) {
-        return "刚刚";
+        return t("notifications.time.justNow");
     }
     if (minutes < 60) {
-        return `${minutes}分钟前`;
+        return t("notifications.time.minutesAgo", { minutes });
     }
     if (hours < 24) {
-        return `${hours}小时前`;
+        return t("notifications.time.hoursAgo", { hours });
     }
     if (days < 30) {
-        return `${days}天前`;
+        return t("notifications.time.daysAgo", { days });
     }
     return new Date(timestamp * 1000).toLocaleDateString("zh-CN");
 }
@@ -162,12 +164,13 @@ const PAGE_SIZE = 20;
 
 const NotificationsTab: React.FC = () => {
     const navigate = useNavigate();
+    const { t } = useTranslation("personal");
     const [notifications, setNotifications] = useState<NotificationItem[]>([]);
     const [total, setTotal] = useState(0);
     const [loading, setLoading] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const [typeFilter, setTypeFilter] = useState<string>("all");
-    const [selectedType, setSelectedType] = useState<SelectOption | null>(TYPE_OPTIONS[0]);
+    const [selectedType, setSelectedType] = useState<SelectOption | null>(() => getTypeOptions(t)[0]);
     const [, setTick] = useState(0);
     const [refreshKey, setRefreshKey] = useState(0);
 
@@ -305,38 +308,38 @@ const NotificationsTab: React.FC = () => {
 
     // 设置面板中要用到的类型列表
     const settingTypes: { key: NotifType; label: string }[] = [
-        { key: "system", label: "系统通知" },
-        { key: "comment", label: "评论通知" },
-        { key: "reply", label: "评论回复通知" },
-        { key: "praise", label: "文章点赞通知" },
-        { key: "follow", label: "关注通知" },
-        { key: "article", label: "文章通知" },
-        { key: "article_state_changed", label: "文章状态变更通知" },
-        { key: "article_review_request", label: "文章待审核通知" },
-        { key: "article_review_approved", label: "文章审核通过通知" },
-        { key: "article_review_rejected", label: "文章审核拒绝通知" },
-        { key: "comment_approved", label: "评论审核通过通知" },
-        { key: "comment_rejected", label: "评论未通过通知" },
-        { key: "comment_spam", label: "评论垃圾标记通知" },
-        { key: "comment_admin_deleted", label: "评论被删通知" },
-        { key: "org_role_change", label: "角色变更通知" },
-        { key: "org_join_request", label: "加入申请通知" },
-        { key: "org_join_approved", label: "申请通过通知" },
-        { key: "org_join_rejected", label: "申请拒绝通知" },
-        { key: "org_member_kicked", label: "成员移出通知" },
-        { key: "org_apply_request", label: "组织创建申请通知" },
-        { key: "org_apply_approved", label: "组织创建通过通知" },
-        { key: "org_apply_rejected", label: "组织创建拒绝通知" },
-        { key: "org_deleted", label: "组织删除通知" },
-        { key: "requirement_assigned", label: "需求分配通知" },
-        { key: "bug_assigned", label: "缺陷分配通知" },
-        { key: "task_assigned", label: "任务分配通知" },
-        { key: "assignment_created", label: "新作业发布通知" },
-        { key: "assignment_submitted", label: "作业提交通知" },
-        { key: "assignment_deleted", label: "作业删除通知" },
-        { key: "account_deleted", label: "账户禁用通知" },
-        { key: "account_recovered", label: "账户恢复通知" },
-        { key: "password_reset", label: "密码重置通知" },
+        { key: "system", label: t("notifications.settingTypes.system") },
+        { key: "comment", label: t("notifications.settingTypes.comment") },
+        { key: "reply", label: t("notifications.settingTypes.reply") },
+        { key: "praise", label: t("notifications.settingTypes.praise") },
+        { key: "follow", label: t("notifications.settingTypes.follow") },
+        { key: "article", label: t("notifications.settingTypes.article") },
+        { key: "article_state_changed", label: t("notifications.settingTypes.articleStateChanged") },
+        { key: "article_review_request", label: t("notifications.settingTypes.articleReviewRequest") },
+        { key: "article_review_approved", label: t("notifications.settingTypes.articleReviewApproved") },
+        { key: "article_review_rejected", label: t("notifications.settingTypes.articleReviewRejected") },
+        { key: "comment_approved", label: t("notifications.settingTypes.commentApproved") },
+        { key: "comment_rejected", label: t("notifications.settingTypes.commentRejected") },
+        { key: "comment_spam", label: t("notifications.settingTypes.commentSpam") },
+        { key: "comment_admin_deleted", label: t("notifications.settingTypes.commentAdminDeleted") },
+        { key: "org_role_change", label: t("notifications.settingTypes.orgRoleChange") },
+        { key: "org_join_request", label: t("notifications.settingTypes.orgJoinRequest") },
+        { key: "org_join_approved", label: t("notifications.settingTypes.orgJoinApproved") },
+        { key: "org_join_rejected", label: t("notifications.settingTypes.orgJoinRejected") },
+        { key: "org_member_kicked", label: t("notifications.settingTypes.orgMemberKicked") },
+        { key: "org_apply_request", label: t("notifications.settingTypes.orgApplyRequest") },
+        { key: "org_apply_approved", label: t("notifications.settingTypes.orgApplyApproved") },
+        { key: "org_apply_rejected", label: t("notifications.settingTypes.orgApplyRejected") },
+        { key: "org_deleted", label: t("notifications.settingTypes.orgDeleted") },
+        { key: "requirement_assigned", label: t("notifications.settingTypes.requirementAssigned") },
+        { key: "bug_assigned", label: t("notifications.settingTypes.bugAssigned") },
+        { key: "task_assigned", label: t("notifications.settingTypes.taskAssigned") },
+        { key: "assignment_created", label: t("notifications.settingTypes.assignmentCreated") },
+        { key: "assignment_submitted", label: t("notifications.settingTypes.assignmentSubmitted") },
+        { key: "assignment_deleted", label: t("notifications.settingTypes.assignmentDeleted") },
+        { key: "account_deleted", label: t("notifications.settingTypes.accountDeleted") },
+        { key: "account_recovered", label: t("notifications.settingTypes.accountRecovered") },
+        { key: "password_reset", label: t("notifications.settingTypes.passwordReset") },
     ];
 
     return (
@@ -344,13 +347,15 @@ const NotificationsTab: React.FC = () => {
             {/* Header */}
             <div className={styles.sectionHeader}>
                 <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                    <h2>通知中心</h2>
-                    {unreadCount > 0 && <span className={styles.unreadBadge}>{unreadCount} 条未读</span>}
+                    <h2>{t("notifications.title")}</h2>
+                    {unreadCount > 0 && (
+                        <span className={styles.unreadBadge}>{t("notifications.unreadBadge", { value: unreadCount })}</span>
+                    )}
                 </div>
                 {unreadCount > 0 && (
                     <button className={styles.markAllReadBtn} onClick={handleMarkAllRead}>
                         <FaCheckDouble />
-                        全部标为已读
+                        {t("notifications.markAllRead")}
                     </button>
                 )}
             </div>
@@ -359,8 +364,8 @@ const NotificationsTab: React.FC = () => {
             <div className={styles.searchFilterBar}>
                 <div className={styles.notifTypeFilter}>
                     <CustomSelect
-                        name="类型"
-                        options={TYPE_OPTIONS}
+                        name={t("notifications.filterName")}
+                        options={getTypeOptions(t)}
                         value={selectedType}
                         onChange={handleTypeChange}
                         hideBadge={true}
@@ -368,7 +373,7 @@ const NotificationsTab: React.FC = () => {
                 </div>
                 <button className={styles.notifSettingsBtn} onClick={() => setShowSettings(true)}>
                     <FaCog />
-                    通知设置
+                    {t("notifications.settingsButton")}
                 </button>
             </div>
 
@@ -376,12 +381,12 @@ const NotificationsTab: React.FC = () => {
             <div className={styles.notifList}>
                 {loading ? (
                     <div className={styles.notifEmpty}>
-                        <span>加载中...</span>
+                        <span>{t("notifications.loading")}</span>
                     </div>
                 ) : notifications.length === 0 ? (
                     <div className={styles.notifEmpty}>
                         <FaBellSlash className={styles.notifEmptyIcon} />
-                        <span>暂无通知</span>
+                        <span>{t("notifications.empty")}</span>
                     </div>
                 ) : (
                     notifications.map((item) => {
@@ -399,7 +404,7 @@ const NotificationsTab: React.FC = () => {
                                         {!item.is_read && <span className={styles.notifItemDot} />}
                                     </div>
                                     <div className={styles.notifItemContent}>{item.content}</div>
-                                    <div className={styles.notifItemTime}>{formatTime(item.create_time)}</div>
+                                    <div className={styles.notifItemTime}>{formatTime(t, item.create_time)}</div>
                                 </div>
                             </div>
                         );
@@ -411,18 +416,18 @@ const NotificationsTab: React.FC = () => {
             {totalPages >= 1 && (
                 <div className={styles.pagination}>
                     <div className={styles.paginationInfo}>
-                        显示 {startIndex + 1} - {endIndex} 条，共 {total} 条通知
+                        {t("notifications.pagination.info", { start: startIndex + 1, end: endIndex, total })}
                     </div>
                     <div className={styles.paginationControls}>
                         <button className={styles.paginationButton} onClick={() => setCurrentPage(1)} disabled={currentPage === 1}>
-                            首页
+                            {t("notifications.pagination.first")}
                         </button>
                         <button
                             className={styles.paginationButton}
                             onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
                             disabled={currentPage === 1}
                         >
-                            上一页
+                            {t("notifications.pagination.prev")}
                         </button>
                         {getPageNumbers(currentPage, totalPages).map((page, index) => (
                             <button
@@ -439,14 +444,14 @@ const NotificationsTab: React.FC = () => {
                             onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
                             disabled={currentPage === totalPages}
                         >
-                            下一页
+                            {t("notifications.pagination.next")}
                         </button>
                         <button
                             className={styles.paginationButton}
                             onClick={() => setCurrentPage(totalPages)}
                             disabled={currentPage === totalPages}
                         >
-                            末页
+                            {t("notifications.pagination.last")}
                         </button>
                     </div>
                 </div>
@@ -455,12 +460,12 @@ const NotificationsTab: React.FC = () => {
             {/* Settings Modal */}
             <Modal
                 visible={showSettings}
-                title="通知设置"
+                title={t("notifications.settingsTitle")}
                 onClose={() => setShowSettings(false)}
                 size="small"
                 footer={
                     <button className={styles.cancelButton} onClick={() => setShowSettings(false)}>
-                        关闭
+                        {t("notifications.close")}
                     </button>
                 }
             >

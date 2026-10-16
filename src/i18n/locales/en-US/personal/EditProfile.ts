@@ -1,0 +1,56 @@
+const section = {
+    pageTitle: "Edit Profile",
+    sections: {
+        basic: "Basic Information",
+    },
+    avatar: {
+        title: "Avatar",
+        defaultName: "User",
+        change: "Change Avatar",
+        hint: "Avatar upload is not available yet. You can enter an image URL directly.",
+        apply: "Apply",
+        applying: "Applying...",
+    },
+    fields: {
+        name: "Nickname",
+        namePlaceholder: "Enter your nickname",
+        email: "Email",
+        emailHint: "Email cannot be changed here",
+        motto: "Motto",
+        mottoPlaceholder: "Introduce yourself in one sentence",
+        website: "Personal Website",
+        github: "GitHub Profile",
+    },
+    actions: {
+        save: "Save Changes",
+        saving: "Saving...",
+    },
+    password: {
+        title: "Change Password",
+        current: "Current Password",
+        currentPlaceholder: "Enter current password",
+        new: "New Password",
+        newPlaceholder: "At least 6 characters",
+        confirm: "Confirm New Password",
+        confirmPlaceholder: "Re-enter new password",
+        submit: "Change Password",
+        saving: "Changing...",
+    },
+    messages: {
+        avatarUploadUnavailable: "Avatar upload is not available yet. Please update your avatar using an image URL.",
+        avatarUrlRequired: "Please enter an avatar URL",
+        avatarUrlInvalid: "Please enter a valid HTTP/HTTPS link",
+        avatarUpdated: "Avatar updated",
+        avatarUpdateFailed: "Failed to update avatar",
+        nameRequired: "Please enter a nickname",
+        profileUpdated: "Profile updated",
+        saveFailed: "Failed to save",
+        currentPasswordRequired: "Please enter your current password",
+        newPasswordTooShort: "New password must be at least 6 characters",
+        passwordMismatch: "The two passwords do not match",
+        passwordChanged: "Password changed. It will take effect on your next login.",
+        passwordChangeFailed: "Failed to change password",
+    },
+} as const;
+
+export default section;

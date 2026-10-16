@@ -1,0 +1,62 @@
+const section = {
+    page: {
+        title: "Send Notification",
+        description: "Push system notifications, announcements, or article update reminders to users",
+    },
+    type: {
+        system: "System Notification",
+        announcement: "Announcement",
+        article: "Article Push",
+    },
+    target: {
+        all: "All Users",
+        users: "Specific Users",
+    },
+    level: {
+        info: "Normal",
+        warning: "Warning",
+        danger: "Urgent",
+    },
+    form: {
+        settingsTitle: "Notification Settings",
+        typeLabel: "Notification Type",
+        typePlaceholder: "Select notification type",
+        targetLabel: "Send Target",
+        targetPlaceholder: "Select send target",
+        userIdLabel: "Target User IDs",
+        userIdPlaceholder: "Separate multiple IDs with commas, e.g. 1,2,3",
+        broadcastLabel: "Set as Broadcast",
+        broadcastHint: "Once enabled, this notification will scroll continuously in a marquee at the top of the page",
+        broadcastLevelLabel: "Broadcast Level",
+        broadcastLevelPlaceholder: "Select broadcast level",
+        startTimeLabel: "Start Time (optional, leave empty to show immediately)",
+        startTimePlaceholder: "Immediate",
+        endTimeLabel: "End Time (optional, leave empty to close manually)",
+        endTimePlaceholder: "Manual close",
+        contentTitle: "Notification Content",
+        titleLabel: "Notification Title",
+        titlePlaceholder: "Please enter the notification title",
+        contentLabel: "Notification Content",
+        contentPlaceholder: "Please enter the notification content, plain text supported",
+        sending: "Sending...",
+        send: "Send Notification",
+    },
+    broadcasts: {
+        title: "Current Broadcasts",
+        closeTitle: "Manually close this broadcast",
+        close: "Close",
+    },
+    message: {
+        broadcastClosed: "Broadcast closed",
+        closeFailed: "Failed to close",
+        titleRequired: "Please enter the notification title",
+        contentRequired: "Please enter the notification content",
+        targetRequired: "Please enter the target user IDs",
+        endBeforeStart: "End time must be later than start time",
+        broadcastCreated: "Broadcast created",
+        sendSuccess: "Notification sent successfully",
+        sendFailed: "Failed to send, please try again later",
+    },
+} as const;
+
+export default section;

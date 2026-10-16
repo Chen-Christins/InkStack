@@ -1,0 +1,35 @@
+const section = {
+    loading: "Loading...",
+    accessDenied: "Access Denied",
+    deniedLine1: "Sorry, you do not have permission to access this page. This area is restricted to administrators.",
+    deniedLine2: "If you believe this is a mistake, please contact the system administrator or try logging in again.",
+    backHome: "Back to Home",
+    switchAccount: "Switch Account",
+    brand: "Admin",
+    openMenu: "Open menu",
+    expandSidebar: "Expand sidebar",
+    collapseSidebar: "Collapse sidebar",
+    breadcrumbHome: "Home",
+    sections: {
+        main: "Main",
+        content: "Content",
+        system: "System",
+        operation: "Operations",
+    },
+    nav: {
+        dashboard: "Dashboard",
+        users: "Users",
+        articles: "Articles",
+        assignments: "Assignments",
+        organizations: "Organizations",
+        comments: "Comments",
+        notifications: "Send Notification",
+        categories: "Categories",
+        media: "Media Library",
+        database: "Data",
+        settings: "Settings",
+        feedbacks: "Support",
+    },
+} as const;
+
+export default section;

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { FaEdit, FaTrash, FaPlus, FaEye, FaSearch, FaCalendarAlt, FaThumbsUp, FaComment, FaArrowDown, FaLock } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { encodeId } from "@/utils/HashId.ts";
@@ -10,6 +11,8 @@ import type { SelectOption } from "@/types";
 import ArticleService from "@/services/ArticleService.ts";
 import { formatToChinaTime } from "@/utils/Utils.ts";
 import type { ArticleListItem } from "@/types";
+import { ArticleState } from "@/types/Enums.ts";
+import { useEnumLabels } from "@/i18n/UseEnumLabels";
 import styles from "../PersonalCenter.module.css";
 
 const STATE_MAP: Record<number, string> = {
@@ -19,7 +22,16 @@ const STATE_MAP: Record<number, string> = {
     4: "private",
 };
 
+const STATE_VALUE_MAP: Record<string, ArticleState> = {
+    reviewing: ArticleState.REVIEWING,
+    published: ArticleState.PUBLISHED,
+    unallowed: ArticleState.UNALLOWED,
+    private: ArticleState.PRIVATE,
+};
+
 const MyArticlesTab: React.FC = () => {
+    const { t } = useTranslation("personal");
+    const enums = useEnumLabels();
     const navigate = useNavigate();
     const { user } = useAuth();
     const [articles, setArticles] = useState<ArticleListItem[]>([]);
@@ -32,11 +44,11 @@ const MyArticlesTab: React.FC = () => {
 
     // 状态筛选选项
     const statusOptions: SelectOption[] = [
-        { id: "all", name: "全部状态", color: "#6c757d" },
-        { id: "published", name: "已发布", color: "#28a745" },
-        { id: "private", name: "私密", color: "#dc3545" },
-        { id: "unallowed", name: "未通过", color: "#1474e2ff" },
-        { id: "reviewing", name: "审核中", color: "#17a2b8" },
+        { id: "all", name: t("articles.status.all"), color: "#6c757d" },
+        { id: "published", name: enums.articleState[ArticleState.PUBLISHED], color: "#28a745" },
+        { id: "private", name: enums.articleState[ArticleState.PRIVATE], color: "#dc3545" },
+        { id: "unallowed", name: enums.articleState[ArticleState.UNALLOWED], color: "#1474e2ff" },
+        { id: "reviewing", name: enums.articleState[ArticleState.REVIEWING], color: "#17a2b8" },
     ];
 
     // 获取状态对应的数值
@@ -84,12 +96,12 @@ const MyArticlesTab: React.FC = () => {
                             author: article.author,
                             summary: article.summary,
                             state: STATE_MAP[article.state],
-                            type: article.type === 1 ? "原创" : "转载",
-                            publish_time: article.publish_time ? formatToChinaTime(article.publish_time) : "暂未发布",
+                            type: article.type === 1 ? t("articles.type.original") : t("articles.type.reprint"),
+                            publish_time: article.publish_time ? formatToChinaTime(article.publish_time) : t("articles.notPublished"),
                             views: article.views ?? 0,
                             praise: article.praise ?? 0,
                             favorites: article.favorites ?? 0,
-                            category: article.categories?.map((c: any) => c.name).join("、") || "未分类",
+                            category: article.categories?.map((c: any) => c.name).join("、") || t("articles.uncategorized"),
                             tags: [],
                             categories: article.categories || [],
                             comment_count: article.comment_count ?? 0,
@@ -107,7 +119,7 @@ const MyArticlesTab: React.FC = () => {
             }
         };
         fetchArticleIds();
-    }, [user?.id, statusFilter, currentPage]);
+    }, [user?.id, statusFilter, currentPage, t]);
 
     // 处理状态筛选变化
     const handleStatusChange = (selectedOption: SelectOption | null) => {
@@ -172,16 +184,16 @@ const MyArticlesTab: React.FC = () => {
     // 删除文章
     const handleDeleteArticle = async (id: string | number) => {
         const isConfirmed = await confirm({
-            title: "确认删除",
-            content: "确定要删除这篇文章吗？删除后无法恢复。",
-            confirmText: "删除",
-            cancelText: "取消",
+            title: t("articles.delete.title"),
+            content: t("articles.delete.content"),
+            confirmText: t("articles.delete.confirm"),
+            cancelText: t("articles.delete.cancel"),
         });
 
         if (isConfirmed) {
             try {
                 await ArticleService.deleteArticle({ ids: String(id) });
-                message.success("文章删除成功");
+                message.success(t("articles.delete.success"));
                 // 删除成功后从本地状态移除
                 const newAllIds = articles.filter((aid) => aid.id !== id);
                 setArticles(newAllIds);
@@ -193,7 +205,7 @@ const MyArticlesTab: React.FC = () => {
                 }
             } catch (err) {
                 console.error("删除文章失败:", err);
-                message.error("删除文章失败，请重试");
+                message.error(t("articles.delete.failed"));
             }
         }
     };
@@ -212,7 +224,9 @@ const MyArticlesTab: React.FC = () => {
                 });
                 message.success(
                     <span>
-                        文章「<strong>{title || "无标题"}</strong>」发布成功，等待管理员审核
+                        {t("articles.message.publishSuccessPrefix")}
+                        <strong>{title || t("articles.untitled")}</strong>
+                        {t("articles.message.publishSuccessSuffix")}
                     </span>,
                 );
                 setArticles(articles.map((article) => (article.id === id ? { ...article, state: newStatus } : article)));
@@ -222,22 +236,22 @@ const MyArticlesTab: React.FC = () => {
                     id: id,
                     state: 4,
                 });
-                message.success("文章已设为私密");
+                message.success(t("articles.message.setPrivateSuccess"));
                 setArticles(articles.map((article) => (article.id === id ? { ...article, state: newStatus } : article)));
             }
         } catch (err) {
             console.error("切换文章状态失败:", err);
-            message.error("切换文章状态失败，请重试");
+            message.error(t("articles.message.toggleFailed"));
         }
     };
 
     return (
         <div className={styles.contentSection}>
             <div className={styles.sectionHeader}>
-                <h2>我的文章</h2>
+                <h2>{t("articles.title")}</h2>
                 <button onClick={() => navigate("/article/create")} className={styles.addButton}>
                     <FaPlus />
-                    新建文章
+                    {t("articles.newArticle")}
                 </button>
             </div>
 
@@ -247,13 +261,13 @@ const MyArticlesTab: React.FC = () => {
                     <FaSearch className={styles.searchIcon} />
                     <input
                         type="text"
-                        placeholder="搜索文章标题、摘要或分类..."
+                        placeholder={t("articles.searchPlaceholder")}
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
                 </div>
                 <CustomSelect
-                    name="状态"
+                    name={t("articles.status.label")}
                     options={statusOptions}
                     value={selectedStatus}
                     onChange={handleStatusChange}
@@ -265,12 +279,12 @@ const MyArticlesTab: React.FC = () => {
             {/* 文章列表 */}
             <div className={styles.articlesList}>
                 <div className={styles.listHeader}>
-                    <div>标题</div>
-                    <div>分类</div>
-                    <div>状态</div>
-                    <div>数据</div>
-                    <div>发布时间</div>
-                    <div>操作</div>
+                    <div>{t("articles.table.headers.title")}</div>
+                    <div>{t("articles.table.headers.category")}</div>
+                    <div>{t("articles.table.headers.status")}</div>
+                    <div>{t("articles.table.headers.data")}</div>
+                    <div>{t("articles.table.headers.publishTime")}</div>
+                    <div>{t("articles.table.headers.actions")}</div>
                 </div>
                 {loading ? (
                     <div
@@ -280,7 +294,7 @@ const MyArticlesTab: React.FC = () => {
                             color: "var(--text-secondary)",
                         }}
                     >
-                        加载中...
+                        {t("articles.loading")}
                     </div>
                 ) : currentArticles.length === 0 ? (
                     <div
@@ -290,7 +304,7 @@ const MyArticlesTab: React.FC = () => {
                             color: "var(--text-secondary)",
                         }}
                     >
-                        暂无数据
+                        {t("articles.empty")}
                     </div>
                 ) : (
                     currentArticles.map((article) => (
@@ -310,13 +324,7 @@ const MyArticlesTab: React.FC = () => {
                             </div>
                             <div className={styles.statusCell}>
                                 <span className={`${styles.statusBadge} ${styles[article.state]}`}>
-                                    {article.state === "published"
-                                        ? "已发布"
-                                        : article.state === "private"
-                                          ? "私密"
-                                          : article.state === "reviewing"
-                                            ? "审核中"
-                                            : "未通过"}
+                                    {enums.articleState[STATE_VALUE_MAP[article.state]]}
                                 </span>
                             </div>
                             <div className={styles.dataCell}>
@@ -337,14 +345,14 @@ const MyArticlesTab: React.FC = () => {
                             <div className={styles.actions}>
                                 <button
                                     className={styles.actionButton}
-                                    title="查看"
+                                    title={t("articles.action.view")}
                                     onClick={() => navigate(`/article/${encodeId(article.id, "article")}`)}
                                 >
                                     <FaEye />
                                 </button>
                                 <button
                                     className={styles.actionButton}
-                                    title="编辑"
+                                    title={t("articles.action.edit")}
                                     onClick={() => navigate(`/article/edit/${encodeId(article.id, "article")}`)}
                                 >
                                     <FaEdit />
@@ -352,7 +360,7 @@ const MyArticlesTab: React.FC = () => {
                                 {article.state === "reviewing" && (
                                     <button
                                         className={styles.actionButton}
-                                        title="撤回审核"
+                                        title={t("articles.action.withdrawReview")}
                                         onClick={() => handleToggleStatus(article.id, "private", article.title)}
                                     >
                                         <FaArrowDown />
@@ -361,7 +369,7 @@ const MyArticlesTab: React.FC = () => {
                                 {article.state === "published" && (
                                     <button
                                         className={styles.actionButton}
-                                        title="设为私密"
+                                        title={t("articles.action.setPrivate")}
                                         onClick={() => handleToggleStatus(article.id, "private", article.title)}
                                     >
                                         <FaLock />
@@ -370,7 +378,7 @@ const MyArticlesTab: React.FC = () => {
                                 {article.state === "private" && (
                                     <button
                                         className={styles.actionButton}
-                                        title="发布文章"
+                                        title={t("articles.action.publish")}
                                         onClick={() => handleToggleStatus(article.id, "reviewing", article.title)}
                                     >
                                         <FaPlus />
@@ -379,13 +387,17 @@ const MyArticlesTab: React.FC = () => {
                                 {article.state === "unallowed" && (
                                     <button
                                         className={styles.actionButton}
-                                        title="重新提交"
+                                        title={t("articles.action.resubmit")}
                                         onClick={() => handleToggleStatus(article.id, "reviewing", article.title)}
                                     >
                                         <FaPlus />
                                     </button>
                                 )}
-                                <button className={styles.actionButton} title="删除" onClick={() => handleDeleteArticle(article.id)}>
+                                <button
+                                    className={styles.actionButton}
+                                    title={t("articles.action.delete")}
+                                    onClick={() => handleDeleteArticle(article.id)}
+                                >
                                     <FaTrash />
                                 </button>
                             </div>
@@ -398,18 +410,22 @@ const MyArticlesTab: React.FC = () => {
             {totalPages >= 1 && (
                 <div className={styles.pagination}>
                     <div className={styles.paginationInfo}>
-                        显示 {startIndex + 1} - {Math.min(endIndex, totalArticles)} 条， 共 {totalArticles} 篇文章
+                        {t("articles.pagination.info", {
+                            start: startIndex + 1,
+                            end: Math.min(endIndex, totalArticles),
+                            total: totalArticles,
+                        })}
                     </div>
                     <div className={styles.paginationControls}>
                         <button className={styles.paginationButton} onClick={() => setCurrentPage(1)} disabled={currentPage === 1}>
-                            首页
+                            {t("articles.pagination.first")}
                         </button>
                         <button
                             className={styles.paginationButton}
                             onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
                             disabled={currentPage === 1}
                         >
-                            上一页
+                            {t("articles.pagination.prev")}
                         </button>
                         {getPageNumbers().map((page, index) => (
                             <button
@@ -426,14 +442,14 @@ const MyArticlesTab: React.FC = () => {
                             onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
                             disabled={currentPage === totalPages}
                         >
-                            下一页
+                            {t("articles.pagination.next")}
                         </button>
                         <button
                             className={styles.paginationButton}
                             onClick={() => setCurrentPage(totalPages)}
                             disabled={currentPage === totalPages}
                         >
-                            末页
+                            {t("articles.pagination.last")}
                         </button>
                     </div>
                 </div>

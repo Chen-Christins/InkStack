@@ -1,0 +1,123 @@
+const enums = {
+    articleState: {
+        reviewing: "审核中",
+        published: "已发布",
+        unallowed: "未通过",
+        private: "私密",
+    },
+    assignmentStatus: {
+        draft: "草稿",
+        open: "进行中",
+        closed: "已关闭",
+    },
+    assignmentPriority: {
+        low: "低",
+        medium: "中",
+        high: "高",
+        urgent: "紧急",
+    },
+    orgMembershipStatus: {
+        pending: "申请中",
+        joined: "已加入",
+        rejected: "已拒绝",
+        left: "已退出",
+    },
+    commentStatus: {
+        pending: "待审核",
+        approved: "已通过",
+        rejected: "已拒绝",
+        spam: "垃圾评论",
+    },
+    backupStatus: {
+        processing: "处理中",
+        completed: "已完成",
+        failed: "失败",
+    },
+    reqStatus: {
+        new: "新建",
+        developing: "开发中",
+        testing: "测试中",
+        done: "已完成",
+        closed: "已关闭",
+    },
+    bugStatus: {
+        new: "新建",
+        processing: "处理中",
+        verified: "已验证",
+        closed: "已关闭",
+        reopened: "已重开",
+    },
+    rdTaskStatus: {
+        todo: "待办",
+        doing: "进行中",
+        done: "已完成",
+        closed: "已关闭",
+    },
+    rdPriority: {
+        low: "低",
+        medium: "中",
+        high: "高",
+        urgent: "紧急",
+    },
+    severity: {
+        minor: "轻微",
+        normal: "一般",
+        serious: "严重",
+        fatal: "致命",
+    },
+    crState: {
+        open: "开启中",
+        closed: "已关闭",
+        merged: "已合并",
+    },
+    reviewStatus: {
+        pending: "待审查",
+        reviewing: "审查中",
+        approved: "已通过",
+        rejected: "已拒绝",
+        changes_requested: "需修改",
+    },
+    agentSessionStatus: {
+        queued: "排队中",
+        running: "运行中",
+        awaiting_permission: "待审批",
+        succeeded: "已成功",
+        failed: "已失败",
+        cancelled: "已取消",
+    },
+    proposalStatus: {
+        pending: "待产品审批",
+        approved: "已批准，等待应用",
+        applying: "正在应用，不可撤回",
+        rejected: "已拒绝",
+        applied: "已应用",
+        expired: "已过期",
+    },
+    syncStatus: {
+        idle: "未同步",
+        syncing: "同步中...",
+        success: "已同步",
+        failed: "同步失败",
+    },
+    feedbackType: {
+        bug: "问题反馈",
+        feature: "功能建议",
+        other: "其他",
+        all: "全部",
+    },
+    platformRole: {
+        user: "用户",
+        admin: "管理员",
+        editor: "编辑",
+        checker: "审核员",
+    },
+    orgRole: {
+        member: "普通成员",
+        reporter: "报告者",
+        developer: "开发者",
+        devLead: "研发主管",
+        orgAdmin: "组织管理员",
+    },
+} as const;
+
+export default enums;

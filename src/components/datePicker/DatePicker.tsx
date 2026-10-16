@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import styles from "./DatePicker.module.css";
 import Input from "../input/Input";
 
@@ -40,7 +41,7 @@ const DatePicker: React.FC<DatePickerProps> = ({
     value,
     defaultValue,
     onChange,
-    placeholder = "请选择日期",
+    placeholder,
     disabled = false,
     allowClear = true,
     format,
@@ -60,6 +61,8 @@ const DatePicker: React.FC<DatePickerProps> = ({
     const [currentMinute, setCurrentMinute] = useState<number>(0);
     const [currentSecond, setCurrentSecond] = useState<number>(0);
     const dropdownRef = useRef<HTMLDivElement>(null);
+    const { t } = useTranslation("calendar");
+    const resolvedPlaceholder = placeholder ?? t("placeholder");
 
     // 判断是否为受控模式
     const isControlled = value !== undefined;
@@ -96,9 +99,30 @@ const DatePicker: React.FC<DatePickerProps> = ({
 
     const actualFormat = getDefaultFormat();
 
-    // 星期和月份的中文显示
-    const weekDays = ["日", "一", "二", "三", "四", "五", "六"];
-    const monthNames = ["一月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "十一月", "十二月"];
+    // 星期和月份显示
+    const weekDays = [
+        t("weekdays.sun"),
+        t("weekdays.mon"),
+        t("weekdays.tue"),
+        t("weekdays.wed"),
+        t("weekdays.thu"),
+        t("weekdays.fri"),
+        t("weekdays.sat"),
+    ];
+    const monthNames = [
+        t("months.jan"),
+        t("months.feb"),
+        t("months.mar"),
+        t("months.apr"),
+        t("months.may"),
+        t("months.jun"),
+        t("months.jul"),
+        t("months.aug"),
+        t("months.sep"),
+        t("months.oct"),
+        t("months.nov"),
+        t("months.dec"),
+    ];
 
     // 格式化日期
     const formatDate = useCallback(
@@ -377,7 +401,7 @@ const DatePicker: React.FC<DatePickerProps> = ({
             <div className={styles.timePicker}>
                 {showHour && (
                     <div className={styles.timeColumn}>
-                        <div className={styles.timeLabel}>时</div>
+                        <div className={styles.timeLabel}>{t("hour")}</div>
                         <div className={styles.timeList}>
                             {hours.map((hour) => (
                                 <button
@@ -394,7 +418,7 @@ const DatePicker: React.FC<DatePickerProps> = ({
                 )}
                 {showMinute && (
                     <div className={styles.timeColumn}>
-                        <div className={styles.timeLabel}>分</div>
+                        <div className={styles.timeLabel}>{t("minute")}</div>
                         <div className={styles.timeList}>
                             {minutes.map((minute) => (
                                 <button
@@ -411,7 +435,7 @@ const DatePicker: React.FC<DatePickerProps> = ({
                 )}
                 {showSecond && (
                     <div className={styles.timeColumn}>
-                        <div className={styles.timeLabel}>秒</div>
+                        <div className={styles.timeLabel}>{t("second")}</div>
                         <div className={styles.timeList}>
                             {seconds.map((second) => (
                                 <button
@@ -455,8 +479,10 @@ const DatePicker: React.FC<DatePickerProps> = ({
                             )}
                             <span className={styles.headerText}>
                                 {picker === "year"
-                                    ? `${Math.floor(year / 10) * 10 - 1} - ${Math.floor(year / 10) * 10 + 10} 年代`
-                                    : `${year}年 ${picker === "month" ? "" : monthNames[month]}`}
+                                    ? t("decade", { range: `${Math.floor(year / 10) * 10 - 1} - ${Math.floor(year / 10) * 10 + 10}` })
+                                    : picker === "month"
+                                      ? t("yearLabel", { year })
+                                      : t("yearMonth", { year, month: monthNames[month] })}
                             </span>
                             {picker !== "year" && (
                                 <>
@@ -575,7 +601,7 @@ const DatePicker: React.FC<DatePickerProps> = ({
             <Input
                 value={inputValue}
                 onChange={handleInputChange}
-                placeholder={placeholder}
+                placeholder={resolvedPlaceholder}
                 disabled={disabled}
                 allowClear={allowClear && !!displayedDate}
                 onClear={handleClear}
@@ -618,7 +644,7 @@ const DatePicker: React.FC<DatePickerProps> = ({
                                         onClick={() => selectDate(new Date())}
                                         disabled={!isDateSelectable(new Date())}
                                     >
-                                        今天
+                                        {t("today")}
                                     </button>
                                 </div>
                             )}

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { FaTags, FaPlus, FaEdit, FaTrash, FaFilter, FaEye, FaChartBar, FaCheckCircle, FaTimes, FaLayerGroup } from "react-icons/fa";
 import CustomSelect from "@/components/customSelect/CustomSelect";
 import Input from "@/components/input/Input";
@@ -53,20 +54,20 @@ interface FilterOptions {
     sortOrder: "asc" | "desc";
 }
 
-const iconMap: Record<string, string> = {
-    "": "默认",
-    "💻": "技术",
-    "🌟": "生活",
-    "✈️": "旅行",
-    "🍔": "美食",
-    "🎨": "设计",
-    "🎵": "音乐",
-    "⚽": "运动",
-    "📚": "读书",
-    "📷": "摄影",
-};
-
 const CategoryManagement: React.FC = () => {
+    const { t } = useTranslation("admin");
+    const iconMap: Record<string, string> = {
+        "": t("categories.icons.default"),
+        "💻": t("categories.icons.tech"),
+        "🌟": t("categories.icons.life"),
+        "✈️": t("categories.icons.travel"),
+        "🍔": t("categories.icons.food"),
+        "🎨": t("categories.icons.design"),
+        "🎵": t("categories.icons.music"),
+        "⚽": t("categories.icons.sports"),
+        "📚": t("categories.icons.reading"),
+        "📷": t("categories.icons.photography"),
+    };
     const [categories, setCategories] = useState<Category[]>([]);
     const [loading, setLoading] = useState(true);
     const [filters, setFilters] = useState<FilterOptions>({
@@ -89,16 +90,16 @@ const CategoryManagement: React.FC = () => {
     const [submitting, setSubmitting] = useState(false);
 
     const statusOptions: SelectOption[] = [
-        { id: "", name: "全部状态", color: "#6c757d" },
-        { id: "active", name: "活跃", color: "#28a745" },
-        { id: "inactive", name: "停用", color: "#dc3545" },
+        { id: "", name: t("categories.status.all"), color: "#6c757d" },
+        { id: "active", name: t("categories.status.active"), color: "#28a745" },
+        { id: "inactive", name: t("categories.status.inactive"), color: "#dc3545" },
     ];
 
     const sortOptions: SelectOption[] = [
-        { id: "name", name: "按名称", color: "#007bff" },
-        { id: "articleCount", name: "按文章数", color: "#007bff" },
-        { id: "views", name: "按浏览量", color: "#007bff" },
-        { id: "createdAt", name: "按创建时间", color: "#007bff" },
+        { id: "name", name: t("categories.sort.name"), color: "#007bff" },
+        { id: "articleCount", name: t("categories.sort.articleCount"), color: "#007bff" },
+        { id: "views", name: t("categories.sort.views"), color: "#007bff" },
+        { id: "createdAt", name: t("categories.sort.createdAt"), color: "#007bff" },
     ];
 
     const iconOptions: SelectOption[] = Object.entries(iconMap).map(([value, label]) => ({
@@ -108,7 +109,7 @@ const CategoryManagement: React.FC = () => {
     }));
 
     const getParentCategoryOptions = (): SelectOption[] => {
-        const options: SelectOption[] = [{ id: "", name: "无（顶级分类）", color: "#6c757d" }];
+        const options: SelectOption[] = [{ id: "", name: t("categories.parent.none"), color: "#6c757d" }];
         const activeCategories = categories.filter((cat) => cat.level === 0 && cat.status === "active");
         options.push(
             ...activeCategories.map((cat) => ({
@@ -212,11 +213,11 @@ const CategoryManagement: React.FC = () => {
     const saveCategory = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!formData.name.trim()) {
-            message.error("请输入分类名称");
+            message.error(t("categories.request.nameRequired"));
             return;
         }
         if (!formData.slug.trim()) {
-            message.error("请输入URL标识");
+            message.error(t("categories.request.slugRequired"));
             return;
         }
         setSubmitting(true);
@@ -238,7 +239,7 @@ const CategoryManagement: React.FC = () => {
                         cat.id === editingCategory.id ? { ...cat, ...formData, updatedAt: formatDateTime(new Date()) } : cat,
                     ),
                 );
-                message.success("分类已更新");
+                message.success(t("categories.request.updated"));
             } else {
                 const newCategory: Category = {
                     id: response.id,
@@ -256,12 +257,12 @@ const CategoryManagement: React.FC = () => {
                     level: formData.parentId ? 1 : 0,
                 };
                 setCategories((prev) => [...prev, newCategory]);
-                message.success("分类已创建");
+                message.success(t("categories.request.created"));
             }
 
             closeModal();
         } catch (error) {
-            message.error("保存分类失败");
+            message.error(t("categories.request.saveFailed"));
         } finally {
             setSubmitting(false);
         }
@@ -269,17 +270,19 @@ const CategoryManagement: React.FC = () => {
 
     const deleteCategory = async (category: Category) => {
         const isConfirmed = await confirm({
-            title: "确认删除",
+            title: t("categories.deleteConfirm.title"),
             content: (
                 <div>
                     <p>
-                        确定要删除分类 "<strong>{category.name}</strong>" 吗？
+                        {t("categories.deleteConfirm.contentBefore")}
+                        <strong>{category.name}</strong>
+                        {t("categories.deleteConfirm.contentAfter")}
                     </p>
-                    <p style={{ color: "var(--error)" }}>注意：删除分类不会删除相关文章，但文章将失去分类归属。</p>
+                    <p style={{ color: "var(--error)" }}>{t("categories.deleteConfirm.warning")}</p>
                 </div>
             ),
-            confirmText: "确认删除",
-            cancelText: "取消",
+            confirmText: t("categories.deleteConfirm.confirmText"),
+            cancelText: t("categories.deleteConfirm.cancelText"),
         });
         if (!isConfirmed) {
             return;
@@ -288,9 +291,9 @@ const CategoryManagement: React.FC = () => {
         try {
             await CategoryService.deleteCategory({ ids: String(category.id) });
             setCategories((prev) => prev.filter((cat) => cat.id !== category.id));
-            message.success("分类已删除");
+            message.success(t("categories.request.deleted"));
         } catch (error) {
-            message.error("删除失败");
+            message.error(t("categories.request.deleteFailed"));
         }
     };
 
@@ -312,7 +315,7 @@ const CategoryManagement: React.FC = () => {
                 ),
             );
         } catch (error) {
-            message.error("切换状态失败");
+            message.error(t("categories.request.toggleFailed"));
         }
     };
 
@@ -357,7 +360,7 @@ const CategoryManagement: React.FC = () => {
     if (loading) {
         return (
             <div className={styles.categoryManagement}>
-                <Loading text="加载分类数据中..." size="large" />
+                <Loading text={t("categories.loading")} size="large" />
             </div>
         );
     }
@@ -367,13 +370,13 @@ const CategoryManagement: React.FC = () => {
             {/* 页面头部 */}
             <div className={styles.pageHeader}>
                 <div>
-                    <h1 className={styles.pageTitle}>分类管理</h1>
-                    <p className={styles.pageDescription}>管理博客文章分类，创建层级结构，优化内容组织</p>
+                    <h1 className={styles.pageTitle}>{t("categories.title")}</h1>
+                    <p className={styles.pageDescription}>{t("categories.description")}</p>
                 </div>
                 <div className={styles.headerActions}>
                     <button className={`${styles.btn} ${styles.btnPrimary}`} onClick={() => openModal()}>
                         <FaPlus />
-                        新增分类
+                        {t("categories.addCategory")}
                     </button>
                 </div>
             </div>
@@ -385,28 +388,28 @@ const CategoryManagement: React.FC = () => {
                         <FaLayerGroup />
                     </div>
                     <div className={styles.statValue}>{stats.totalCategories}</div>
-                    <div className={styles.statLabel}>总分类数</div>
+                    <div className={styles.statLabel}>{t("categories.stats.total")}</div>
                 </div>
                 <div className={styles.statCard}>
                     <div className={`${styles.statIcon} ${styles.success}`}>
                         <FaCheckCircle />
                     </div>
                     <div className={styles.statValue}>{stats.activeCategories}</div>
-                    <div className={styles.statLabel}>活跃分类</div>
+                    <div className={styles.statLabel}>{t("categories.stats.active")}</div>
                 </div>
                 <div className={styles.statCard}>
                     <div className={`${styles.statIcon} ${styles.primary}`}>
                         <FaChartBar />
                     </div>
                     <div className={styles.statValue}>{stats.totalArticles}</div>
-                    <div className={styles.statLabel}>文章总数</div>
+                    <div className={styles.statLabel}>{t("categories.stats.articles")}</div>
                 </div>
                 <div className={styles.statCard}>
                     <div className={`${styles.statIcon} ${styles.warning}`}>
                         <FaEye />
                     </div>
                     <div className={styles.statValue}>{stats.totalViews.toLocaleString()}</div>
-                    <div className={styles.statLabel}>总浏览量</div>
+                    <div className={styles.statLabel}>{t("categories.stats.views")}</div>
                 </div>
             </div>
 
@@ -415,19 +418,19 @@ const CategoryManagement: React.FC = () => {
                 <div className={styles.filterHeader}>
                     <h3 className={styles.filterTitle}>
                         <FaFilter />
-                        筛选条件
+                        {t("categories.filter.title")}
                     </h3>
                     <div className={styles.filterActions}>
                         <button className={`${styles.btn} ${styles.btnOutline} ${styles.btnSm}`} onClick={clearFilters}>
-                            清除筛选
+                            {t("categories.filter.clear")}
                         </button>
                     </div>
                 </div>
                 <div className={styles.filterForm}>
                     <div className={styles.filterGroup}>
-                        <label className={styles.filterLabel}>搜索分类</label>
+                        <label className={styles.filterLabel}>{t("categories.filter.searchLabel")}</label>
                         <Input
-                            placeholder="分类名称或描述"
+                            placeholder={t("categories.filter.searchPlaceholder")}
                             value={filters.search}
                             onChange={(value) => handleFilterChange("search", value)}
                             allowClear={true}
@@ -436,37 +439,37 @@ const CategoryManagement: React.FC = () => {
                         />
                     </div>
                     <div className={styles.filterGroup}>
-                        <label className={styles.filterLabel}>分类状态</label>
+                        <label className={styles.filterLabel}>{t("categories.filter.statusLabel")}</label>
                         <CustomSelect
-                            name="分类状态"
+                            name={t("categories.filter.statusLabel")}
                             options={statusOptions}
                             value={statusOptions.find((option) => option.id === filters.status) || null}
                             onChange={handleSelectChange("status")}
-                            placeholder="选择状态..."
+                            placeholder={t("categories.filter.statusPlaceholder")}
                             className="adminCustomSelect"
                             hideBadge={true}
                         />
                     </div>
                     <div className={styles.filterGroup}>
-                        <label className={styles.filterLabel}>排序方式</label>
+                        <label className={styles.filterLabel}>{t("categories.filter.sortLabel")}</label>
                         <CustomSelect
-                            name="排序方式"
+                            name={t("categories.filter.sortLabel")}
                             options={sortOptions}
                             value={sortOptions.find((option) => option.id === filters.sortBy) || null}
                             onChange={handleSelectChange("sortBy")}
-                            placeholder="选择排序..."
+                            placeholder={t("categories.filter.sortPlaceholder")}
                             className="adminCustomSelect"
                             hideBadge={true}
                         />
                     </div>
                     <div className={styles.filterGroup}>
-                        <label className={styles.filterLabel}>排序方向</label>
+                        <label className={styles.filterLabel}>{t("categories.filter.orderLabel")}</label>
                         <button
                             className={`${styles.btn} ${styles.btnOutline}`}
                             onClick={() => setFilters((prev) => ({ ...prev, sortOrder: prev.sortOrder === "asc" ? "desc" : "asc" }))}
                             style={{ minHeight: "46px", height: "50px", justifyContent: "center" }}
                         >
-                            {filters.sortOrder === "asc" ? "升序 ↑" : "降序 ↓"}
+                            {filters.sortOrder === "asc" ? t("categories.filter.ascending") : t("categories.filter.descending")}
                         </button>
                     </div>
                 </div>
@@ -475,20 +478,22 @@ const CategoryManagement: React.FC = () => {
             {/* 分类表格 */}
             <div className={styles.tableContainer}>
                 <div className={styles.tableHeader}>
-                    <h3 className={styles.tableTitle}>分类列表</h3>
+                    <h3 className={styles.tableTitle}>{t("categories.table.title")}</h3>
                     <div className={styles.tableActions}>
-                        <span style={{ fontSize: "14px", color: "var(--text-secondary)" }}>共 {filteredCategories.length} 个分类</span>
+                        <span style={{ fontSize: "14px", color: "var(--text-secondary)" }}>
+                            {t("categories.table.total", { total: filteredCategories.length })}
+                        </span>
                     </div>
                 </div>
                 <table className={styles.categoriesTable}>
                     <thead>
                         <tr>
-                            <th>分类信息</th>
-                            <th>父级分类</th>
-                            <th>状态</th>
-                            <th>统计数据</th>
-                            <th>创建时间</th>
-                            <th>操作</th>
+                            <th>{t("categories.table.headers.info")}</th>
+                            <th>{t("categories.table.headers.parent")}</th>
+                            <th>{t("categories.table.headers.status")}</th>
+                            <th>{t("categories.table.headers.stats")}</th>
+                            <th>{t("categories.table.headers.createdAt")}</th>
+                            <th>{t("categories.table.headers.actions")}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -515,19 +520,23 @@ const CategoryManagement: React.FC = () => {
                                                 {categories.find((c) => c.id === category.parentId)?.name || "-"}
                                             </span>
                                         ) : (
-                                            <span style={{ color: "var(--text-tertiary)", fontSize: "13px" }}>顶级分类</span>
+                                            <span style={{ color: "var(--text-tertiary)", fontSize: "13px" }}>
+                                                {t("categories.parent.top")}
+                                            </span>
                                         )}
                                     </td>
                                     <td>
                                         <span className={`${styles.statusBadge} ${styles[category.status]}`}>
                                             <span className={styles.statusIndicator}></span>
-                                            {category.status === "active" ? "活跃" : "停用"}
+                                            {category.status === "active"
+                                                ? t("categories.status.active")
+                                                : t("categories.status.inactive")}
                                         </span>
                                     </td>
                                     <td>
                                         <div className={styles.statsInfo}>
                                             <span>
-                                                <FaTags /> {category.articleCount} 篇
+                                                <FaTags /> {t("categories.table.articles", { value: category.articleCount })}
                                             </span>
                                             <span>
                                                 <FaEye /> {category.views.toLocaleString()}
@@ -539,14 +548,18 @@ const CategoryManagement: React.FC = () => {
                                         <div className={styles.actionButtons}>
                                             <button
                                                 className={`${styles.actionButton} ${styles.edit}`}
-                                                title="编辑分类"
+                                                title={t("categories.table.edit")}
                                                 onClick={() => openModal(category)}
                                             >
                                                 <FaEdit />
                                             </button>
                                             <button
                                                 className={`${styles.actionButton} ${styles.edit}`}
-                                                title={category.status === "active" ? "停用" : "启用"}
+                                                title={
+                                                    category.status === "active"
+                                                        ? t("categories.table.disable")
+                                                        : t("categories.table.enable")
+                                                }
                                                 onClick={() => toggleCategoryStatus(category)}
                                             >
                                                 {category.status === "active" ? <FaTimes /> : <FaCheckCircle />}
@@ -557,7 +570,7 @@ const CategoryManagement: React.FC = () => {
                                                 size="small"
                                                 onClick={() => deleteCategory(category)}
                                                 className={styles.actionButton}
-                                                aria-label="删除分类"
+                                                aria-label={t("categories.table.delete")}
                                             >
                                                 <FaTrash />
                                             </Button>
@@ -575,7 +588,7 @@ const CategoryManagement: React.FC = () => {
                                         color: "var(--text-secondary)",
                                     }}
                                 >
-                                    暂无数据
+                                    {t("categories.table.empty")}
                                 </td>
                             </tr>
                         )}
@@ -586,24 +599,28 @@ const CategoryManagement: React.FC = () => {
             {/* 新增/编辑模态框 */}
             <Modal
                 visible={showModal}
-                title={editingCategory ? "编辑分类" : "新增分类"}
+                title={editingCategory ? t("categories.modal.editTitle") : t("categories.modal.createTitle")}
                 onClose={closeModal}
                 width={600}
                 footer={
                     <>
                         <button className={`${styles.btn} ${styles.btnSecondary}`} onClick={closeModal} disabled={submitting}>
-                            取消
+                            {t("categories.modal.cancel")}
                         </button>
                         <button className={`${styles.btn} ${styles.btnPrimary}`} onClick={saveCategory} disabled={submitting}>
-                            {submitting ? "保存中..." : editingCategory ? "保存修改" : "确认创建"}
+                            {submitting
+                                ? t("categories.modal.saving")
+                                : editingCategory
+                                  ? t("categories.modal.save")
+                                  : t("categories.modal.create")}
                         </button>
                     </>
                 }
             >
                 <div className={styles.formGroup}>
-                    <label className={styles.formLabel}>分类名称 *</label>
+                    <label className={styles.formLabel}>{t("categories.modal.nameLabel")}</label>
                     <Input
-                        placeholder="输入分类名称"
+                        placeholder={t("categories.modal.namePlaceholder")}
                         value={formData.name}
                         onChange={(value) => {
                             setFormData((prev) => ({ ...prev, name: value, slug: value ? generateSlug(value) : "" }));
@@ -613,9 +630,9 @@ const CategoryManagement: React.FC = () => {
                     />
                 </div>
                 <div className={styles.formGroup}>
-                    <label className={styles.formLabel}>URL标识 *</label>
+                    <label className={styles.formLabel}>{t("categories.modal.slugLabel")}</label>
                     <Input
-                        placeholder="自动生成或手动输入"
+                        placeholder={t("categories.modal.slugPlaceholder")}
                         value={formData.slug}
                         onChange={(value) => setFormData((prev) => ({ ...prev, slug: value }))}
                         className={styles.formInput}
@@ -623,19 +640,19 @@ const CategoryManagement: React.FC = () => {
                     />
                 </div>
                 <div className={styles.formGroup}>
-                    <label className={styles.formLabel}>描述</label>
+                    <label className={styles.formLabel}>{t("categories.modal.descriptionLabel")}</label>
                     <textarea
                         name="description"
                         value={formData.description}
                         onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
                         className={styles.formTextarea}
-                        placeholder="输入分类描述"
+                        placeholder={t("categories.modal.descriptionPlaceholder")}
                         rows={3}
                     />
                 </div>
                 <div className={styles.formRow}>
                     <div className={styles.formGroup}>
-                        <label className={styles.formLabel}>颜色</label>
+                        <label className={styles.formLabel}>{t("categories.modal.colorLabel")}</label>
                         <div className={styles.colorPickerContainer}>
                             <input
                                 type="color"
@@ -647,40 +664,40 @@ const CategoryManagement: React.FC = () => {
                         </div>
                     </div>
                     <div className={styles.formGroup}>
-                        <label className={styles.formLabel}>图标</label>
+                        <label className={styles.formLabel}>{t("categories.modal.iconLabel")}</label>
                         <CustomSelect
-                            name="图标"
+                            name={t("categories.modal.iconLabel")}
                             value={iconOptions.find((o) => o.id === formData.icon) || null}
                             onChange={(option) => setFormData((prev) => ({ ...prev, icon: String(option?.id || "") }))}
                             options={iconOptions}
                             hideBadge={true}
-                            placeholder="选择图标"
+                            placeholder={t("categories.modal.iconPlaceholder")}
                         />
                     </div>
                 </div>
                 <div className={styles.formRow}>
                     <div className={styles.formGroup}>
-                        <label className={styles.formLabel}>父级分类</label>
+                        <label className={styles.formLabel}>{t("categories.modal.parentLabel")}</label>
                         <CustomSelect
-                            name="父级分类"
+                            name={t("categories.modal.parentLabel")}
                             value={getParentCategoryOptions().find((option) => option.id === formData.parentId) || null}
                             onChange={(option) => setFormData((prev) => ({ ...prev, parentId: String(option?.id || "") }))}
                             options={getParentCategoryOptions()}
                             hideBadge={true}
-                            placeholder="选择父级分类"
+                            placeholder={t("categories.modal.parentPlaceholder")}
                         />
                     </div>
                     <div className={styles.formGroup}>
-                        <label className={styles.formLabel}>状态</label>
+                        <label className={styles.formLabel}>{t("categories.modal.statusLabel")}</label>
                         <CustomSelect
-                            name="状态"
+                            name={t("categories.modal.statusLabel")}
                             value={statusOptions.find((option) => option.id === formData.status) || null}
                             onChange={(option) =>
                                 setFormData((prev) => ({ ...prev, status: (option?.id as "active" | "inactive") || "active" }))
                             }
                             options={statusOptions.slice(1)}
                             hideBadge={true}
-                            placeholder="选择状态"
+                            placeholder={t("categories.modal.statusPlaceholder")}
                         />
                     </div>
                 </div>

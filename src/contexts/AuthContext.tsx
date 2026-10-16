@@ -7,6 +7,7 @@ import { notificationWS, chatWS } from "../services/WsInstances.ts";
 import { setFaviconBadge } from "../utils/Favicon.ts";
 import { resetNotificationState } from "../utils/NotificationState.ts";
 import { canChat } from "../types/Roles.ts";
+import i18n from "../i18n";
 
 // 用户信息类型
 export interface User {
@@ -228,7 +229,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 }
 
                 if (!userToken) {
-                    throw new Error("登录成功但未获取到认证令牌");
+                    throw new Error(i18n.t("auth:message.tokenMissing"));
                 }
 
                 tokenManager.setToken(userToken);
@@ -248,7 +249,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                         updatedUser.role = Number(updatedUser.role) || 1;
                         setUser(updatedUser as User);
                     } else {
-                        throw new Error("登录成功但用户信息校验失败");
+                        throw new Error(i18n.t("auth:message.userInfoInvalid"));
                     }
                 } catch (_userError) {
                     if (generation !== authGenerationRef.current || tokenManager.getToken() !== userToken) {
@@ -286,7 +287,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 clearAuthRuntimeState();
                 return loginWithRetry(authId, password, true);
             }
-            setLoginError(error.message || "登录失败");
+            setLoginError(error.message || i18n.t("auth:message.loginFailed"));
             clearAuthRuntimeState();
             throw error;
         } finally {

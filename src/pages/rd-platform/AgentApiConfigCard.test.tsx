@@ -1,6 +1,7 @@
 import React, { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, expect, it, vi } from "vitest";
+import i18n from "@/i18n";
 import AgentApiConfigCard from "./AgentApiConfigCard";
 import LegacyApiConfigCard from "../personal/components/ApiConfigCard";
 
@@ -23,6 +24,7 @@ afterEach(async () => {
     vi.unstubAllGlobals();
 });
 it("shows a retryable error instead of an editable empty form when Agent is unavailable", async () => {
+    await i18n.changeLanguage("zh-CN");
     api.get.mockRejectedValueOnce(new Error("服务离线"));
     await render(<AgentApiConfigCard />);
     expect(container.textContent).toContain("Agent 配置暂时不可用");

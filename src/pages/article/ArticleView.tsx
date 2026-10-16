@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { encodeId } from "@/utils/HashId.ts";
 import ReactMarkdown from "react-markdown";
 import { articleMarkdownComponents, articleMarkdownPlugins } from "@/components/articleView/Markdown";
@@ -87,6 +88,7 @@ const ArticleView: React.FC<ArticleViewProps> = ({
     readingTime,
 }) => {
     const navigate = useNavigate();
+    const { t } = useTranslation("article");
     const { user, isAuthenticated } = useAuth();
     const { settings } = useSiteSettings();
     const isOwnArticle = isAuthenticated && authorId != null && String(user?.id) === String(authorId);
@@ -187,7 +189,7 @@ const ArticleView: React.FC<ArticleViewProps> = ({
 
     const handleFollowToggle = async () => {
         if (!isAuthenticated) {
-            message.info("请先登录");
+            message.info(t("toast.signInFirst"));
             navigate("/auth?redirect=" + encodeURIComponent(window.location.pathname + window.location.search));
             return;
         }
@@ -200,15 +202,15 @@ const ArticleView: React.FC<ArticleViewProps> = ({
                 await FollowService.unfollow(authorId);
                 setIsFollowing(false);
                 setFollowersCount((c) => Math.max(0, c - 1));
-                message.success("已取消关注");
+                message.success(t("toast.unfollowSuccess"));
             } else {
                 await FollowService.follow(authorId);
                 setIsFollowing(true);
                 setFollowersCount((c) => c + 1);
-                message.success("关注成功");
+                message.success(t("toast.followSuccess"));
             }
         } catch (err: any) {
-            message.error(err?.response?.data?.msg || err?.message || "操作失败");
+            message.error(err?.response?.data?.msg || err?.message || t("toast.actionFailed"));
         } finally {
             setFollowLoading(false);
         }
@@ -216,7 +218,7 @@ const ArticleView: React.FC<ArticleViewProps> = ({
 
     const handleLikeToggle = async () => {
         if (!isAuthenticated) {
-            message.info("请先登录");
+            message.info(t("toast.signInFirst"));
             navigate("/auth?redirect=" + encodeURIComponent(window.location.pathname + window.location.search));
             return;
         }
@@ -230,7 +232,7 @@ const ArticleView: React.FC<ArticleViewProps> = ({
             setLikesCount(res.praise_count);
             setAuthorLikesCount((c) => (res.is_praising ? c + 1 : Math.max(0, c - 1)));
         } catch (err: any) {
-            message.error(err?.response?.data?.msg || err?.message || "操作失败");
+            message.error(err?.response?.data?.msg || err?.message || t("toast.actionFailed"));
         } finally {
             setLikeLoading(false);
         }
@@ -242,7 +244,7 @@ const ArticleView: React.FC<ArticleViewProps> = ({
             return;
         }
         if (!isAuthenticated) {
-            message.info("请先登录");
+            message.info(t("toast.signInFirst"));
             navigate("/auth?redirect=" + encodeURIComponent(window.location.pathname + window.location.search));
             return;
         }
@@ -267,9 +269,9 @@ const ArticleView: React.FC<ArticleViewProps> = ({
                 ...prev,
             ]);
             setCommentText("");
-            message.success("评论发表成功");
+            message.success(t("toast.commentSuccess"));
         } catch (err: any) {
-            message.error(err?.response?.data?.msg || err?.msg || err?.message || "评论发表失败");
+            message.error(err?.response?.data?.msg || err?.msg || err?.message || t("toast.commentFailed"));
         }
     };
 
@@ -279,7 +281,7 @@ const ArticleView: React.FC<ArticleViewProps> = ({
             return;
         }
         if (!isAuthenticated) {
-            message.info("请先登录");
+            message.info(t("toast.signInFirst"));
             navigate("/auth?redirect=" + encodeURIComponent(window.location.pathname + window.location.search));
             return;
         }
@@ -305,15 +307,15 @@ const ArticleView: React.FC<ArticleViewProps> = ({
             );
             setReplyText("");
             setReplyToId(null);
-            message.success("回复发表成功");
+            message.success(t("toast.replySuccess"));
         } catch (err: any) {
-            message.error(err?.response?.data?.msg || err?.msg || err?.message || "回复发表失败");
+            message.error(err?.response?.data?.msg || err?.msg || err?.message || t("toast.replyFailed"));
         }
     };
 
     const handleCommentLike = async (commentId: number) => {
         if (!isAuthenticated) {
-            message.info("请先登录");
+            message.info(t("toast.signInFirst"));
             navigate("/auth?redirect=" + encodeURIComponent(window.location.pathname + window.location.search));
             return;
         }
@@ -331,7 +333,7 @@ const ArticleView: React.FC<ArticleViewProps> = ({
             });
             setCommentsList((prev) => prev.map((c) => toggleCommentLike(c, commentId, delta)));
         } catch (err: any) {
-            message.error(err?.response?.data?.msg || err?.msg || err?.message || "操作失败");
+            message.error(err?.response?.data?.msg || err?.msg || err?.message || t("toast.actionFailed"));
         }
     };
 
@@ -397,9 +399,9 @@ const ArticleView: React.FC<ArticleViewProps> = ({
             setCommentsList((prev) => prev.map((c) => updateComment(c, commentId, trimmed)));
             setEditingId(null);
             setEditText("");
-            message.success("评论已更新");
+            message.success(t("toast.commentUpdated"));
         } catch (err: any) {
-            message.error(err?.response?.data?.msg || err?.msg || err?.message || "编辑失败");
+            message.error(err?.response?.data?.msg || err?.msg || err?.message || t("toast.editFailed"));
         }
     };
 
@@ -565,33 +567,36 @@ const ArticleView: React.FC<ArticleViewProps> = ({
     }, []);
 
     // 复制代码功能
-    const handleCopyCode = useCallback((code: string) => {
-        if (navigator.clipboard?.writeText) {
-            navigator.clipboard
-                .writeText(code)
-                .then(() => {
-                    message.success("代码已复制");
-                })
-                .catch(() => {
-                    message.error("复制失败");
-                });
-        } else {
-            // 降级方案：非 HTTPS / 旧浏览器
-            const textarea = document.createElement("textarea");
-            textarea.value = code;
-            textarea.style.position = "fixed";
-            textarea.style.opacity = "0";
-            document.body.appendChild(textarea);
-            textarea.select();
-            try {
-                document.execCommand("copy");
-                message.success("代码已复制");
-            } catch {
-                message.error("复制失败");
+    const handleCopyCode = useCallback(
+        (code: string) => {
+            if (navigator.clipboard?.writeText) {
+                navigator.clipboard
+                    .writeText(code)
+                    .then(() => {
+                        message.success(t("code.copied"));
+                    })
+                    .catch(() => {
+                        message.error(t("code.copyFailed"));
+                    });
+            } else {
+                // 降级方案：非 HTTPS / 旧浏览器
+                const textarea = document.createElement("textarea");
+                textarea.value = code;
+                textarea.style.position = "fixed";
+                textarea.style.opacity = "0";
+                document.body.appendChild(textarea);
+                textarea.select();
+                try {
+                    document.execCommand("copy");
+                    message.success(t("code.copied"));
+                } catch {
+                    message.error(t("code.copyFailed"));
+                }
+                document.body.removeChild(textarea);
             }
-            document.body.removeChild(textarea);
-        }
-    }, []);
+        },
+        [t],
+    );
 
     // 创建标题组件
     const createHeadingComponent = (level: number) => {
@@ -678,7 +683,7 @@ const ArticleView: React.FC<ArticleViewProps> = ({
                             >
                                 {author}
                             </span>
-                            <span className={styles.authorCardMeta}>{pushlish_time} 发布</span>
+                            <span className={styles.authorCardMeta}>{t("view.publishedAt", { time: pushlish_time })}</span>
                             {authorStats && (
                                 <div className={styles.authorCardStats}>
                                     <span className={styles.authorStatItem}>
@@ -709,12 +714,12 @@ const ArticleView: React.FC<ArticleViewProps> = ({
                                 ) : isFollowing ? (
                                     <>
                                         <UserCheck size={14} />
-                                        已关注
+                                        {t("view.following")}
                                     </>
                                 ) : (
                                     <>
                                         <UserPlus size={14} />
-                                        关注作者
+                                        {t("view.follow")}
                                     </>
                                 )}
                             </button>
@@ -729,7 +734,7 @@ const ArticleView: React.FC<ArticleViewProps> = ({
                             ) : (
                                 <>
                                     <ThumbsUp size={14} className={isLiked ? styles.likeIconActive : ""} />
-                                    {isLiked ? "已点赞" : "点赞文章"}
+                                    {isLiked ? t("view.liked") : t("view.like")}
                                 </>
                             )}
                         </button>
@@ -738,7 +743,7 @@ const ArticleView: React.FC<ArticleViewProps> = ({
 
                 {(categories.length > 0 || labels.length > 0) && (
                     <div className={styles.tagCard}>
-                        <div className={styles.tagCardTitle}>分类 & 标签</div>
+                        <div className={styles.tagCardTitle}>{t("view.categoryAndTags")}</div>
                         <div className={styles.tagCardContent}>
                             {categories.map((cat) => (
                                 <span key={`cat-${cat.id}`} className={styles.categoryBadge}>
@@ -756,7 +761,7 @@ const ArticleView: React.FC<ArticleViewProps> = ({
 
                 {headings.length > 0 && (
                     <nav className={styles.toc}>
-                        <div className={styles.tocTitle}>目录</div>
+                        <div className={styles.tocTitle}>{t("view.toc")}</div>
                         <div className={styles.tocList}>
                             {headings.map((heading) => (
                                 <a
@@ -781,25 +786,27 @@ const ArticleView: React.FC<ArticleViewProps> = ({
                         <div className={styles.metaRow}>
                             <span className={styles.metaItem}>
                                 <Calendar size={13} />
-                                {pushlish_time} 发布
+                                {t("view.publishedAt", { time: pushlish_time })}
                             </span>
-                            {update_time !== pushlish_time && <span className={styles.metaItem}>{update_time} 更新</span>}
+                            {update_time !== pushlish_time && (
+                                <span className={styles.metaItem}>{t("view.updatedAt", { time: update_time })}</span>
+                            )}
                             <span className={styles.metaItem}>
                                 <Eye size={14} />
-                                {views} 阅读
+                                {t("view.views", { value: views })}
                             </span>
                             <span className={styles.metaItem}>
                                 <Heart size={14} />
-                                {likesCount} 点赞
+                                {t("view.likes", { value: likesCount })}
                             </span>
                             <span className={styles.metaItem}>
                                 <MessageSquare size={14} />
-                                {commentsList.length} 评论
+                                {t("view.comments", { value: commentsList.length })}
                             </span>
                             {readingTime && (
                                 <span className={styles.metaItem}>
                                     <Clock size={14} />
-                                    {readingTime} 分钟阅读
+                                    {t("view.readingTime", { value: readingTime })}
                                 </span>
                             )}
                         </div>
@@ -811,7 +818,7 @@ const ArticleView: React.FC<ArticleViewProps> = ({
                         {!isContentReady && (
                             <div className={styles.loadingIndicator}>
                                 <div className={styles.spinner}></div>
-                                <span>正在渲染文章内容...</span>
+                                <span>{t("view.rendering")}</span>
                             </div>
                         )}
                         <ReactMarkdown
@@ -849,10 +856,10 @@ const ArticleView: React.FC<ArticleViewProps> = ({
                         <div className={styles.commentHeader}>
                             <h3 className={styles.commentTitle}>
                                 <MessageSquare size={18} />
-                                评论 ({commentsList.length})
+                                {t("comment.title", { value: commentsList.length })}
                             </h3>
                             <button className={styles.writeCommentButton} onClick={() => setShowCommentInput(!showCommentInput)}>
-                                {showCommentInput ? "收起" : "写评论"}
+                                {showCommentInput ? t("comment.collapse") : t("comment.write")}
                             </button>
                         </div>
 
@@ -861,15 +868,15 @@ const ArticleView: React.FC<ArticleViewProps> = ({
                             <div className={styles.commentInputWrapper}>
                                 <textarea
                                     className={styles.commentTextarea}
-                                    placeholder="写下你的想法..."
+                                    placeholder={t("comment.placeholder")}
                                     value={commentText}
                                     onChange={(e) => setCommentText(e.target.value)}
                                     rows={3}
                                 />
                                 <div className={styles.commentInputFooter}>
                                     <span className={styles.commentHint}>
-                                        支持 Markdown 语法
-                                        {settings.moderateComments && " · 评论需审核后显示"}
+                                        {t("comment.markdownHint")}
+                                        {settings.moderateComments && t("comment.moderateHint")}
                                     </span>
                                     <button
                                         className={styles.commentSubmitButton}
@@ -877,7 +884,7 @@ const ArticleView: React.FC<ArticleViewProps> = ({
                                         disabled={!commentText.trim()}
                                     >
                                         <Send size={14} />
-                                        发布
+                                        {t("comment.submit")}
                                     </button>
                                 </div>
                             </div>
@@ -886,9 +893,9 @@ const ArticleView: React.FC<ArticleViewProps> = ({
                         {/* 评论列表 */}
                         <div className={styles.commentList}>
                             {commentLoading ? (
-                                <div className={styles.commentEmpty}>加载评论中...</div>
+                                <div className={styles.commentEmpty}>{t("comment.loading")}</div>
                             ) : commentsList.length === 0 ? (
-                                <div className={styles.commentEmpty}>暂无评论，快来抢沙发吧~</div>
+                                <div className={styles.commentEmpty}>{t("comment.empty")}</div>
                             ) : (
                                 commentsList.map((comment) => (
                                     <CommentNode
@@ -921,7 +928,7 @@ const ArticleView: React.FC<ArticleViewProps> = ({
                     </div>
                 ) : (
                     <div className={styles.commentSection}>
-                        <div className={styles.commentEmpty}>评论功能已关闭</div>
+                        <div className={styles.commentEmpty}>{t("comment.closed")}</div>
                     </div>
                 )}
             </div>

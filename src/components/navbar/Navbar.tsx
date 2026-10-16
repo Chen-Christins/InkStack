@@ -12,6 +12,7 @@ import {
     FaRegComments,
     FaQuestionCircle,
 } from "react-icons/fa";
+import { useTranslation } from "react-i18next";
 import styles from "./Navbar.module.css";
 import HomeQuickTools from "../homeQuickTools/HomeQuickTools";
 import ThemeToggle from "../themeToggle/ThemeToggle";
@@ -21,7 +22,8 @@ import BroadcastMarquee from "../broadcastMarquee/BroadcastMarquee";
 import { useSiteSettings } from "@/contexts/SiteSettingsContext";
 import Avatar from "../avatar/Avatar";
 import { useAuth } from "@/contexts/AuthContext";
-import { isNormalUser, PlatformRoleLabel, type PlatformRole as PlatformRoleType } from "@/types/Roles.ts";
+import { isNormalUser, type PlatformRole as PlatformRoleType } from "@/types/Roles.ts";
+import { useEnumLabels } from "@/i18n/UseEnumLabels";
 import { encodeId } from "@/utils/HashId.ts";
 
 const Navbar: React.FC = () => {
@@ -30,6 +32,9 @@ const Navbar: React.FC = () => {
     // 获取认证状态
     const { user, isAuthenticated, logout, token, loading } = useAuth();
     const { settings: siteSettings } = useSiteSettings();
+    const { t } = useTranslation("nav");
+    const { t: tCommon } = useTranslation("common");
+    const enums = useEnumLabels();
     const defaultLogo = "/techhaven-logo.svg";
 
     // 状态管理
@@ -44,9 +49,11 @@ const Navbar: React.FC = () => {
     // 用户数据（从认证上下文获取）
     const currentUser = user
         ? {
-              name: user.name || user.account || "用户",
+              name: user.name || user.account || tCommon("user.fallbackName"),
               avatar: user.avatar || "https://picsum.photos/id/64/200", // 默认头像
-              role: user.role ? PlatformRoleLabel[user.role as PlatformRoleType] || "用户" : "用户",
+              role: user.role
+                  ? enums.platformRole[user.role as PlatformRoleType] || tCommon("user.fallbackName")
+                  : tCommon("user.fallbackName"),
               email: user.email,
           }
         : null;
@@ -56,8 +63,8 @@ const Navbar: React.FC = () => {
 
     // 导航链接数据（包含图标和路径）
     const navLinks = [
-        { label: "首页", icon: <FaHome />, path: "/" },
-        { label: "组织", icon: <FaBuilding />, path: "/organizations/list" },
+        { label: t("home"), icon: <FaHome />, path: "/" },
+        { label: t("organizations"), icon: <FaBuilding />, path: "/organizations/list" },
     ];
 
     // 监听滚动事件和用户状态变化
@@ -130,7 +137,7 @@ const Navbar: React.FC = () => {
     };
 
     const getNavLinks = () => {
-        const links = [...navLinks, { label: "帮助", icon: <FaQuestionCircle />, path: "/help" }];
+        const links = [...navLinks, { label: t("help"), icon: <FaQuestionCircle />, path: "/help" }];
         return links;
     };
 
@@ -161,8 +168,8 @@ const Navbar: React.FC = () => {
         return (
             <div className={`${styles.mobileMenu} ${mobileMenuOpen ? styles.mobileMenuOpen : ""}`}>
                 <div className={styles.mobileMenuHeader}>
-                    <div className={styles.mobileMenuTitle}>导航菜单</div>
-                    <button className={styles.mobileMenuCloseBtn} onClick={closeMobileMenu} type="button" aria-label="关闭菜单">
+                    <div className={styles.mobileMenuTitle}>{t("navMenu")}</div>
+                    <button className={styles.mobileMenuCloseBtn} onClick={closeMobileMenu} type="button" aria-label={t("closeMenu")}>
                         <FaTimes />
                     </button>
                 </div>
@@ -206,7 +213,7 @@ const Navbar: React.FC = () => {
                         <button
                             className={styles.mobileMenuBtn}
                             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                            aria-label={mobileMenuOpen ? "关闭菜单" : "打开菜单"}
+                            aria-label={mobileMenuOpen ? t("closeMenu") : t("openMenu")}
                         >
                             <FaBars className={styles.menuIcon} />
                         </button>
@@ -223,8 +230,8 @@ const Navbar: React.FC = () => {
                                     navigate("/test/chunk-upload");
                                 }}
                                 type="button"
-                                title="进入测试页面"
-                                aria-label="进入测试页面"
+                                title={t("testPage")}
+                                aria-label={t("testPage")}
                             >
                                 <FaFlask className={styles.testButtonIcon} />
                             </button>
@@ -273,8 +280,8 @@ const Navbar: React.FC = () => {
                                                         navigate(`/profile/${encodeId(user.id, "user")}`);
                                                     }
                                                 }}
-                                                title="查看个人资料"
-                                                aria-label="查看个人资料"
+                                                title={t("viewProfile")}
+                                                aria-label={t("viewProfile")}
                                             >
                                                 <Avatar src={currentUser.avatar} name={currentUser.name} size={48} />
                                             </button>
@@ -293,7 +300,7 @@ const Navbar: React.FC = () => {
                                                 }}
                                             >
                                                 <FaUserCircle />
-                                                个人中心
+                                                {t("personalCenter")}
                                             </div>
                                             <div
                                                 className={styles.dropdownItem}
@@ -303,7 +310,7 @@ const Navbar: React.FC = () => {
                                                 }}
                                             >
                                                 <FaPen />
-                                                撰写文章
+                                                {t("writeArticle")}
                                             </div>
                                             <div className={styles.dropdownDivider}></div>
                                             {!normalUser && (
@@ -316,7 +323,7 @@ const Navbar: React.FC = () => {
                                                         }}
                                                     >
                                                         <FaRegComments />
-                                                        私信
+                                                        {t("messages")}
                                                     </div>
                                                     <div className={styles.dropdownDivider}></div>
                                                 </>
@@ -329,7 +336,7 @@ const Navbar: React.FC = () => {
                                                 }}
                                             >
                                                 <FaSignOutAlt />
-                                                退出登录
+                                                {t("logout")}
                                             </button>
                                         </div>
                                     </div>

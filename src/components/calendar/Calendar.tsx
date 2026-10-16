@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { FaCalendarAlt } from "react-icons/fa";
 import styles from "./Calendar.module.css";
 import { ArticleService } from "@/services/ArticleService.ts";
@@ -37,12 +38,35 @@ const getMonthDays = (year: number, month: number, articleDays: number[]): DayIn
 };
 
 const Calendar: React.FC = () => {
+    const { t } = useTranslation("calendar");
     const [currentDate, setCurrentDate] = useState<Date>(new Date());
     const [articleDays, setArticleDays] = useState<number[]>([]);
     const [loading, setLoading] = useState(false);
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
-    const monthNames = ["一月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "十一月", "十二月"];
+    const monthNames = [
+        t("months.jan"),
+        t("months.feb"),
+        t("months.mar"),
+        t("months.apr"),
+        t("months.may"),
+        t("months.jun"),
+        t("months.jul"),
+        t("months.aug"),
+        t("months.sep"),
+        t("months.oct"),
+        t("months.nov"),
+        t("months.dec"),
+    ];
+    const weekDays = [
+        t("weekdays.sun"),
+        t("weekdays.mon"),
+        t("weekdays.tue"),
+        t("weekdays.wed"),
+        t("weekdays.thu"),
+        t("weekdays.fri"),
+        t("weekdays.sat"),
+    ];
 
     // 获取指定月份的文章日期
     const fetchArticleDays = useCallback(async (y: number, m: number) => {
@@ -76,21 +100,19 @@ const Calendar: React.FC = () => {
     return (
         <div className={styles.calendar}>
             <h3 className={styles.panelTitle}>
-                <FaCalendarAlt className={styles.titleIcon} /> 站点日历
+                <FaCalendarAlt className={styles.titleIcon} /> {t("title")}
             </h3>
             <div className={styles.calendarHeader}>
                 <button className={styles.monthBtn} onClick={() => changeMonth("prev")} disabled={loading}>
                     ←
                 </button>
-                <span className={styles.monthYear}>
-                    {year}年 {monthNames[month]}
-                </span>
+                <span className={styles.monthYear}>{t("yearMonth", { year, month: monthNames[month] })}</span>
                 <button className={styles.monthBtn} onClick={() => changeMonth("next")} disabled={loading}>
                     →
                 </button>
             </div>
             <div className={styles.weekDays}>
-                {["日", "一", "二", "三", "四", "五", "六"].map((day) => (
+                {weekDays.map((day) => (
                     <div key={day} className={styles.weekDay}>
                         {day}
                     </div>
