@@ -63,6 +63,7 @@ const Messages: React.FC = () => {
     // 加载会话列表
     useEffect(() => {
         if (denied) {
+            setLoading(false);
             return;
         }
         let cancelled = false;

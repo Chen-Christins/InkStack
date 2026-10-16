@@ -148,6 +148,7 @@ const OrganizationDetail: React.FC = () => {
     useEffect(() => {
         const fetchDetail = async () => {
             if (!currentUser) {
+                setLoading(false);
                 return;
             }
             setLoading(true);

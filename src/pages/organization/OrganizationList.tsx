@@ -55,6 +55,7 @@ const OrganizationList: React.FC = () => {
     useEffect(() => {
         const fetchOrgs = async () => {
             if (!currentUser) {
+                setLoading(false);
                 return;
             }
             setLoading(true);
