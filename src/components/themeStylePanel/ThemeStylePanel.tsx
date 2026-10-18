@@ -6,60 +6,69 @@ import Button from "@/components/button/Button";
 import Switch from "@/components/switch/Switch";
 import styles from "./ThemeStylePanel.module.css";
 
-const PRESETS: { key: ThemePreset; bg: string; header: string; accent: string }[] = [
+const PRESETS: { key: ThemePreset; bg: string; header: string; accent: string; font: string }[] = [
     {
         key: "time",
         bg: "#f6f1e7",
         header: "#c8102e",
         accent: "#c8102e",
+        font: '"Playfair Display", "Source Serif 4", Georgia, "Songti SC", "Noto Serif CJK SC", "Noto Serif SC", "Source Han Serif SC", "STSong", "SimSun", serif',
     },
     {
         key: "monochrome",
         bg: "#fafafa",
         header: "#111111",
         accent: "#111111",
+        font: '"Inter", "OPPO Sans", "PingFang SC", "Microsoft YaHei", sans-serif',
     },
     {
         key: "mint",
         bg: "#f4f7f0",
         header: "#6f9a5e",
         accent: "#a3b88d",
+        font: '"Nunito", "Yuanti SC", "YouYuan", "Hiragino Maru Gothic ProN", "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", "Noto Sans SC", "Source Han Sans SC", sans-serif',
     },
     {
         key: "ocean",
         bg: "#f0f6fb",
         header: "#0e7cb5",
         accent: "#4aa3d8",
+        font: '"Manrope", "Source Sans 3", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", "Noto Sans SC", "Source Han Sans SC", sans-serif',
     },
     {
         key: "sakura",
         bg: "#fff5f7",
         header: "#e87a9a",
         accent: "#f48fb1",
+        font: '"Quicksand", "Yuanti SC", "YouYuan", "Hiragino Maru Gothic ProN", "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", "Noto Sans SC", "Source Han Sans SC", sans-serif',
     },
     {
         key: "cyberpunk",
         bg: "#f4f2ff",
         header: "#7c5cff",
         accent: "#00b8d9",
+        font: '"Orbitron", "Smiley Sans", "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", "Noto Sans SC", "Source Han Sans SC", sans-serif',
     },
     {
         key: "gold",
         bg: "#faf6ee",
         header: "#b8860b",
         accent: "#d4a24e",
+        font: '"Cinzel", "Cormorant Garamond", Georgia, "Songti SC", "Noto Serif CJK SC", "Noto Serif SC", "Source Han Serif SC", serif',
     },
     {
         key: "lavender",
         bg: "#f7f5ff",
         header: "#7c5cff",
         accent: "#a58aff",
+        font: '"Comfortaa", "Kaiti SC", "STKaiti", "KaiTi", "Noto Serif CJK SC", "Noto Serif SC", serif',
     },
     {
         key: "pi",
         bg: "#ebe7e4",
         header: "#252f3d",
         accent: "#4b607c",
+        font: '"IBM Plex Mono", "Courier New", "Songti SC", "Noto Serif CJK SC", "Noto Serif SC", "Source Han Serif SC", serif',
     },
 ];
 
@@ -106,9 +115,10 @@ const ThemeStylePanel: React.FC = () => {
                             onClick={() => setPreset(item.key)}
                             aria-pressed={active}
                             title={t(`themeStylePanel.presets.${item.key}.desc`)}
+                            style={{ fontFamily: item.font }}
                         >
                             <span className={styles.preview} style={{ backgroundColor: item.bg }}>
-                                <span className={styles.previewHeader} style={{ color: item.header }}>
+                                <span className={styles.previewHeader} style={{ color: item.header, fontFamily: item.font }}>
                                     TechHaven
                                 </span>
                                 <span className={styles.previewBar} style={{ backgroundColor: item.accent }} />

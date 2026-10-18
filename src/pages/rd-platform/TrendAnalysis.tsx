@@ -7,8 +7,10 @@ import Button from "@/components/button/Button";
 import ErrorState from "@/components/errorState/ErrorState";
 import Loading from "@/components/loading/Loading";
 import { useRdOrg } from "@/contexts/RdOrgContext";
+import { useTheme } from "@/contexts/ThemeContext";
 import RdPlatformService from "@/services/RdPlatformService.ts";
 import type { RdTrendAnalysisData } from "@/types/RdPlatform.ts";
+import { getThemeFontFamily } from "@/utils/ThemeFont";
 import styles from "./TrendAnalysis.module.css";
 
 type TrendPeriod = 7 | 30;
@@ -20,6 +22,7 @@ const TrendAnalysis: React.FC = () => {
     const [searchParams, setSearchParams] = useSearchParams();
     const { t } = useTranslation("rd");
     const { selectedOrgId, loading: orgLoading } = useRdOrg();
+    const { preset } = useTheme();
     const [trendData, setTrendData] = useState<RdTrendAnalysisData | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
@@ -106,10 +109,12 @@ const TrendAnalysis: React.FC = () => {
         const charts: echarts.ECharts[] = [];
         const textColor = getComputedStyle(document.documentElement).getPropertyValue("--text-secondary").trim() || "#64748b";
         const borderColor = getComputedStyle(document.documentElement).getPropertyValue("--border-primary").trim() || "#e5e7eb";
+        const themeFont = getThemeFontFamily();
 
         if (throughputRef.current) {
             const chart = echarts.init(throughputRef.current);
             chart.setOption({
+                textStyle: { fontFamily: themeFont },
                 color: ["#2563eb", "#10b981", "#ef4444"],
                 tooltip: { trigger: "axis" },
                 legend: { top: 0, textStyle: { color: textColor } },
@@ -147,6 +152,7 @@ const TrendAnalysis: React.FC = () => {
         if (backlogRef.current) {
             const chart = echarts.init(backlogRef.current);
             chart.setOption({
+                textStyle: { fontFamily: themeFont },
                 color: ["#3b82f6", "#f59e0b", "#ef4444"],
                 tooltip: { trigger: "axis" },
                 legend: { top: 0, textStyle: { color: textColor } },
@@ -184,6 +190,7 @@ const TrendAnalysis: React.FC = () => {
         if (distributionRef.current) {
             const chart = echarts.init(distributionRef.current);
             chart.setOption({
+                textStyle: { fontFamily: themeFont },
                 color: ["#2563eb", "#ef4444", "#10b981", "#8b5cf6"],
                 tooltip: { trigger: "item" },
                 legend: { bottom: 0, textStyle: { color: textColor } },
@@ -209,7 +216,7 @@ const TrendAnalysis: React.FC = () => {
             window.removeEventListener("resize", handleResize);
             charts.forEach((chart) => chart.dispose());
         };
-    }, [axisLabelInterval, periodDays, trendData, workDistribution, t]);
+    }, [axisLabelInterval, periodDays, trendData, workDistribution, t, preset]);
 
     if ((loading || orgLoading) && !trendData) {
         return <Loading text={t("trend.loading")} />;

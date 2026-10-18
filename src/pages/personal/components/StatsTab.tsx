@@ -1,7 +1,9 @@
 import React, { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import * as echarts from "echarts";
+import { useTheme } from "@/contexts/ThemeContext";
 import type { UserStats } from "@/services/AuthService.ts";
+import { getThemeFontFamily } from "@/utils/ThemeFont";
 import styles from "../PersonalCenter.module.css";
 
 interface Props {
@@ -20,17 +22,20 @@ const COLORS = {
 
 const StatsTab: React.FC<Props> = ({ stats }) => {
     const { t } = useTranslation("personal");
+    const { preset } = useTheme();
     const compositionRef = useRef<HTMLDivElement>(null);
     const engagementRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         const charts: echarts.ECharts[] = [];
+        const themeFont = getThemeFontFamily();
 
         // 文章构成（已发布 / 私密 / 其他）
         if (compositionRef.current) {
             const chart = echarts.init(compositionRef.current, "light", { renderer: "canvas" });
             const others = Math.max(0, stats.total_articles - stats.published_articles - stats.private_articles);
             chart.setOption({
+                textStyle: { fontFamily: themeFont },
                 tooltip: { trigger: "item", formatter: t("stats.compositionTooltip") },
                 legend: {
                     bottom: 0,
@@ -66,6 +71,7 @@ const StatsTab: React.FC<Props> = ({ stats }) => {
             const avgLikes = stats.published_articles > 0 ? Math.round(stats.total_likes / stats.published_articles) : 0;
             const avgComments = stats.published_articles > 0 ? Math.round(stats.total_comments / stats.published_articles) : 0;
             chart.setOption({
+                textStyle: { fontFamily: themeFont },
                 tooltip: { trigger: "axis", axisPointer: { type: "shadow" }, formatter: t("stats.engagementTooltip") },
                 grid: { left: "3%", right: "6%", bottom: "6%", top: "12%", containLabel: true },
                 xAxis: {
@@ -102,7 +108,7 @@ const StatsTab: React.FC<Props> = ({ stats }) => {
             window.removeEventListener("resize", handleResize);
             charts.forEach((c) => c.dispose());
         };
-    }, [stats, t]);
+    }, [stats, t, preset]);
 
     const avgViews = stats.published_articles > 0 ? Math.round(stats.total_views / stats.published_articles) : 0;
     const avgLikes = stats.published_articles > 0 ? Math.round(stats.total_likes / stats.published_articles) : 0;

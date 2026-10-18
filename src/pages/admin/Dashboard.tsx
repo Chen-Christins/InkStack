@@ -26,6 +26,8 @@ import DashboardService, {
 } from "@/services/DashboardService.ts";
 import type { PlatformRole } from "@/types/Roles.ts";
 import { useEnumLabels } from "@/i18n/UseEnumLabels";
+import { useTheme } from "@/contexts/ThemeContext";
+import { getThemeFontFamily } from "@/utils/ThemeFont";
 import styles from "./Dashboard.module.css";
 
 /** 后端趋势接口返回的中文星期标签 → 星期索引（0=周日） */
@@ -52,6 +54,7 @@ const Dashboard: React.FC = () => {
     const { t } = useTranslation("admin");
     const { t: tCal } = useTranslation("calendar");
     const enums = useEnumLabels();
+    const { preset } = useTheme();
     const [selectedPeriod, setSelectedPeriod] = React.useState("7天");
     const chartRef = useRef<HTMLDivElement>(null);
     const chartInstance = useRef<echarts.ECharts | null>(null);
@@ -279,7 +282,11 @@ const Dashboard: React.FC = () => {
         });
 
         // ECharts配置
+        const themeFont = getThemeFontFamily();
         const option = {
+            textStyle: {
+                fontFamily: themeFont,
+            },
             tooltip: {
                 trigger: "axis",
                 backgroundColor: "#ffffff",
@@ -290,6 +297,7 @@ const Dashboard: React.FC = () => {
                 textStyle: {
                     color: "#333333",
                     fontSize: 12,
+                    fontFamily: themeFont,
                 },
                 formatter: (params: any) => {
                     const point = params[0];
@@ -440,7 +448,7 @@ const Dashboard: React.FC = () => {
         return () => {
             window.removeEventListener("resize", handleResize);
         };
-    }, [selectedPeriod, trendData, t, tCal]);
+    }, [selectedPeriod, trendData, t, tCal, preset]);
 
     // 渲染活动趋势图表
     const renderVisitTrendChart = () => {
