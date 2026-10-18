@@ -10,6 +10,7 @@ import agent from "./rd/Agent";
 import agentConfig from "./rd/AgentConfig";
 import trend from "./rd/Trend";
 import orgGate from "./rd/OrgGate";
+import entryLoader from "./rd/EntryLoader";
 
 const rd = {
     layout,
@@ -24,6 +25,7 @@ const rd = {
     agentConfig,
     trend,
     orgGate,
+    entryLoader,
 } as const;
 
 export default rd;

@@ -248,7 +248,9 @@ const CodeReviewList: React.FC = () => {
             prevRepoIdRef.current = selectedRepoId;
             setPrs([]);
             setTotal(0);
-            setInitialLoading(false);
+            if (!selectedOrgId) {
+                setInitialLoading(false);
+            }
             return;
         }
         // 切换仓库时重置到第 1 页，避免带着上一个仓库的页码请求

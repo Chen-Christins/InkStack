@@ -1,0 +1,291 @@
+.container {
+    --entry-accent: #4f8ef7;
+    --entry-accent-light: #6bb7ff;
+    --entry-accent-soft: rgba(79, 142, 247, 0.16);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    width: 100%;
+    padding: 32px 20px;
+    overflow: hidden;
+    color: var(--text-primary);
+    text-align: center;
+}
+
+.container[data-stage="auth"] {
+    --entry-accent: #8b5cf6;
+    --entry-accent-light: #a78bfa;
+    --entry-accent-soft: rgba(139, 92, 246, 0.16);
+}
+
+.container[data-stage="access"] {
+    --entry-accent: #4f8ef7;
+    --entry-accent-light: #6bb7ff;
+    --entry-accent-soft: rgba(79, 142, 247, 0.16);
+}
+
+.container[data-stage="org"] {
+    --entry-accent: #10b981;
+    --entry-accent-light: #34d399;
+    --entry-accent-soft: rgba(16, 185, 129, 0.16);
+}
+
+.ambient {
+    position: absolute;
+    inset: -20%;
+    background: radial-gradient(circle at 50% 42%, var(--entry-accent-soft), transparent 58%);
+    animation: ambientPulse 4s ease-in-out infinite;
+    pointer-events: none;
+}
+
+.mascotWrap {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 200px;
+    height: 200px;
+    animation: floatMascot 2.8s ease-in-out infinite;
+}
+
+.robot {
+    position: relative;
+    z-index: 2;
+    filter: drop-shadow(0 12px 22px var(--entry-accent-soft));
+}
+
+.orbit {
+    position: absolute;
+    width: 168px;
+    height: 168px;
+    border: 1px dashed var(--entry-accent);
+    border-radius: 50%;
+    opacity: 0.28;
+    animation: spinOrbit 16s linear infinite;
+}
+
+.scanRing {
+    position: absolute;
+    width: 148px;
+    height: 148px;
+    border: 2px solid transparent;
+    border-top-color: var(--entry-accent);
+    border-right-color: var(--entry-accent);
+    border-radius: 50%;
+    opacity: 0.55;
+    animation: spinOrbit 2.4s linear infinite;
+}
+
+.badge {
+    position: absolute;
+    top: 8px;
+    right: 26px;
+    z-index: 3;
+    display: grid;
+    place-items: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, var(--entry-accent), var(--entry-accent-light));
+    box-shadow: 0 8px 20px var(--entry-accent-soft);
+    color: #fff;
+    animation: badgePop 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.3);
+}
+
+.badgeIcon {
+    width: 18px;
+    height: 18px;
+}
+
+.textBlock {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    animation: textIn 0.45s ease-out;
+}
+
+.stageLabel {
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: var(--entry-accent-soft);
+    color: var(--entry-accent);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+
+.title {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: var(--text-primary);
+}
+
+.description {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--text-secondary);
+}
+
+.steps {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 18px;
+}
+
+.step {
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    background: var(--border-primary);
+    transition:
+        width 0.3s ease,
+        background-color 0.3s ease,
+        opacity 0.3s ease;
+}
+
+.stepDone {
+    background: var(--entry-accent);
+    opacity: 0.45;
+}
+
+.stepActive {
+    width: 28px;
+    background: var(--entry-accent);
+    box-shadow: 0 0 12px var(--entry-accent-soft);
+    animation: stepGlow 1.6s ease-in-out infinite;
+}
+
+@keyframes floatMascot {
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+@keyframes spinOrbit {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes ambientPulse {
+    0%,
+    100% {
+        opacity: 0.7;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1.05);
+    }
+}
+
+@keyframes badgePop {
+    0% {
+        opacity: 0;
+        transform: scale(0.6) rotate(-12deg);
+    }
+    60% {
+        opacity: 1;
+        transform: scale(1.08) rotate(3deg);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) rotate(0);
+    }
+}
+
+@keyframes textIn {
+    0% {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes stepGlow {
+    0%,
+    100% {
+        box-shadow: 0 0 8px var(--entry-accent-soft);
+    }
+    50% {
+        box-shadow: 0 0 16px var(--entry-accent-soft);
+    }
+}
+
+@media (max-width: 640px) {
+    .container {
+        padding: 24px 16px;
+    }
+
+    .mascotWrap {
+        width: 170px;
+        height: 170px;
+    }
+
+    .orbit {
+        width: 142px;
+        height: 142px;
+    }
+
+    .scanRing {
+        width: 126px;
+        height: 126px;
+    }
+
+    .badge {
+        top: 6px;
+        right: 18px;
+        width: 38px;
+        height: 38px;
+        border-radius: 12px;
+    }
+
+    .title {
+        font-size: 20px;
+    }
+
+    .description {
+        font-size: 13px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ambient,
+    .mascotWrap,
+    .orbit,
+    .scanRing,
+    .badge,
+    .textBlock,
+    .stepActive {
+        animation: none;
+    }
+
+    .scanRing {
+        display: none;
+    }
+
+    .step {
+        transition: none;
+    }
+}

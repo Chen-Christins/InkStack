@@ -686,6 +686,18 @@
 
 /* 响应式设计 */
 @media (max-width: 768px) {
+    .tabContainer {
+        width: 100%;
+        flex-wrap: wrap;
+    }
+
+    .tabButton {
+        flex: 1 1 auto;
+        justify-content: center;
+        padding: 10px 12px;
+        white-space: nowrap;
+    }
+
     .pageHeader {
         flex-direction: column;
         align-items: flex-start;
@@ -798,11 +810,12 @@
 
     .tabContainer {
         width: 100%;
-        overflow-x: auto;
-        flex-wrap: nowrap;
+        flex-wrap: wrap;
     }
 
     .tabButton {
+        flex: 1 1 auto;
+        justify-content: center;
         padding: 8px 12px;
         font-size: 12px;
         white-space: nowrap;

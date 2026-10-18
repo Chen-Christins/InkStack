@@ -43,6 +43,7 @@ const MyTickets: React.FC = () => {
     const [total, setTotal] = useState(0);
     const [totalMap, setTotalMap] = useState<Record<TabKey, number>>({ req: 0, bug: 0, task: 0 });
     const [loading, setLoading] = useState(true);
+    const [initialLoaded, setInitialLoaded] = useState(false);
     const [search, setSearch] = useState("");
     const [status, setStatus] = useState("");
     const [page, setPage] = useState(1);
@@ -163,19 +164,36 @@ const MyTickets: React.FC = () => {
             setTotal(0);
         } finally {
             setLoading(false);
+            setInitialLoaded(true);
         }
     }, [typeParam, page, search, status, selectedOrgId, activeTab]);
 
     useEffect(() => {
         fetchData();
     }, [fetchData]);
+
+    const fetchTotalMap = useCallback(async () => {
+        const types: { type: "requirement" | "bug" | "task"; key: TabKey }[] = [
+            { type: "requirement", key: "req" },
+            { type: "bug", key: "bug" },
+            { type: "task", key: "task" },
+        ];
+        const results = await Promise.all(
+            types.map(async ({ type, key }) => {
+                try {
+                    const res = await RdAPI.getMyTickets({ type, pageSize: 1, orgId: selectedOrgId || undefined });
+                    return [key, res.total] as const;
+                } catch {
+                    return [key, 0] as const;
+                }
+            }),
+        );
+        setTotalMap(Object.fromEntries(results) as Record<TabKey, number>);
+    }, [selectedOrgId]);
+
     useEffect(() => {
-        (["requirement", "bug", "task"] as const).forEach((t) => {
-            RdAPI.getMyTickets({ type: t, pageSize: 1, orgId: selectedOrgId || undefined }).then((res) => {
-                setTotalMap((prev) => ({ ...prev, [t === "requirement" ? "req" : t === "bug" ? "bug" : "task"]: res.total }));
-            });
-        });
-    }, []); // eslint-disable-line
+        fetchTotalMap();
+    }, [fetchTotalMap, activeTab]);
     useEffect(() => {
         setPage(1);
         setData([]);
@@ -593,9 +611,17 @@ const MyTickets: React.FC = () => {
         </div>
     );
 
-    if (loading && data.length === 0) {
+    if (loading && !initialLoaded) {
         return <Loading />;
     }
+
+    const renderLoadingRow = (colSpan: number) => (
+        <tr>
+            <td colSpan={colSpan} className={styles.emptyCell}>
+                <Loading size="small" text={t("myTickets.loading")} />
+            </td>
+        </tr>
+    );
 
     return (
         <div className={styles.listPage}>
@@ -629,48 +655,50 @@ const MyTickets: React.FC = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {data.map((item) => {
-                                    const r = item as Requirement;
-                                    return (
-                                        <tr key={r.id}>
-                                            <td
-                                                className={styles.titleCell}
-                                                data-label={t("myTickets.columns.title")}
-                                                onClick={() => navigate(`/rd/requirements/${encodeId(r.id, "requirement")}`)}
-                                            >
-                                                {r.title}
-                                            </td>
-                                            <td data-label={t("myTickets.columns.priority")}>{renderPriorityBadge(r.priority)}</td>
-                                            <td data-label={t("myTickets.columns.status")}>
-                                                {renderStatusBadge(r.status, reqStatusText)}
-                                            </td>
-                                            <td data-label={t("myTickets.columns.assignee")}>
-                                                <AssigneeDisplay name={r.assignee} avatar={r.assigneeAvatar} />
-                                            </td>
-                                            <td data-label={t("myTickets.columns.creator")}>{r.creator}</td>
-                                            <td data-label={t("myTickets.columns.createdAt")}>{formatDateTime(r.createdAt)}</td>
-                                            <td data-label={t("myTickets.columns.actions")}>
-                                                <div className={styles.actionButtons}>
-                                                    <button
-                                                        className={`${styles.actionBtn} ${styles.view}`}
-                                                        title={t("myTickets.actions.view")}
-                                                        onClick={() => openDetail("req", r)}
-                                                    >
-                                                        <FaEye />
-                                                    </button>
-                                                    <button
-                                                        className={`${styles.actionBtn} ${styles.edit}`}
-                                                        title={t("myTickets.actions.edit")}
-                                                        onClick={() => openEdit("req", r)}
-                                                    >
-                                                        <FaEdit />
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    );
-                                })}
-                                {data.length === 0 && (
+                                {loading && renderLoadingRow(7)}
+                                {!loading &&
+                                    data.map((item) => {
+                                        const r = item as Requirement;
+                                        return (
+                                            <tr key={r.id}>
+                                                <td
+                                                    className={styles.titleCell}
+                                                    data-label={t("myTickets.columns.title")}
+                                                    onClick={() => navigate(`/rd/requirements/${encodeId(r.id, "requirement")}`)}
+                                                >
+                                                    {r.title}
+                                                </td>
+                                                <td data-label={t("myTickets.columns.priority")}>{renderPriorityBadge(r.priority)}</td>
+                                                <td data-label={t("myTickets.columns.status")}>
+                                                    {renderStatusBadge(r.status, reqStatusText)}
+                                                </td>
+                                                <td data-label={t("myTickets.columns.assignee")}>
+                                                    <AssigneeDisplay name={r.assignee} avatar={r.assigneeAvatar} />
+                                                </td>
+                                                <td data-label={t("myTickets.columns.creator")}>{r.creator}</td>
+                                                <td data-label={t("myTickets.columns.createdAt")}>{formatDateTime(r.createdAt)}</td>
+                                                <td data-label={t("myTickets.columns.actions")}>
+                                                    <div className={styles.actionButtons}>
+                                                        <button
+                                                            className={`${styles.actionBtn} ${styles.view}`}
+                                                            title={t("myTickets.actions.view")}
+                                                            onClick={() => openDetail("req", r)}
+                                                        >
+                                                            <FaEye />
+                                                        </button>
+                                                        <button
+                                                            className={`${styles.actionBtn} ${styles.edit}`}
+                                                            title={t("myTickets.actions.edit")}
+                                                            onClick={() => openEdit("req", r)}
+                                                        >
+                                                            <FaEdit />
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                {!loading && data.length === 0 && (
                                     <tr>
                                         <td colSpan={7} className={styles.emptyCell}>
                                             <div className={styles.emptyCellIcon}>
@@ -705,53 +733,55 @@ const MyTickets: React.FC = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {data.map((item) => {
-                                    const b = item as Bug;
-                                    return (
-                                        <tr key={b.id}>
-                                            <td
-                                                className={styles.titleCell}
-                                                data-label={t("myTickets.columns.title")}
-                                                onClick={() => navigate(`/rd/bugs/${encodeId(b.id, "bug")}`)}
-                                            >
-                                                {b.title}
-                                            </td>
-                                            <td data-label={t("myTickets.columns.severity")}>
-                                                <span className={`${styles.badge} ${styles[`severity_${b.severity}`]}`}>
-                                                    {severityText[b.severity]}
-                                                </span>
-                                            </td>
-                                            <td data-label={t("myTickets.columns.priority")}>{renderPriorityBadge(b.priority)}</td>
-                                            <td data-label={t("myTickets.columns.status")}>
-                                                {renderStatusBadge(b.status, bugStatusText)}
-                                            </td>
-                                            <td data-label={t("myTickets.columns.assignee")}>
-                                                <AssigneeDisplay name={b.assignee} avatar={b.assigneeAvatar} />
-                                            </td>
-                                            <td data-label={t("myTickets.columns.creator")}>{b.creator}</td>
-                                            <td data-label={t("myTickets.columns.createdAt")}>{formatDateTime(b.createdAt)}</td>
-                                            <td data-label={t("myTickets.columns.actions")}>
-                                                <div className={styles.actionButtons}>
-                                                    <button
-                                                        className={`${styles.actionBtn} ${styles.view}`}
-                                                        title={t("myTickets.actions.view")}
-                                                        onClick={() => openDetail("bug", b)}
-                                                    >
-                                                        <FaEye />
-                                                    </button>
-                                                    <button
-                                                        className={`${styles.actionBtn} ${styles.edit}`}
-                                                        title={t("myTickets.actions.edit")}
-                                                        onClick={() => openEdit("bug", b)}
-                                                    >
-                                                        <FaEdit />
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    );
-                                })}
-                                {data.length === 0 && (
+                                {loading && renderLoadingRow(8)}
+                                {!loading &&
+                                    data.map((item) => {
+                                        const b = item as Bug;
+                                        return (
+                                            <tr key={b.id}>
+                                                <td
+                                                    className={styles.titleCell}
+                                                    data-label={t("myTickets.columns.title")}
+                                                    onClick={() => navigate(`/rd/bugs/${encodeId(b.id, "bug")}`)}
+                                                >
+                                                    {b.title}
+                                                </td>
+                                                <td data-label={t("myTickets.columns.severity")}>
+                                                    <span className={`${styles.badge} ${styles[`severity_${b.severity}`]}`}>
+                                                        {severityText[b.severity]}
+                                                    </span>
+                                                </td>
+                                                <td data-label={t("myTickets.columns.priority")}>{renderPriorityBadge(b.priority)}</td>
+                                                <td data-label={t("myTickets.columns.status")}>
+                                                    {renderStatusBadge(b.status, bugStatusText)}
+                                                </td>
+                                                <td data-label={t("myTickets.columns.assignee")}>
+                                                    <AssigneeDisplay name={b.assignee} avatar={b.assigneeAvatar} />
+                                                </td>
+                                                <td data-label={t("myTickets.columns.creator")}>{b.creator}</td>
+                                                <td data-label={t("myTickets.columns.createdAt")}>{formatDateTime(b.createdAt)}</td>
+                                                <td data-label={t("myTickets.columns.actions")}>
+                                                    <div className={styles.actionButtons}>
+                                                        <button
+                                                            className={`${styles.actionBtn} ${styles.view}`}
+                                                            title={t("myTickets.actions.view")}
+                                                            onClick={() => openDetail("bug", b)}
+                                                        >
+                                                            <FaEye />
+                                                        </button>
+                                                        <button
+                                                            className={`${styles.actionBtn} ${styles.edit}`}
+                                                            title={t("myTickets.actions.edit")}
+                                                            onClick={() => openEdit("bug", b)}
+                                                        >
+                                                            <FaEdit />
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                {!loading && data.length === 0 && (
                                     <tr>
                                         <td colSpan={8} className={styles.emptyCell}>
                                             <div className={styles.emptyCellIcon}>
@@ -785,50 +815,54 @@ const MyTickets: React.FC = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {data.map((item) => {
-                                    const task = item as Task;
-                                    return (
-                                        <tr key={task.id}>
-                                            <td
-                                                className={styles.titleCell}
-                                                data-label={t("myTickets.columns.title")}
-                                                onClick={() => navigate(`/rd/tasks/${encodeId(task.id, "task")}`)}
-                                            >
-                                                {task.title}
-                                            </td>
-                                            <td data-label={t("myTickets.columns.priority")}>{renderPriorityBadge(task.priority)}</td>
-                                            <td data-label={t("myTickets.columns.status")}>
-                                                {renderStatusBadge(task.status, taskStatusText)}
-                                            </td>
-                                            <td data-label={t("myTickets.columns.assignee")}>
-                                                <AssigneeDisplay name={task.assignee} avatar={task.assigneeAvatar} />
-                                            </td>
-                                            <td data-label={t("myTickets.columns.creator")}>{task.creator}</td>
-                                            <td data-label={t("myTickets.columns.deadline")}>
-                                                {task.deadline ? formatDateTime(task.deadline) : "-"}
-                                            </td>
-                                            <td data-label={t("myTickets.columns.actions")}>
-                                                <div className={styles.actionButtons}>
-                                                    <button
-                                                        className={`${styles.actionBtn} ${styles.view}`}
-                                                        title={t("myTickets.actions.view")}
-                                                        onClick={() => openDetail("task", task)}
-                                                    >
-                                                        <FaEye />
-                                                    </button>
-                                                    <button
-                                                        className={`${styles.actionBtn} ${styles.edit}`}
-                                                        title={t("myTickets.actions.edit")}
-                                                        onClick={() => openEdit("task", task)}
-                                                    >
-                                                        <FaEdit />
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    );
-                                })}
-                                {data.length === 0 && (
+                                {loading && renderLoadingRow(7)}
+                                {!loading &&
+                                    data.map((item) => {
+                                        const task = item as Task;
+                                        return (
+                                            <tr key={task.id}>
+                                                <td
+                                                    className={styles.titleCell}
+                                                    data-label={t("myTickets.columns.title")}
+                                                    onClick={() => navigate(`/rd/tasks/${encodeId(task.id, "task")}`)}
+                                                >
+                                                    {task.title}
+                                                </td>
+                                                <td data-label={t("myTickets.columns.priority")}>
+                                                    {renderPriorityBadge(task.priority)}
+                                                </td>
+                                                <td data-label={t("myTickets.columns.status")}>
+                                                    {renderStatusBadge(task.status, taskStatusText)}
+                                                </td>
+                                                <td data-label={t("myTickets.columns.assignee")}>
+                                                    <AssigneeDisplay name={task.assignee} avatar={task.assigneeAvatar} />
+                                                </td>
+                                                <td data-label={t("myTickets.columns.creator")}>{task.creator}</td>
+                                                <td data-label={t("myTickets.columns.deadline")}>
+                                                    {task.deadline ? formatDateTime(task.deadline) : "-"}
+                                                </td>
+                                                <td data-label={t("myTickets.columns.actions")}>
+                                                    <div className={styles.actionButtons}>
+                                                        <button
+                                                            className={`${styles.actionBtn} ${styles.view}`}
+                                                            title={t("myTickets.actions.view")}
+                                                            onClick={() => openDetail("task", task)}
+                                                        >
+                                                            <FaEye />
+                                                        </button>
+                                                        <button
+                                                            className={`${styles.actionBtn} ${styles.edit}`}
+                                                            title={t("myTickets.actions.edit")}
+                                                            onClick={() => openEdit("task", task)}
+                                                        >
+                                                            <FaEdit />
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                {!loading && data.length === 0 && (
                                     <tr>
                                         <td colSpan={7} className={styles.emptyCell}>
                                             <div className={styles.emptyCellIcon}>

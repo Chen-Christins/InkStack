@@ -415,7 +415,7 @@ const AdminLayout: React.FC = () => {
                 <main className={`${styles.adminMainContent} ${sidebarCollapsed ? styles.expanded : ""}`}>
                     {/* 顶部栏 */}
                     <header className={styles.adminTopBar}>
-                        <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+                        <div className={styles.adminTopBarLeft}>
                             {/* 移动端菜单按钮 */}
                             <button className={styles.mobileMenuBtn} onClick={toggleMobileMenu} aria-label={t("layout.openMenu")}>
                                 <FaBars />

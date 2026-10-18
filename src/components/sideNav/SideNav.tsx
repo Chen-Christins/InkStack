@@ -5,6 +5,7 @@ import { FaHome, FaBuilding, FaQuestionCircle } from "react-icons/fa";
 import styles from "./SideNav.module.css";
 import ThemeToggle from "../themeToggle/ThemeToggle";
 import LayoutModeToggle from "../layoutModeToggle/LayoutModeToggle";
+import HomeQuickTools from "../homeQuickTools/HomeQuickTools";
 import Avatar from "../avatar/Avatar";
 import { useSiteSettings } from "@/contexts/SiteSettingsContext";
 
@@ -165,9 +166,14 @@ const SideNav: React.FC<SideNavProps> = ({ open = false, onClose }) => {
                     ))}
                 </ul>
 
+                {/* 移动端工具胶囊：主题、日历、语言等 */}
+                <div className={styles.mobileTools}>
+                    <HomeQuickTools variant="stack" onToolOpen={onClose} />
+                </div>
+
                 {/* 工具胶囊 */}
                 <div className={styles.utilities}>
-                    <div className={styles.utilitySlot}>
+                    <div className={`${styles.utilitySlot} ${styles.themeSlot}`}>
                         <ThemeToggle />
                     </div>
                     <div className={styles.utilitySlot}>

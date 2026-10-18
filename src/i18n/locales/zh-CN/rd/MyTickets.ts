@@ -1,6 +1,7 @@
 const section = {
     pageTitle: "我的工单",
     pageDescription: "我负责或创建的需求、缺陷与任务",
+    loading: "加载中...",
     tabs: {
         req: "需求",
         bug: "缺陷",

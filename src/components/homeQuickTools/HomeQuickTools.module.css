@@ -72,3 +72,73 @@
     box-shadow: none;
     margin-bottom: 0;
 }
+
+.stack .group {
+    flex-direction: column;
+    height: auto;
+    padding: 8px;
+    border-radius: 26px;
+}
+
+.stack .toolBtn {
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+}
+
+.stackBackdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 1190;
+    animation: backdropIn 0.2s ease-out;
+}
+
+.popup.stackPopup {
+    position: fixed;
+    top: auto;
+    right: 16px;
+    bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+    left: 16px;
+    width: auto;
+    max-width: none;
+    max-height: calc(100vh - 32px);
+    border-radius: 16px;
+    z-index: 1200;
+    animation: sheetUp 0.25s ease-out;
+}
+
+@keyframes backdropIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes sheetUp {
+    from {
+        opacity: 0;
+        transform: translateY(16px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (max-width: 960px) {
+    .popup {
+        position: fixed;
+        top: calc(72px + env(safe-area-inset-top, 0px));
+        right: 16px;
+        left: 16px;
+        width: auto;
+        max-width: none;
+    }
+
+    .widthTool {
+        display: none;
+    }
+}

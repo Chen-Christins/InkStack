@@ -120,6 +120,12 @@
     gap: 8px;
 }
 
+.topBarTools {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+
 .actionBtn {
     display: inline-flex;
     align-items: center;
@@ -350,6 +356,10 @@
     .logoPill {
         display: flex;
     }
+
+    .topBarTools {
+        display: none;
+    }
 }
 
 @media (max-width: 640px) {
@@ -363,7 +373,7 @@
     }
 
     .logoPill {
-        padding: 0 8px;
+        display: none;
     }
 
     .actionBtn span {
