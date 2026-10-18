@@ -105,126 +105,7 @@ html.no-transition *::after {
     font-display: swap;
 }
 
-@font-face {
-    font-family: "Manrope";
-    src: url("/fonts/Manrope.woff2") format("woff2");
-    font-style: normal;
-    font-weight: 200 800;
-    font-display: swap;
-}
-
-@font-face {
-    font-family: "Nunito";
-    src: url("/fonts/Nunito.woff2") format("woff2");
-    font-style: normal;
-    font-weight: 200 1000;
-    font-display: swap;
-}
-
-@font-face {
-    font-family: "Quicksand";
-    src: url("/fonts/Quicksand.woff2") format("woff2");
-    font-style: normal;
-    font-weight: 300 700;
-    font-display: swap;
-}
-
-@font-face {
-    font-family: "Orbitron";
-    src: url("/fonts/Orbitron.woff2") format("woff2");
-    font-style: normal;
-    font-weight: 400 900;
-    font-display: swap;
-}
-
-@font-face {
-    font-family: "Rajdhani";
-    src: url("/fonts/Rajdhani-400.woff2") format("woff2");
-    font-style: normal;
-    font-weight: 400;
-    font-display: swap;
-}
-
-@font-face {
-    font-family: "Rajdhani";
-    src: url("/fonts/Rajdhani-600.woff2") format("woff2");
-    font-style: normal;
-    font-weight: 600;
-    font-display: swap;
-}
-
-@font-face {
-    font-family: "Rajdhani";
-    src: url("/fonts/Rajdhani-700.woff2") format("woff2");
-    font-style: normal;
-    font-weight: 700;
-    font-display: swap;
-}
-
-@font-face {
-    font-family: "Cormorant Garamond";
-    src: url("/fonts/CormorantGaramond.woff2") format("woff2");
-    font-style: normal;
-    font-weight: 300 700;
-    font-display: swap;
-}
-
-@font-face {
-    font-family: "Cinzel";
-    src: url("/fonts/Cinzel.woff2") format("woff2");
-    font-style: normal;
-    font-weight: 400 900;
-    font-display: swap;
-}
-
-@font-face {
-    font-family: "Comfortaa";
-    src: url("/fonts/Comfortaa.woff2") format("woff2");
-    font-style: normal;
-    font-weight: 300 700;
-    font-display: swap;
-}
-
-@font-face {
-    font-family: "IBM Plex Serif";
-    src: url("/fonts/IBMPlexSerif-400.woff2") format("woff2");
-    font-style: normal;
-    font-weight: 400;
-    font-display: swap;
-}
-
-@font-face {
-    font-family: "IBM Plex Serif";
-    src: url("/fonts/IBMPlexSerif-600.woff2") format("woff2");
-    font-style: normal;
-    font-weight: 600;
-    font-display: swap;
-}
-
-@font-face {
-    font-family: "IBM Plex Mono";
-    src: url("/fonts/IBMPlexMono-400.woff2") format("woff2");
-    font-style: normal;
-    font-weight: 400;
-    font-display: swap;
-}
-
-@font-face {
-    font-family: "IBM Plex Mono";
-    src: url("/fonts/IBMPlexMono-600.woff2") format("woff2");
-    font-style: normal;
-    font-weight: 600;
-    font-display: swap;
-}
-
-@font-face {
-    font-family: "Smiley Sans";
-    src: url("/fonts/SmileySans.woff2") format("woff2");
-    font-style: normal;
-    font-weight: 400 900;
-    font-display: swap;
-}
-
+/* 主题英文替换字体（Google Fonts · OFL，自托管 latin 子集） */
 /* CSS 变量定义 - 浅色主题 */
 :root {
     --page-max-width: 1560px;
@@ -235,32 +116,18 @@ html.no-transition *::after {
         "WenQuanYi Micro Hei", sans-serif;
     --font-cjk-serif:
         "Songti SC", "Noto Serif CJK SC", "Noto Serif SC", "Source Han Serif SC", "STSong", "AR PL UMing CN", "SimSun", serif;
-    --font-cjk-rounded:
-        "Yuanti SC", "YouYuan", "Hiragino Maru Gothic ProN", "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", "Noto Sans SC",
-        "Source Han Sans SC", sans-serif;
-    --font-cjk-kai: "Kaiti SC", "STKaiti", "KaiTi", "TW-Kai", "AR PL UKai CN", "Noto Serif CJK SC", "Noto Serif SC", serif;
     /* 字体 */
     --font-sans:
         -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue",
         var(--font-cjk-sans);
-    --font-serif: "Source Serif 4", Georgia, "Times New Roman", var(--font-cjk-serif);
-    --font-time-heading: "Playfair Display", "Source Serif 4", Georgia, "Times New Roman", var(--font-cjk-serif);
+    /* 全站中英文统一使用时代周刊的字体搭配 */
+    --font-latin-body: "Source Serif 4", Georgia, "Times New Roman";
+    --font-latin-heading: "Playfair Display", "Source Serif 4", Georgia, "Times New Roman";
+    --font-serif: var(--font-latin-body), var(--font-cjk-serif);
+    --font-time-heading: var(--font-latin-heading), var(--font-cjk-serif);
     --font-mono:
         "JetBrains Mono", "SFMono-Regular", "SF Mono", "Fira Code", Consolas, "Liberation Mono", Menlo, "Courier New", monospace;
     --font-neutral: "Helvetica Neue", Helvetica, Arial, var(--font-cjk-sans);
-    --font-ocean: "Manrope", "Source Sans 3", var(--font-cjk-sans);
-    --font-oppo:
-        "Inter", "OPPO Sans", "Source Sans 3", Poppins, -apple-system, BlinkMacSystemFont, "Helvetica Neue", Tahoma, Arial, sans-serif,
-        "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-    --font-rounded: "Nunito", var(--font-cjk-rounded);
-    --font-sakura: "Quicksand", var(--font-cjk-rounded);
-    --font-cyber-heading: "Orbitron", "Smiley Sans", var(--font-cjk-sans);
-    --font-cyber-body: "Rajdhani", var(--font-cjk-sans);
-    --font-lavender: "Comfortaa", var(--font-cjk-kai);
-    --font-serif-luxury: "Cormorant Garamond", "Didot", "Bodoni MT", "Baskerville", Georgia, var(--font-cjk-serif);
-    --font-gold-heading: "Cinzel", "Cormorant Garamond", var(--font-cjk-serif);
-    --font-pi-heading: "IBM Plex Mono", "Courier New", var(--font-cjk-serif);
-    --font-pi-body: "IBM Plex Serif", Georgia, var(--font-cjk-serif);
     --font-family: var(--font-sans);
 
     /* 基础颜色 */
@@ -661,7 +528,7 @@ html.no-transition *::after {
 /* ========== 极简黑白（data-skin="monochrome"） ========== */
 
 [data-skin="monochrome"] {
-    --font-family: var(--font-oppo);
+    --font-family: var(--font-serif);
 
     --bg-primary: #fafafa;
     --bg-secondary: #f2f2f2;
@@ -817,7 +684,7 @@ html.no-transition *::after {
 /* ========== 护眼豆绿（data-skin="mint"） ========== */
 
 [data-skin="mint"] {
-    --font-family: var(--font-rounded);
+    --font-family: var(--font-serif);
 
     --bg-primary: #f4f7f0;
     --bg-secondary: #edf2e7;
@@ -973,7 +840,7 @@ html.no-transition *::after {
 /* ========== 海洋蓝（data-skin="ocean"） ========== */
 
 [data-skin="ocean"] {
-    --font-family: var(--font-ocean);
+    --font-family: var(--font-serif);
 
     --bg-primary: #f0f6fb;
     --bg-secondary: #e8f1f8;
@@ -1129,7 +996,7 @@ html.no-transition *::after {
 /* ========== 樱花粉（data-skin="sakura"） ========== */
 
 [data-skin="sakura"] {
-    --font-family: var(--font-sakura);
+    --font-family: var(--font-serif);
 
     --bg-primary: #fff5f7;
     --bg-secondary: #fbebee;
@@ -1285,7 +1152,7 @@ html.no-transition *::after {
 /* ========== 赛博朋克（data-skin="cyberpunk"） ========== */
 
 [data-skin="cyberpunk"] {
-    --font-family: var(--font-cyber-body);
+    --font-family: var(--font-serif);
 
     --bg-primary: #f4f2ff;
     --bg-secondary: #ece9ff;
@@ -1441,7 +1308,7 @@ html.no-transition *::after {
 /* ========== 暗金奢华（data-skin="gold"） ========== */
 
 [data-skin="gold"] {
-    --font-family: var(--font-serif-luxury);
+    --font-family: var(--font-serif);
 
     --bg-primary: #faf6ee;
     --bg-secondary: #f3ecdd;
@@ -1597,7 +1464,7 @@ html.no-transition *::after {
 /* ========== 薰衣草紫（data-skin="lavender"） ========== */
 
 [data-skin="lavender"] {
-    --font-family: var(--font-lavender);
+    --font-family: var(--font-serif);
 
     --bg-primary: #f7f5ff;
     --bg-secondary: #efecff;
@@ -1753,7 +1620,7 @@ html.no-transition *::after {
 /* ========== Pi 极客（data-skin="pi"） ========== */
 
 [data-skin="pi"] {
-    --font-family: var(--font-pi-body);
+    --font-family: var(--font-serif);
 
     --bg-primary: #ebe7e4;
     --bg-secondary: #e2dedb;
@@ -1931,7 +1798,7 @@ html.no-transition *::after {
 [data-skin="monochrome"] h3,
 [data-skin="monochrome"] .page-title,
 [data-skin="monochrome"] .panel-title {
-    font-family: var(--font-oppo);
+    font-family: var(--font-time-heading);
     font-weight: 700;
 }
 
@@ -1940,7 +1807,7 @@ html.no-transition *::after {
 [data-skin="mint"] h3,
 [data-skin="mint"] .page-title,
 [data-skin="mint"] .panel-title {
-    font-family: var(--font-rounded);
+    font-family: var(--font-time-heading);
     font-weight: 600;
 }
 
@@ -1949,7 +1816,7 @@ html.no-transition *::after {
 [data-skin="ocean"] h3,
 [data-skin="ocean"] .page-title,
 [data-skin="ocean"] .panel-title {
-    font-family: var(--font-ocean);
+    font-family: var(--font-time-heading);
     font-weight: 600;
 }
 
@@ -1958,7 +1825,7 @@ html.no-transition *::after {
 [data-skin="sakura"] h3,
 [data-skin="sakura"] .page-title,
 [data-skin="sakura"] .panel-title {
-    font-family: var(--font-sakura);
+    font-family: var(--font-time-heading);
     font-weight: 600;
 }
 
@@ -1967,7 +1834,7 @@ html.no-transition *::after {
 [data-skin="cyberpunk"] h3,
 [data-skin="cyberpunk"] .page-title,
 [data-skin="cyberpunk"] .panel-title {
-    font-family: var(--font-cyber-heading);
+    font-family: var(--font-time-heading);
     font-weight: 700;
     letter-spacing: 0.02em;
 }
@@ -1977,7 +1844,7 @@ html.no-transition *::after {
 [data-skin="gold"] h3,
 [data-skin="gold"] .page-title,
 [data-skin="gold"] .panel-title {
-    font-family: var(--font-gold-heading);
+    font-family: var(--font-time-heading);
     font-weight: 700;
 }
 
@@ -1986,7 +1853,7 @@ html.no-transition *::after {
 [data-skin="lavender"] h3,
 [data-skin="lavender"] .page-title,
 [data-skin="lavender"] .panel-title {
-    font-family: var(--font-lavender);
+    font-family: var(--font-time-heading);
     font-weight: 600;
 }
 
@@ -1995,7 +1862,7 @@ html.no-transition *::after {
 [data-skin="pi"] h3,
 [data-skin="pi"] .page-title,
 [data-skin="pi"] .panel-title {
-    font-family: var(--font-pi-heading);
+    font-family: var(--font-time-heading);
     font-weight: 600;
     letter-spacing: -0.015em;
 }

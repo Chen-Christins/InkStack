@@ -77,7 +77,7 @@
     border-radius: 7px;
     cursor: pointer;
     text-align: center;
-    font-family: inherit;
+    font-family: var(--font-time-heading);
 }
 
 .presetItem:hover {
