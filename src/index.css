@@ -88,25 +88,46 @@ html.no-transition *::after {
     font-display: swap;
 }
 
+/* 主题英文展示字体（Google Fonts · OFL，自托管 latin 子集） */
+@font-face {
+    font-family: "Playfair Display";
+    src: url("/fonts/PlayfairDisplay.woff2") format("woff2");
+    font-style: normal;
+    font-weight: 400 900;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "Source Serif 4";
+    src: url("/fonts/SourceSerif4.woff2") format("woff2");
+    font-style: normal;
+    font-weight: 200 900;
+    font-display: swap;
+}
+
+/* 主题英文替换字体（Google Fonts · OFL，自托管 latin 子集） */
 /* CSS 变量定义 - 浅色主题 */
 :root {
     --page-max-width: 1560px;
 
+    /* 中文字体回退栈（按平台优先级） */
+    --font-cjk-sans:
+        "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", "Noto Sans SC", "Source Han Sans SC",
+        "WenQuanYi Micro Hei", sans-serif;
+    --font-cjk-serif:
+        "Songti SC", "Noto Serif CJK SC", "Noto Serif SC", "Source Han Serif SC", "STSong", "AR PL UMing CN", "SimSun", serif;
     /* 字体 */
     --font-sans:
-        -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
-    --font-serif: Georgia, "Times New Roman", "Noto Serif SC", "Songti SC", "STSong", "SimSun", "Source Han Serif SC", serif;
+        -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue",
+        var(--font-cjk-sans);
+    /* 全站中英文统一使用时代周刊的字体搭配 */
+    --font-latin-body: "Source Serif 4", Georgia, "Times New Roman";
+    --font-latin-heading: "Playfair Display", "Source Serif 4", Georgia, "Times New Roman";
+    --font-serif: var(--font-latin-body), var(--font-cjk-serif);
+    --font-time-heading: var(--font-latin-heading), var(--font-cjk-serif);
     --font-mono:
         "JetBrains Mono", "SFMono-Regular", "SF Mono", "Fira Code", Consolas, "Liberation Mono", Menlo, "Courier New", monospace;
-    --font-neutral: "Helvetica Neue", Helvetica, Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
-    --font-oppo:
-        "OPPO Sans", "Inter", "Source Sans 3", Poppins, -apple-system, BlinkMacSystemFont, "Helvetica Neue", Tahoma, Arial, sans-serif,
-        "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-    --font-rounded: "Hiragino Maru Gothic ProN", "Yuanti SC", "PingFang SC", "Microsoft YaHei", "Verdana", sans-serif;
-    --font-kai: "Kaiti SC", "STKaiti", "KaiTi", "BiauKai", "DFKai-SB", serif;
-    --font-fangsong: "STFangsong", "FangSong", "FangSong_GB2312", "Noto Serif SC", serif;
-    --font-serif-luxury:
-        "Didot", "Bodoni MT", "Baskerville", Georgia, "Times New Roman", "Noto Serif SC", "Songti SC", "STSong", "SimSun", serif;
+    --font-neutral: "Helvetica Neue", Helvetica, Arial, var(--font-cjk-sans);
     --font-family: var(--font-sans);
 
     /* 基础颜色 */
@@ -507,7 +528,7 @@ html.no-transition *::after {
 /* ========== 极简黑白（data-skin="monochrome"） ========== */
 
 [data-skin="monochrome"] {
-    --font-family: var(--font-oppo);
+    --font-family: var(--font-serif);
 
     --bg-primary: #fafafa;
     --bg-secondary: #f2f2f2;
@@ -663,7 +684,7 @@ html.no-transition *::after {
 /* ========== 护眼豆绿（data-skin="mint"） ========== */
 
 [data-skin="mint"] {
-    --font-family: var(--font-rounded);
+    --font-family: var(--font-serif);
 
     --bg-primary: #f4f7f0;
     --bg-secondary: #edf2e7;
@@ -819,7 +840,7 @@ html.no-transition *::after {
 /* ========== 海洋蓝（data-skin="ocean"） ========== */
 
 [data-skin="ocean"] {
-    --font-family: var(--font-sans);
+    --font-family: var(--font-serif);
 
     --bg-primary: #f0f6fb;
     --bg-secondary: #e8f1f8;
@@ -975,7 +996,7 @@ html.no-transition *::after {
 /* ========== 樱花粉（data-skin="sakura"） ========== */
 
 [data-skin="sakura"] {
-    --font-family: var(--font-kai);
+    --font-family: var(--font-serif);
 
     --bg-primary: #fff5f7;
     --bg-secondary: #fbebee;
@@ -1131,7 +1152,7 @@ html.no-transition *::after {
 /* ========== 赛博朋克（data-skin="cyberpunk"） ========== */
 
 [data-skin="cyberpunk"] {
-    --font-family: var(--font-sans);
+    --font-family: var(--font-serif);
 
     --bg-primary: #f4f2ff;
     --bg-secondary: #ece9ff;
@@ -1287,7 +1308,7 @@ html.no-transition *::after {
 /* ========== 暗金奢华（data-skin="gold"） ========== */
 
 [data-skin="gold"] {
-    --font-family: var(--font-serif-luxury);
+    --font-family: var(--font-serif);
 
     --bg-primary: #faf6ee;
     --bg-secondary: #f3ecdd;
@@ -1443,7 +1464,7 @@ html.no-transition *::after {
 /* ========== 薰衣草紫（data-skin="lavender"） ========== */
 
 [data-skin="lavender"] {
-    --font-family: var(--font-fangsong);
+    --font-family: var(--font-serif);
 
     --bg-primary: #f7f5ff;
     --bg-secondary: #efecff;
@@ -1766,7 +1787,7 @@ html.no-transition *::after {
 [data-skin="time"] h3,
 [data-skin="time"] .page-title,
 [data-skin="time"] .panel-title {
-    font-family: var(--font-serif);
+    font-family: var(--font-time-heading);
     font-weight: 700;
     letter-spacing: -0.01em;
 }
@@ -1777,7 +1798,7 @@ html.no-transition *::after {
 [data-skin="monochrome"] h3,
 [data-skin="monochrome"] .page-title,
 [data-skin="monochrome"] .panel-title {
-    font-family: var(--font-oppo);
+    font-family: var(--font-time-heading);
     font-weight: 700;
 }
 
@@ -1786,7 +1807,7 @@ html.no-transition *::after {
 [data-skin="mint"] h3,
 [data-skin="mint"] .page-title,
 [data-skin="mint"] .panel-title {
-    font-family: var(--font-rounded);
+    font-family: var(--font-time-heading);
     font-weight: 600;
 }
 
@@ -1795,7 +1816,7 @@ html.no-transition *::after {
 [data-skin="ocean"] h3,
 [data-skin="ocean"] .page-title,
 [data-skin="ocean"] .panel-title {
-    font-family: var(--font-sans);
+    font-family: var(--font-time-heading);
     font-weight: 600;
 }
 
@@ -1804,7 +1825,7 @@ html.no-transition *::after {
 [data-skin="sakura"] h3,
 [data-skin="sakura"] .page-title,
 [data-skin="sakura"] .panel-title {
-    font-family: var(--font-kai);
+    font-family: var(--font-time-heading);
     font-weight: 600;
 }
 
@@ -1813,7 +1834,7 @@ html.no-transition *::after {
 [data-skin="cyberpunk"] h3,
 [data-skin="cyberpunk"] .page-title,
 [data-skin="cyberpunk"] .panel-title {
-    font-family: var(--font-mono);
+    font-family: var(--font-time-heading);
     font-weight: 700;
     letter-spacing: 0.02em;
 }
@@ -1823,7 +1844,7 @@ html.no-transition *::after {
 [data-skin="gold"] h3,
 [data-skin="gold"] .page-title,
 [data-skin="gold"] .panel-title {
-    font-family: var(--font-serif-luxury);
+    font-family: var(--font-time-heading);
     font-weight: 700;
 }
 
@@ -1832,7 +1853,7 @@ html.no-transition *::after {
 [data-skin="lavender"] h3,
 [data-skin="lavender"] .page-title,
 [data-skin="lavender"] .panel-title {
-    font-family: var(--font-fangsong);
+    font-family: var(--font-time-heading);
     font-weight: 600;
 }
 
@@ -1841,8 +1862,8 @@ html.no-transition *::after {
 [data-skin="pi"] h3,
 [data-skin="pi"] .page-title,
 [data-skin="pi"] .panel-title {
-    font-family: var(--font-serif);
-    font-weight: 650;
+    font-family: var(--font-time-heading);
+    font-weight: 600;
     letter-spacing: -0.015em;
 }
 
