@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 import { FaPalette, FaCalendarAlt, FaRss, FaGlobe } from "react-icons/fa";
 import { StretchHorizontal, LayoutPanelLeft, PanelTop } from "lucide-react";
@@ -18,12 +19,17 @@ interface HomeQuickToolsProps {
     tools?: ToolKey[];
     /** 以图标按钮形式收纳的工具（点击即切换） */
     utilities?: UtilityKey[];
+    /** pill：顶栏横向胶囊；stack：侧边菜单纵向列 */
+    variant?: "pill" | "stack";
+    /** 打开工具面板时的回调（用于关闭移动端菜单） */
+    onToolOpen?: () => void;
 }
 
-const HomeQuickTools: React.FC<HomeQuickToolsProps> = ({ tools, utilities }) => {
+const HomeQuickTools: React.FC<HomeQuickToolsProps> = ({ tools, utilities, variant = "pill", onToolOpen }) => {
     const { t } = useTranslation("nav");
     const [openKey, setOpenKey] = useState<ToolKey | null>(null);
     const dockRef = useRef<HTMLDivElement>(null);
+    const popupRef = useRef<HTMLDivElement>(null);
 
     const allTools: { key: ToolKey; label: string; icon: React.ReactNode }[] = [
         { key: "theme", label: t("tools.theme"), icon: <FaPalette /> },
@@ -51,9 +57,11 @@ const HomeQuickTools: React.FC<HomeQuickToolsProps> = ({ tools, utilities }) => 
         }
 
         const handleClickOutside = (event: MouseEvent) => {
-            if (dockRef.current && !dockRef.current.contains(event.target as Node)) {
-                setOpenKey(null);
+            const target = event.target as Node;
+            if (dockRef.current?.contains(target) || popupRef.current?.contains(target)) {
+                return;
             }
+            setOpenKey(null);
         };
         const handleKeyDown = (event: KeyboardEvent) => {
             if (event.key === "Escape") {
@@ -72,8 +80,20 @@ const HomeQuickTools: React.FC<HomeQuickToolsProps> = ({ tools, utilities }) => 
     const activeTool = allTools.find((tool) => tool.key === openKey);
     const showUtility = (key: UtilityKey) => utilities?.includes(key) ?? false;
 
+    const popup =
+        openKey && activeTool ? (
+            <div ref={popupRef} className={`${styles.popup} ${variant === "stack" ? styles.stackPopup : ""}`}>
+                <div className={styles.popupBody}>
+                    {openKey === "theme" && <ThemeStylePanel />}
+                    {openKey === "calendar" && <Calendar />}
+                    {openKey === "subscribe" && <SubscribeBox />}
+                    {openKey === "language" && <LanguagePanel />}
+                </div>
+            </div>
+        ) : null;
+
     return (
-        <div className={styles.dock} ref={dockRef}>
+        <div className={`${styles.dock} ${variant === "stack" ? styles.stack : ""}`} ref={dockRef}>
             <div className={styles.group}>
                 {visibleTools.map((tool) => (
                     <button
@@ -83,7 +103,13 @@ const HomeQuickTools: React.FC<HomeQuickToolsProps> = ({ tools, utilities }) => 
                         data-active={openKey === tool.key}
                         title={tool.label}
                         aria-label={tool.label}
-                        onClick={() => setOpenKey(openKey === tool.key ? null : tool.key)}
+                        onClick={() => {
+                            const next = openKey === tool.key ? null : tool.key;
+                            setOpenKey(next);
+                            if (next) {
+                                onToolOpen?.();
+                            }
+                        }}
                     >
                         {tool.icon}
                     </button>
@@ -92,7 +118,7 @@ const HomeQuickTools: React.FC<HomeQuickToolsProps> = ({ tools, utilities }) => 
                 {showUtility("width") && (
                     <button
                         type="button"
-                        className={styles.toolBtn}
+                        className={`${styles.toolBtn} ${styles.widthTool}`}
                         title={t("width.tooltip", { current: widthLabel[widthMode] })}
                         aria-label={t("width.tooltip", { current: widthLabel[widthMode] })}
                         onClick={cycleWidth}
@@ -118,16 +144,15 @@ const HomeQuickTools: React.FC<HomeQuickToolsProps> = ({ tools, utilities }) => 
                 )}
             </div>
 
-            {openKey && activeTool && (
-                <div className={styles.popup}>
-                    <div className={styles.popupBody}>
-                        {openKey === "theme" && <ThemeStylePanel />}
-                        {openKey === "calendar" && <Calendar />}
-                        {openKey === "subscribe" && <SubscribeBox />}
-                        {openKey === "language" && <LanguagePanel />}
-                    </div>
-                </div>
-            )}
+            {variant === "stack" && popup
+                ? createPortal(
+                      <>
+                          <div className={styles.stackBackdrop} onClick={() => setOpenKey(null)} />
+                          {popup}
+                      </>,
+                      document.body,
+                  )
+                : popup}
         </div>
     );
 };

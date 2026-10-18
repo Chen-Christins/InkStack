@@ -6,6 +6,7 @@ import { RdPlatformService } from "../services/RdPlatformService.ts";
 import type { RdOrgInfo } from "../types/RdPlatform.ts";
 import { isAdmin as checkIsAdmin } from "../types/Roles.ts";
 import { FaBuilding, FaHome, FaLock } from "react-icons/fa";
+import RdEntryLoader from "@/components/rdEntryLoader";
 
 interface RdOrgContextType {
     orgs: RdOrgInfo[];
@@ -114,20 +115,7 @@ export const RdOrgProvider: React.FC<{ children: ReactNode; initialOrgId?: strin
     }, [orgs]);
 
     if (loading) {
-        return (
-            <div
-                style={{
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    height: "100vh",
-                    fontSize: "16px",
-                    color: "var(--text-secondary)",
-                }}
-            >
-                {t("orgGate.loading")}
-            </div>
-        );
+        return <RdEntryLoader stage="org" />;
     }
 
     if (orgs.length === 0) {

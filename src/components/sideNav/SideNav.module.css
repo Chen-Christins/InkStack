@@ -145,6 +145,10 @@
     text-overflow: ellipsis;
 }
 
+.mobileTools {
+    display: none;
+}
+
 .utilities {
     display: flex;
     flex-direction: column;
@@ -197,6 +201,26 @@
     .sideNav {
         transform: translateX(calc(-100% - 24px));
         transition: transform 0.25s ease;
+        overflow-x: hidden;
+        overflow-y: auto;
+        scrollbar-width: none;
+    }
+
+    .sideNav::-webkit-scrollbar {
+        display: none;
+    }
+
+    .mobileTools {
+        display: flex;
+        margin-top: 8px;
+    }
+
+    .utilities {
+        margin-top: 0;
+    }
+
+    .themeSlot {
+        display: none;
     }
 
     .sideNav.open {

@@ -119,7 +119,7 @@ const TopBar: React.FC<TopBarProps> = ({ onMenuClick, tools }) => {
                     )}
                 </div>
 
-                {tools}
+                {tools && <div className={styles.topBarTools}>{tools}</div>}
 
                 <div className={styles.rightGroup} ref={userMenuRef}>
                     {import.meta.env.DEV && (

@@ -1,6 +1,7 @@
 const section = {
     pageTitle: "My Tickets",
     pageDescription: "Requirements, bugs, and tasks I own or created",
+    loading: "Loading...",
     tabs: {
         req: "Requirements",
         bug: "Bugs",

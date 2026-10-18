@@ -191,6 +191,15 @@ const Navbar: React.FC = () => {
                         </li>
                     ))}
                 </ul>
+
+                <div className={styles.mobileTools}>
+                    <HomeQuickTools
+                        variant="stack"
+                        tools={["theme", "subscribe", "language"]}
+                        utilities={["layoutMode"]}
+                        onToolOpen={closeMobileMenu}
+                    />
+                </div>
             </div>
         );
     };
@@ -236,7 +245,9 @@ const Navbar: React.FC = () => {
                                 <FaFlask className={styles.testButtonIcon} />
                             </button>
                         )}
-                        <HomeQuickTools tools={["theme", "subscribe"]} utilities={["width", "layoutMode"]} />
+                        <div className={styles.quickTools}>
+                            <HomeQuickTools tools={["theme", "subscribe", "language"]} utilities={["width", "layoutMode"]} />
+                        </div>
                         {/* 主题切换按钮 */}
                         <ThemeToggle />
 

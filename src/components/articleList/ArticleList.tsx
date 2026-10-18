@@ -230,10 +230,10 @@ const ArticleList: React.FC<ArticleListProps> = ({ labelId, labelName, categoryI
                                         <div className={styles.typeBadge}>{article.type}</div>
                                     </span>
                                     <span>
-                                        <FaCalendarAlt /> {article.publish_time}
+                                        <FaCalendarAlt /> <span className={styles.metaText}>{article.publish_time}</span>
                                     </span>
                                     <span>
-                                        <FaUser /> {article.author}
+                                        <FaUser /> <span className={styles.metaText}>{article.author}</span>
                                     </span>
                                     <span>
                                         <FaEye /> {article.views ?? 0}

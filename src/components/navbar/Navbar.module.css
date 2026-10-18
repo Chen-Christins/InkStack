@@ -145,6 +145,19 @@
     flex: 0 0 auto;
 }
 
+.quickTools {
+    display: flex;
+    align-items: center;
+}
+
+.mobileTools {
+    display: flex;
+    justify-content: flex-start;
+    margin-top: auto;
+    padding: 16px 20px;
+    border-top: 1px solid var(--border-primary);
+}
+
 .testButton {
     display: inline-flex;
     align-items: center;
@@ -547,6 +560,10 @@
 /* 响应式调整 */
 @media (max-width: 1164px) {
     .desktopNav {
+        display: none;
+    }
+
+    .quickTools {
         display: none;
     }
 

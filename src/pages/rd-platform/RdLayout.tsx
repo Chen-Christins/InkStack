@@ -26,6 +26,7 @@ import Navbar from "@/components/navbar/Navbar";
 import Footer from "@/components/footer/Footer";
 import AuthRequired from "@/components/auth/AuthRequired";
 import OrgSelector from "@/components/orgSelector/OrgSelector";
+import RdEntryLoader from "@/components/rdEntryLoader";
 import { useAuth } from "@/contexts/AuthContext";
 import { RdOrgProvider, useRdOrg } from "@/contexts/RdOrgContext";
 import { RdPlatformService } from "@/services/RdPlatformService.ts";
@@ -67,20 +68,7 @@ const RdLayout: React.FC = () => {
     }, [user]);
 
     if (loading) {
-        return (
-            <div
-                style={{
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    height: "100vh",
-                    fontSize: "16px",
-                    color: "var(--text-secondary)",
-                }}
-            >
-                {t("layout.loading")}
-            </div>
-        );
+        return <RdEntryLoader stage="auth" />;
     }
 
     if (!isAuthenticated || !user) {
@@ -111,20 +99,7 @@ const RdLayout: React.FC = () => {
     }
 
     if (!accessChecked) {
-        return (
-            <div
-                style={{
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    height: "100vh",
-                    fontSize: "16px",
-                    color: "var(--text-secondary)",
-                }}
-            >
-                {t("layout.checkingAccess")}
-            </div>
-        );
+        return <RdEntryLoader stage="access" />;
     }
 
     if (!canAccess) {
@@ -450,7 +425,7 @@ const RdLayout: React.FC = () => {
 
                     <main className={`${styles.rdMainContent} ${sidebarCollapsed ? styles.expanded : ""}`}>
                         <header className={styles.rdTopBar}>
-                            <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+                            <div className={styles.rdTopBarLeft}>
                                 <button className={styles.mobileMenuBtn} onClick={toggleMobileMenu} aria-label={t("layout.openMenu")}>
                                     <FaBars />
                                 </button>
