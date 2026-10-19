@@ -9,6 +9,7 @@ import ticketDetail from "./rd/TicketDetail";
 import agent from "./rd/Agent";
 import agentConfig from "./rd/AgentConfig";
 import trend from "./rd/Trend";
+import prDistribution from "./rd/PrDistribution";
 import orgGate from "./rd/OrgGate";
 import entryLoader from "./rd/EntryLoader";
 
@@ -24,6 +25,7 @@ const rd = {
     agent,
     agentConfig,
     trend,
+    prDistribution,
     orgGate,
     entryLoader,
 } as const;

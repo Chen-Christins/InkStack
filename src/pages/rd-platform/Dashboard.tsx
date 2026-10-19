@@ -9,6 +9,7 @@ import { encodeId } from "@/utils/HashId.ts";
 import { useRdOrg } from "@/contexts/RdOrgContext";
 import { RdPlatformService as RdAPI } from "@/services/RdPlatformService.ts";
 import AssigneeDisplay from "@/components/assigneeDisplay/AssigneeDisplay";
+import PrDistributionChart from "./PrDistributionChart";
 import type { RdStats, Requirement, Bug, Task } from "@/types/RdPlatform.ts";
 
 const Dashboard: React.FC = () => {
@@ -131,6 +132,9 @@ const Dashboard: React.FC = () => {
                     <div className={styles.statSub}>{t("dashboard.stats.requirementsAndBugs")}</div>
                 </div>
             </div>
+
+            {/* PR 分布 */}
+            <PrDistributionChart orgId={selectedOrgId} />
 
             {/* 最近的需求 */}
             <div className={styles.section}>
