@@ -1,4 +1,4 @@
-# TechHaven v1.1.0 发布：私信上线，多设备可管，Agent UI 可选接入
+# InkStack v1.1.0 发布：私信上线，多设备可管，Agent UI 可选接入
 
 > v1.1.0 在架构层面做了三件事：把 Agent UI 做成可选开关、把前端与 Agent 服务彻底解耦、把 CI 的构建拓扑补完整；功能层面则带来了期待已久的私信系统和多设备登录管理。
 
@@ -18,7 +18,7 @@ v1.1.0 引入了 `VITE_AGENT_ENABLED` 环境变量控制 Agent UI 的构建与�
 
 ### 前端与 Agent 服务解耦
 
-Agent 服务（Gateway、BFF、Bridge、MCP）已迁移到独立仓库 `TechHaven-agent-services`，与前端仓库完全解耦。前端不再引用同级仓库源码，不保存管理令牌，安装、检查、发布均独立进行。
+Agent 服务（Gateway、BFF、Bridge、MCP）已迁移到独立仓库 `InkStack-agent-services`，与前端仓库完全解耦。前端不再引用同级仓库源码，不保存管理令牌，安装、检查、发布均独立进行。
 
 共享部分（文章渲染、个人页面、研发列表、管理页样式）通过公共模块复用，两侧各自维护自己的业务逻辑。
 
@@ -76,4 +76,4 @@ v1.1.0 是一次「内外兼修」的更新：对外补上了私信和设备管�
 
 ---
 
-_本文随 TechHaven v1.1.0 发布。版本日志见项目仓库 `CHANGELOG.md`。_
+_本文随 InkStack v1.1.0 发布。版本日志见项目仓库 `CHANGELOG.md`。_

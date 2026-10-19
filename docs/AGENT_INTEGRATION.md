@@ -14,7 +14,7 @@ npm run dev
 
 本地开发代理默认指向 `http://127.0.0.1:3091`，可用 `TECHHAVEN_GATEWAY_URL` 覆盖。固定的 `TECHHAVEN_GATEWAY_PROXY_ACTOR` 仅用于本机开发。生产需要站点的 Nginx/BFF 验证会话并注入可信用户身份；不能使用固定 actor 作为生产认证。功能开关也不是服务端权限控制。
 
-独立服务仓库：`TechHaven-agent-services`，包含 Gateway、BFF、Bridge、MCP、数据库迁移及服务发布脚本。它与前端独立安装、检查、发布。前端不引用同级仓库源码，不保存管理令牌。
+独立服务仓库：`InkStack-agent-services`，包含 Gateway、BFF、Bridge、MCP、数据库迁移及服务发布脚本。它与前端独立安装、检查、发布。前端不引用同级仓库源码，不保存管理令牌。
 
 个人中心原有 AI 配置仍通过 `/api/v1/user/ai-config` 保存；Agent 页里的配置单独通过 `/gateway/v1/ai-configs` 访问。只有服务明确声明 legacy 模式才使用原配置存储，网络故障或鉴权失败不会触发自动回退。Agent 配置不可用时提供重试，不显示可误保存的空表单；普通请求 8 秒超时。Agent 会话连接失败时显示失败状态，不自动切换成演示结果。
 
