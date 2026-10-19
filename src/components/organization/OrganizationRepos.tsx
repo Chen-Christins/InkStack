@@ -60,13 +60,17 @@ const languageColors: Record<string, string> = {
 interface Props {
     orgId: string;
     canManage: boolean;
+    /** 外部触发列表刷新的信号，变化时静默重新拉取仓库列表 */
+    refreshKey?: number;
     onChange?: (delta: number) => void;
 }
 
-const OrganizationRepos: React.FC<Props> = ({ orgId, canManage, onChange }) => {
+const OrganizationRepos: React.FC<Props> = ({ orgId, canManage, refreshKey = 0, onChange }) => {
     const { t } = useTranslation("organization");
     const [repos, setRepos] = useState<Repo[]>([]);
     const [loading, setLoading] = useState(true);
+    const requestIdRef = useRef(0);
+    const previousOrgIdRef = useRef(orgId);
 
     // ---- 同步状态文案 ----
     const syncStatusText: Record<string, string> = {
@@ -87,8 +91,16 @@ const OrganizationRepos: React.FC<Props> = ({ orgId, canManage, onChange }) => {
 
     // ---- 获取仓库列表 ----
     const fetchRepos = async () => {
+        if (!orgId) {
+            return;
+        }
+        const requestId = requestIdRef.current + 1;
+        requestIdRef.current = requestId;
         try {
             const res = await OrganizationService.getRepos({ org_id: orgId });
+            if (requestId !== requestIdRef.current) {
+                return;
+            }
             setRepos(
                 (res.list || []).map((item: any) => ({
                     id: String(item.id),
@@ -108,18 +120,39 @@ const OrganizationRepos: React.FC<Props> = ({ orgId, canManage, onChange }) => {
                 })),
             );
         } catch (err: any) {
+            if (requestId !== requestIdRef.current) {
+                return;
+            }
             message.error(err?.message || t("repos.fetchFailed"));
         }
     };
 
     useEffect(() => {
         if (!orgId) {
+            requestIdRef.current += 1;
+            setRepos([]);
             setLoading(false);
             return;
         }
-        setLoading(true);
-        fetchRepos().finally(() => setLoading(false));
-    }, [orgId]);
+
+        const orgChanged = previousOrgIdRef.current !== orgId;
+        previousOrgIdRef.current = orgId;
+        if (orgChanged) {
+            setRepos([]);
+            setLoading(true);
+        }
+
+        let cancelled = false;
+        fetchRepos().finally(() => {
+            if (!cancelled) {
+                setLoading(false);
+            }
+        });
+        return () => {
+            cancelled = true;
+            requestIdRef.current += 1;
+        };
+    }, [orgId, refreshKey]);
 
     // ---- 轮询同步状态 ----
     useEffect(() => {

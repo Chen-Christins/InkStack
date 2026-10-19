@@ -155,6 +155,7 @@ const OrganizationTabs: React.FC<OrganizationTabsProps> = ({
     // 仓库添加相关状态
     const [repoModalVisible, setRepoModalVisible] = React.useState(false);
     const [repoForm, setRepoForm] = React.useState({ name: "", url: "", token: "" });
+    const [reposRefreshKey, setReposRefreshKey] = React.useState(0);
 
     const handleAddRepo = async () => {
         if (!repoForm.name.trim()) {
@@ -180,6 +181,7 @@ const OrganizationTabs: React.FC<OrganizationTabsProps> = ({
             setRepoModalVisible(false);
             message.success(t("tabs.message.repoAddSuccess"));
             onReposChange?.(1);
+            setReposRefreshKey((prev) => prev + 1);
         } catch {
             message.error(t("tabs.message.repoAddFailed"));
         }
@@ -756,6 +758,7 @@ const OrganizationTabs: React.FC<OrganizationTabsProps> = ({
                 <OrganizationRepos
                     orgId={org?.id || ""}
                     canManage={canManageOrg(userRole, currentUser?.role)}
+                    refreshKey={reposRefreshKey}
                     onChange={onReposChange}
                 />
             )}
