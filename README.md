@@ -1,8 +1,8 @@
-# TechHaven
+# InkStack
 
 [English](README.en.md)
 
-TechHaven 是一个面向技术团队的知识与协作平台前端，将技术博客、社区互动、组织协作和轻量研发管理整合在同一个应用中。
+InkStack 是一个面向技术团队的知识与协作平台前端，将技术博客、社区互动、组织协作和轻量研发管理整合在同一个应用中。
 
 用户可以发布和阅读技术文章、参与评论互动，并在组织内管理需求、缺陷、任务、作业和 GitHub Pull Request 数据。平台还提供个人中心、实时通知、研发趋势分析和管理后台，用于连接知识沉淀与研发执行。
 
@@ -86,8 +86,8 @@ TechHaven 是一个面向技术团队的知识与协作平台前端，将技术�
 ## 快速开始
 
 ```bash
-git clone https://github.com/Chen-Christins/TechHaven.git
-cd TechHaven
+git clone https://github.com/Chen-Christins/InkStack.git
+cd InkStack
 npm ci
 npm run dev
 ```
@@ -128,7 +128,7 @@ npm run dev
 ## 项目结构
 
 ```text
-TechHaven/
+InkStack/
 ├─ .github/workflows/        # CI 构建检查与 tag 发布
 ├─ docs/                     # 部分页面的数据模型和接口契约
 ├─ public/                   # Logo、favicon 和主题光标资源

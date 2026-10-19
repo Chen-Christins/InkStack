@@ -1,8 +1,8 @@
-# TechHaven
+# InkStack
 
 [简体中文](README.md)
 
-TechHaven is a knowledge and collaboration platform frontend for technical teams. It brings technical blogging, community interaction, organization collaboration, and lightweight development management into one application.
+InkStack is a knowledge and collaboration platform frontend for technical teams. It brings technical blogging, community interaction, organization collaboration, and lightweight development management into one application.
 
 Users can publish and read technical articles, participate in discussions, and manage requirements, bugs, tasks, assignments, and GitHub Pull Request data within organizations. The platform also includes a personal center, real-time notifications, development trend analysis, and an administration console, connecting knowledge sharing with engineering execution.
 
@@ -86,8 +86,8 @@ The repository includes `package-lock.json`; `npm ci` is recommended for reprodu
 ## Quick Start
 
 ```bash
-git clone https://github.com/Chen-Christins/TechHaven.git
-cd TechHaven
+git clone https://github.com/Chen-Christins/InkStack.git
+cd InkStack
 npm ci
 npm run dev
 ```
@@ -128,7 +128,7 @@ The repository currently has no automated unit-test, end-to-end-test, or ESLint 
 ## Project Structure
 
 ```text
-TechHaven/
+InkStack/
 ├─ .github/workflows/        # CI build checks and tag-based releases
 ├─ docs/                     # Data models and API contracts for selected pages
 ├─ public/                   # Logo, favicon, and theme cursor assets

@@ -1,0 +1,27 @@
+const section = {
+    title: "PR 分布",
+    description3m: "近 3 个月每周 PR 提交与合入情况",
+    description15d: "近 15 天每日 PR 提交与合入情况",
+    rangeAria: "PR 分布时间范围",
+    range15d: "近 15 天",
+    range3m: "近 3 月",
+    byDay: "按天统计",
+    byWeek: "按周统计",
+    loading: "加载 PR 数据...",
+    errorTitle: "PR 数据加载失败",
+    errorHint: "请稍后重试；若持续失败，请联系管理员检查 PR 数据服务。",
+    retry: "重新加载",
+    emptyTitle: "暂无 PR 数据",
+    emptyHint: "当前时间范围内还没有同步的 Pull Request。",
+    summaryTotal: "PR 总数",
+    summaryMerged: "有效 PR（已合入）",
+    summaryRate: "合入率",
+    seriesTotal: "PR 数量",
+    seriesMerged: "有效 PR（合入）",
+    seriesRate: "合入率",
+    tooltipTotal: "PR 数量",
+    tooltipMerged: "有效 PR",
+    tooltipRate: "合入率",
+} as const;
+
+export default section;

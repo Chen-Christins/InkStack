@@ -15,6 +15,11 @@ import type {
     TaskFilters,
     RdTrendAnalysisData,
     RdTrendFilters,
+    RdPrDistributionData,
+    RdPrDistributionFilters,
+    RdPrDistributionGranularity,
+    RdPrDistributionPoint,
+    RdPrDistributionRange,
 } from "../types/RdPlatform.ts";
 
 // ---------------------------------------------------------------------------
@@ -183,6 +188,109 @@ function mapTrendResponse(raw: any): RdTrendAnalysisData {
     };
 }
 
+/** 补零为两位字符串 */
+function pad2(value: number): string {
+    return String(value).padStart(2, "0");
+}
+
+/** 从后端日期字符串中提取 YYYY-MM-DD，避免时区偏移 */
+function normalizeDate(value: unknown): string {
+    if (typeof value !== "string") {
+        return "";
+    }
+    const match = value.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    return match ? `${match[1]}-${match[2]}-${match[3]}` : "";
+}
+
+/** "YYYY-MM-DD" 增加天数（使用 UTC 规避时区与夏令时问题） */
+function addDays(dateStr: string, days: number): string {
+    const parts = dateStr.split("-").map((item) => Number(item));
+    if (parts.length !== 3 || parts.some((item) => Number.isNaN(item))) {
+        return dateStr;
+    }
+    const date = new Date(Date.UTC(parts[0], parts[1] - 1, parts[2] + days));
+    return `${date.getUTCFullYear()}-${pad2(date.getUTCMonth() + 1)}-${pad2(date.getUTCDate())}`;
+}
+
+/** 安全转换为有限数字 */
+function toFiniteNumber(value: unknown, fallback = 0): number {
+    const num = typeof value === "number" ? value : Number(value);
+    return Number.isFinite(num) ? num : fallback;
+}
+
+/** 保留一位小数 */
+function round1(value: number): number {
+    return Math.round(value * 10) / 10;
+}
+
+/** 后端 PR 分布响应 → 前端 RdPrDistributionData */
+function mapPrDistributionResponse(
+    raw: any,
+    range: RdPrDistributionRange,
+    granularity: RdPrDistributionGranularity,
+): RdPrDistributionData {
+    const rawPoints = Array.isArray(raw) ? raw : Array.isArray(raw?.points) ? raw.points : Array.isArray(raw?.list) ? raw.list : [];
+    const buckets = new Map<string, RdPrDistributionPoint>();
+
+    for (const item of rawPoints) {
+        const date = normalizeDate(item?.date ?? item?.start_date ?? item?.bucket_start);
+        if (!date) {
+            continue;
+        }
+        const total = Math.max(0, Math.round(toFiniteNumber(item?.total ?? item?.pr_total ?? item?.count)));
+        const merged = Math.max(
+            0,
+            Math.round(toFiniteNumber(item?.merged ?? item?.merged_total ?? item?.effective ?? item?.merged_count)),
+        );
+        const endDate = normalizeDate(item?.end_date) || addDays(date, granularity === "week" ? 6 : 0);
+        const prev = buckets.get(date);
+        if (prev) {
+            prev.total += total;
+            prev.merged += merged;
+            if (endDate > prev.endDate) {
+                prev.endDate = endDate;
+            }
+        } else {
+            buckets.set(date, { date, endDate, total, merged });
+        }
+    }
+
+    const points = Array.from(buckets.values()).sort((a, b) => a.date.localeCompare(b.date));
+    const summaryRaw = raw?.summary ?? {};
+    const total = Math.max(
+        0,
+        Math.round(
+            toFiniteNumber(
+                summaryRaw.total ?? summaryRaw.pr_total,
+                points.reduce((sum, item) => sum + item.total, 0),
+            ),
+        ),
+    );
+    const merged = Math.max(
+        0,
+        Math.round(
+            toFiniteNumber(
+                summaryRaw.merged ?? summaryRaw.merged_total ?? summaryRaw.effective,
+                points.reduce((sum, item) => sum + item.merged, 0),
+            ),
+        ),
+    );
+    const mergeRateRaw = summaryRaw.merge_rate ?? summaryRaw.mergeRate;
+    const mergeRate =
+        mergeRateRaw === undefined || mergeRateRaw === null
+            ? total > 0
+                ? round1((merged * 100) / total)
+                : 0
+            : Math.min(100, Math.max(0, round1(toFiniteNumber(mergeRateRaw))));
+
+    return {
+        range,
+        granularity,
+        points,
+        summary: { total, merged, mergeRate },
+    };
+}
+
 // ---------------------------------------------------------------------------
 // Service
 // ---------------------------------------------------------------------------
@@ -214,6 +322,22 @@ export class RdPlatformService {
         });
         const res = await http.get<any>(`${BASE}/trends${q}`);
         return mapTrendResponse(res.data);
+    }
+
+    /**
+     * 获取 PR 分布（近 15 天按天 / 近 3 月按周）
+     *
+     * 后端接口：GET /rd/pr-distribution?org_id=&range=15d|3m&granularity=day|week
+     */
+    static async getPrDistribution(filters: RdPrDistributionFilters): Promise<RdPrDistributionData> {
+        const granularity = filters.granularity || (filters.range === "3m" ? "week" : "day");
+        const q = toQuery({
+            org_id: filters.orgId,
+            range: filters.range,
+            granularity,
+        });
+        const res = await http.get<any>(`${BASE}/pr-distribution${q}`);
+        return mapPrDistributionResponse(res.data, filters.range, granularity);
     }
 
     // -- Requirements ---------------------------------------------------------

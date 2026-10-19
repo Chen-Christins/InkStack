@@ -581,7 +581,7 @@ const Settings: React.FC = () => {
                                         className={styles.formInput}
                                         value={emailSettings.fromEmail}
                                         onChange={(e) => handleEmailSettingChange("fromEmail", e.target.value)}
-                                        placeholder="noreply@techblog.com"
+                                        placeholder="noreply@InkStack.com"
                                     />
                                 </div>
                                 <div className={styles.formGroup}>
@@ -591,7 +591,7 @@ const Settings: React.FC = () => {
                                         className={styles.formInput}
                                         value={emailSettings.fromName}
                                         onChange={(e) => handleEmailSettingChange("fromName", e.target.value)}
-                                        placeholder="TechBlog"
+                                        placeholder="InkStack"
                                     />
                                 </div>
                                 <div className={styles.formGroup}>
@@ -601,7 +601,7 @@ const Settings: React.FC = () => {
                                         className={styles.formInput}
                                         value={emailSettings.replyTo}
                                         onChange={(e) => handleEmailSettingChange("replyTo", e.target.value)}
-                                        placeholder="support@techblog.com"
+                                        placeholder="support@InkStack.com"
                                     />
                                 </div>
                             </div>

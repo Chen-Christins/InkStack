@@ -1,0 +1,27 @@
+const section = {
+    title: "PR Distribution",
+    description3m: "Weekly PR submissions and merges over the last 3 months",
+    description15d: "Daily PR submissions and merges over the last 15 days",
+    rangeAria: "PR distribution time range",
+    range15d: "Last 15 Days",
+    range3m: "Last 3 Months",
+    byDay: "Daily",
+    byWeek: "Weekly",
+    loading: "Loading PR data...",
+    errorTitle: "Failed to load PR data",
+    errorHint: "Please try again later. If the issue persists, contact the administrator to check the PR data service.",
+    retry: "Retry",
+    emptyTitle: "No PR data",
+    emptyHint: "No Pull Requests were synced in the selected time range.",
+    summaryTotal: "Total PRs",
+    summaryMerged: "Merged PRs",
+    summaryRate: "Merge Rate",
+    seriesTotal: "PR Count",
+    seriesMerged: "Merged PRs",
+    seriesRate: "Merge Rate",
+    tooltipTotal: "PR count",
+    tooltipMerged: "Merged PRs",
+    tooltipRate: "Merge rate",
+} as const;
+
+export default section;

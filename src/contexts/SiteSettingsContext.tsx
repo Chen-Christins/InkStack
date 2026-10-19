@@ -30,7 +30,7 @@ interface SiteSettingsContextType {
 }
 
 const DEFAULT_SETTINGS: SiteSettingsState = {
-    siteName: "TechBlog",
+    siteName: "InkStack",
     siteDescription: "",
     siteKeywords: "",
     siteIcon: "",

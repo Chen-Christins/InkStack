@@ -162,6 +162,46 @@ export interface RdTrendFilters {
     granularity?: "day" | "week" | "month";
 }
 
+/** PR 分布统计时间范围：近 15 天（按天）/ 近 3 月（按周） */
+export type RdPrDistributionRange = "15d" | "3m";
+
+/** PR 分布统计粒度 */
+export type RdPrDistributionGranularity = "day" | "week";
+
+/** PR 分布单个时间桶 */
+export interface RdPrDistributionPoint {
+    /** 桶起始日期 YYYY-MM-DD */
+    date: string;
+    /** 桶结束日期 YYYY-MM-DD（按周时为周日） */
+    endDate: string;
+    /** 该桶内创建的 PR 数量 */
+    total: number;
+    /** 该桶内创建且已合入的 PR 数量 */
+    merged: number;
+}
+
+/** PR 分布汇总 */
+export interface RdPrDistributionSummary {
+    total: number;
+    merged: number;
+    /** 合入率，0-100 */
+    mergeRate: number;
+}
+
+/** PR 分布数据 */
+export interface RdPrDistributionData {
+    range: RdPrDistributionRange;
+    granularity: RdPrDistributionGranularity;
+    points: RdPrDistributionPoint[];
+    summary: RdPrDistributionSummary;
+}
+
+export interface RdPrDistributionFilters {
+    orgId?: string;
+    range: RdPrDistributionRange;
+    granularity?: RdPrDistributionGranularity;
+}
+
 export interface PaginatedResponse<T> {
     data: T[];
     total: number;
