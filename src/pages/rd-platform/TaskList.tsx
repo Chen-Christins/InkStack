@@ -83,6 +83,7 @@ const TaskList: React.FC = () => {
         data: tasks,
         total,
         loading,
+        initialLoaded,
         refresh: fetchData,
     } = useRdList(RdAPI.getTasks, filters, currentPage, selectedOrgId, PAGE_SIZE);
 
@@ -211,7 +212,7 @@ const TaskList: React.FC = () => {
         return pages;
     };
 
-    if (loading && tasks.length === 0) {
+    if (loading && !initialLoaded) {
         return <Loading />;
     }
 
@@ -302,64 +303,74 @@ const TaskList: React.FC = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {tasks.map((task) => (
-                            <tr key={task.id}>
-                                <td
-                                    className={styles.titleCell}
-                                    data-label={t("tasks.table.title")}
-                                    onClick={() => navigate(`/rd/tasks/${encodeId(task.id, "task")}`)}
-                                >
-                                    {task.title}
-                                </td>
-                                <td data-label={t("tasks.table.status")}>
-                                    <span className={`${styles.badge} ${styles[`status_${task.status}`]}`}>
-                                        {enums.rdTaskStatus[task.status]}
-                                    </span>
-                                </td>
-                                <td data-label={t("tasks.table.priority")}>
-                                    <span className={`${styles.badge} ${styles[`priority_${task.priority}`]}`}>
-                                        {enums.rdPriority[task.priority]}
-                                    </span>
-                                </td>
-                                <td data-label={t("tasks.table.assignee")}>
-                                    <AssigneeDisplay name={task.assignee} avatar={task.assigneeAvatar} />
-                                </td>
-                                <td data-label={t("tasks.table.deadline")}>{task.deadline ? formatDateTime(task.deadline) : "-"}</td>
-                                <td data-label={t("tasks.table.estimatedHours")}>
-                                    {task.estimatedHours ? `${task.estimatedHours}h` : "-"}
-                                </td>
-                                <td data-label={t("tasks.table.actions")}>
-                                    <div className={styles.actionButtons}>
-                                        <button
-                                            className={`${styles.actionBtn} ${styles.view}`}
-                                            title={t("tasks.actions.view")}
-                                            onClick={() => navigate(`/rd/tasks/${encodeId(task.id, "task")}`)}
-                                        >
-                                            <FaEye />
-                                        </button>
-                                        {OrgPermission.canEdit(maxOrgRole) && (
-                                            <button
-                                                className={`${styles.actionBtn} ${styles.edit}`}
-                                                title={t("tasks.actions.edit")}
-                                                onClick={() => openEdit(task)}
-                                            >
-                                                <FaEdit />
-                                            </button>
-                                        )}
-                                        {OrgPermission.canDelete(maxOrgRole) && (
-                                            <button
-                                                className={`${styles.actionBtn} ${styles.delete}`}
-                                                title={t("tasks.actions.delete")}
-                                                onClick={() => handleDelete(task)}
-                                            >
-                                                <FaTrash />
-                                            </button>
-                                        )}
-                                    </div>
+                        {loading && (
+                            <tr>
+                                <td colSpan={7} className={styles.emptyCell}>
+                                    <Loading size="small" />
                                 </td>
                             </tr>
-                        ))}
-                        {tasks.length === 0 && (
+                        )}
+                        {!loading &&
+                            tasks.map((task) => (
+                                <tr key={task.id}>
+                                    <td
+                                        className={styles.titleCell}
+                                        data-label={t("tasks.table.title")}
+                                        onClick={() => navigate(`/rd/tasks/${encodeId(task.id, "task")}`)}
+                                    >
+                                        {task.title}
+                                    </td>
+                                    <td data-label={t("tasks.table.status")}>
+                                        <span className={`${styles.badge} ${styles[`status_${task.status}`]}`}>
+                                            {enums.rdTaskStatus[task.status]}
+                                        </span>
+                                    </td>
+                                    <td data-label={t("tasks.table.priority")}>
+                                        <span className={`${styles.badge} ${styles[`priority_${task.priority}`]}`}>
+                                            {enums.rdPriority[task.priority]}
+                                        </span>
+                                    </td>
+                                    <td data-label={t("tasks.table.assignee")}>
+                                        <AssigneeDisplay name={task.assignee} avatar={task.assigneeAvatar} />
+                                    </td>
+                                    <td data-label={t("tasks.table.deadline")}>
+                                        {task.deadline ? formatDateTime(task.deadline) : "-"}
+                                    </td>
+                                    <td data-label={t("tasks.table.estimatedHours")}>
+                                        {task.estimatedHours ? `${task.estimatedHours}h` : "-"}
+                                    </td>
+                                    <td data-label={t("tasks.table.actions")}>
+                                        <div className={styles.actionButtons}>
+                                            <button
+                                                className={`${styles.actionBtn} ${styles.view}`}
+                                                title={t("tasks.actions.view")}
+                                                onClick={() => navigate(`/rd/tasks/${encodeId(task.id, "task")}`)}
+                                            >
+                                                <FaEye />
+                                            </button>
+                                            {OrgPermission.canEdit(maxOrgRole) && (
+                                                <button
+                                                    className={`${styles.actionBtn} ${styles.edit}`}
+                                                    title={t("tasks.actions.edit")}
+                                                    onClick={() => openEdit(task)}
+                                                >
+                                                    <FaEdit />
+                                                </button>
+                                            )}
+                                            {OrgPermission.canDelete(maxOrgRole) && (
+                                                <button
+                                                    className={`${styles.actionBtn} ${styles.delete}`}
+                                                    title={t("tasks.actions.delete")}
+                                                    onClick={() => handleDelete(task)}
+                                                >
+                                                    <FaTrash />
+                                                </button>
+                                            )}
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                        {!loading && tasks.length === 0 && (
                             <tr>
                                 <td colSpan={7} className={styles.emptyCell}>
                                     <div className={styles.emptyCellIcon}>

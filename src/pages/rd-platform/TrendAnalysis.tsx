@@ -241,14 +241,13 @@ const TrendAnalysis: React.FC = () => {
 
     return (
         <div className={styles.trends}>
-            {loading && <Loading text={t("trend.refreshing")} overlay />}
-
             <div className={styles.pageHeader}>
                 <div>
                     <h1 className={styles.pageTitle}>{t("trend.pageTitle")}</h1>
                     <p className={styles.pageDescription}>{t("trend.pageDescription", { days: periodDays })}</p>
                 </div>
                 <div className={styles.pageActions}>
+                    {loading && <span className={styles.refreshing}>{t("trend.refreshing")}</span>}
                     <div className={styles.periodSwitch} aria-label={t("trend.periodAria")}>
                         <Button
                             size="small"

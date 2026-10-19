@@ -30,6 +30,12 @@
     flex-shrink: 0;
 }
 
+.refreshing {
+    color: var(--text-tertiary);
+    font-size: 12px;
+    white-space: nowrap;
+}
+
 .periodSwitch {
     display: inline-flex;
     align-items: center;
