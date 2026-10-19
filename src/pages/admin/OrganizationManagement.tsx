@@ -25,6 +25,7 @@ import Modal from "@/components/modal/Modal";
 import CustomSelect from "@/components/customSelect/CustomSelect";
 import styles from "./OrganizationManagement.module.css";
 import OrganizationService, { type OrganizationStatsResponse, type ApplyItem } from "@/services/OrganizationService.ts";
+import { useInitialLoaded } from "@/hooks/UseInitialLoaded";
 
 interface Organization {
     id: string;
@@ -39,6 +40,7 @@ interface Organization {
 const OrganizationManagement: React.FC = () => {
     const { t } = useTranslation("admin");
     const [loading, setLoading] = useState(true);
+    const initialLoaded = useInitialLoaded(loading);
     const [organizations, setOrganizations] = useState<Organization[]>([]);
     const [searchTerm, setSearchTerm] = useState("");
     const [statusFilter, setStatusFilter] = useState("all");
@@ -326,7 +328,7 @@ const OrganizationManagement: React.FC = () => {
         }
     };
 
-    if (loading && activeTab === "orgs") {
+    if (loading && !initialLoaded && activeTab === "orgs") {
         return <Loading />;
     }
 
@@ -488,7 +490,13 @@ const OrganizationManagement: React.FC = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {currentData.length > 0 ? (
+                                {loading ? (
+                                    <tr>
+                                        <td colSpan={6} style={{ textAlign: "center", padding: "40px" }}>
+                                            <Loading size="small" />
+                                        </td>
+                                    </tr>
+                                ) : currentData.length > 0 ? (
                                     currentData.map((item) => (
                                         <tr key={item.id}>
                                             <td>

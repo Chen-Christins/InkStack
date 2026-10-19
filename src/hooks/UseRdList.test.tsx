@@ -22,6 +22,7 @@ describe("R&D list request lifecycle", () => {
         const root = createRoot(document.createElement("div"));
         try {
             await act(async () => root.render(<Host page={1} />));
+            expect(state.initialLoaded).toBe(false);
             await act(async () => root.render(<Host page={2} />));
             expect(load).toHaveBeenLastCalledWith({ search: "", page: 2, pageSize: 10, organizationIds: ["7"] });
             await act(async () => pending[1].resolve({ data: ["new"], total: 11 }));
@@ -29,6 +30,7 @@ describe("R&D list request lifecycle", () => {
             expect(state.data).toEqual(["new"]);
             expect(state.total).toBe(11);
             expect(state.loading).toBe(false);
+            expect(state.initialLoaded).toBe(true);
             await act(async () => {
                 void state.refresh();
             });

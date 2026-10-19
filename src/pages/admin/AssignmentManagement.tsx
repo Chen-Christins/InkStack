@@ -28,6 +28,7 @@ import Modal from "@/components/modal/Modal";
 import styles from "./AssignmentManagement.module.css";
 import AssignmentService, { type AssignmentStatsResponse } from "@/services/AssignmentService.ts";
 import { AssignmentStatus, AssignmentPriority } from "@/types/Enums.ts";
+import { useInitialLoaded } from "@/hooks/UseInitialLoaded";
 
 // 模拟任务数据接口
 interface Assignment {
@@ -76,6 +77,7 @@ const PRIORITY_NUMBER_MAP_STR: Record<number, string> = {
 const AssignmentManagement: React.FC = () => {
     const { t } = useTranslation("admin");
     const [loading, setLoading] = useState(true);
+    const initialLoaded = useInitialLoaded(loading);
     const [assignments, setAssignments] = useState<Assignment[]>([]);
     const [searchTerm, setSearchTerm] = useState("");
     const [statusFilter, setStatusFilter] = useState("all");
@@ -370,7 +372,7 @@ const AssignmentManagement: React.FC = () => {
         }
     };
 
-    if (loading) {
+    if (loading && !initialLoaded) {
         return <Loading />;
     }
 
@@ -492,7 +494,13 @@ const AssignmentManagement: React.FC = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {currentData.length > 0 ? (
+                        {loading ? (
+                            <tr>
+                                <td colSpan={10} style={{ textAlign: "center", padding: "40px" }}>
+                                    <Loading size="small" />
+                                </td>
+                            </tr>
+                        ) : currentData.length > 0 ? (
                             currentData.map((item) => (
                                 <tr key={item.id}>
                                     <td>

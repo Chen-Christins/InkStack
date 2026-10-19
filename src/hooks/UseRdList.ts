@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import message from "../components/message/Message";
 import i18n from "@/i18n";
+import { useInitialLoaded } from "./UseInitialLoaded";
 
 interface PageQuery {
     page: number;
@@ -19,6 +20,7 @@ export function useRdList<T, F extends object>(
     const [data, setData] = useState<T[]>([]);
     const [total, setTotal] = useState(0);
     const [loading, setLoading] = useState(true);
+    const initialLoaded = useInitialLoaded(loading);
     const requestId = useRef(0);
 
     const refresh = useCallback(async () => {
@@ -49,5 +51,5 @@ export function useRdList<T, F extends object>(
         };
     }, [refresh]);
 
-    return { data, total, loading, refresh };
+    return { data, total, loading, initialLoaded, refresh };
 }

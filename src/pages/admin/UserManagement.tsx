@@ -23,6 +23,7 @@ import message from "@/components/message/Message";
 import type { SelectOption } from "@/types";
 import { PlatformRoleCSS, PlatformRoleByKey, type PlatformRole } from "@/types/Roles.ts";
 import { useEnumLabels } from "@/i18n/UseEnumLabels";
+import { useInitialLoaded } from "@/hooks/UseInitialLoaded";
 import styles from "./UserManagement.module.css";
 import { AuthService } from "@/services/AuthService.ts";
 import { formatToChinaTime } from "@/utils/Utils.ts";
@@ -76,6 +77,7 @@ const UserManagement: React.FC = () => {
     });
     const [currentPage, setCurrentPage] = useState(1);
     const [loading, setLoading] = useState(true);
+    const initialLoaded = useInitialLoaded(loading);
     const [totalUsers, setTotalUsers] = useState(0);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [submitting, setSubmitting] = useState(false);
@@ -422,7 +424,7 @@ const UserManagement: React.FC = () => {
         return pages;
     };
 
-    if (loading) {
+    if (loading && !initialLoaded) {
         return (
             <div className={styles.userManagement}>
                 <Loading text={t("users.loading")} size="large" />
@@ -566,7 +568,13 @@ const UserManagement: React.FC = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {currentUsers.length > 0 ? (
+                        {loading ? (
+                            <tr>
+                                <td colSpan={8} style={{ textAlign: "center", padding: "40px" }}>
+                                    <Loading size="small" />
+                                </td>
+                            </tr>
+                        ) : currentUsers.length > 0 ? (
                             currentUsers.map((user) => (
                                 <tr key={user.id}>
                                     <td>

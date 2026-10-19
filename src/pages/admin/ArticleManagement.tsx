@@ -35,6 +35,7 @@ import { confirm } from "@/components/confirm/Confirm";
 import type { SelectOption } from "@/types";
 import { PlatformRoleByKey, type PlatformRole } from "@/types/Roles.ts";
 import { useEnumLabels } from "@/i18n/UseEnumLabels";
+import { useInitialLoaded } from "@/hooks/UseInitialLoaded";
 import styles from "./ArticleManagement.module.css";
 import ArticleService, { type ListAdminArticlesResponse, type ArticleStatsResponse } from "@/services/ArticleService.ts";
 import { CategoryService } from "@/services/CategoryService.ts";
@@ -123,6 +124,7 @@ const ArticleManagement: React.FC = () => {
     });
     const [currentPage, setCurrentPage] = useState(1);
     const [loading, setLoading] = useState(true);
+    const initialLoaded = useInitialLoaded(loading);
     const [categoryOptions, setCategoryOptions] = useState<SelectOption[]>([
         { id: "", name: t("articles.filter.allCategories"), color: "#6c757d" },
     ]);
@@ -572,7 +574,7 @@ const ArticleManagement: React.FC = () => {
         return pages;
     };
 
-    if (loading) {
+    if (loading && !initialLoaded) {
         return (
             <div className={styles.articleManagement}>
                 <Loading text={t("articles.loading")} size="large" />
@@ -734,7 +736,13 @@ const ArticleManagement: React.FC = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {currentArticles.length > 0 ? (
+                        {loading ? (
+                            <tr>
+                                <td colSpan={7} style={{ textAlign: "center", padding: "40px" }}>
+                                    <Loading size="small" />
+                                </td>
+                            </tr>
+                        ) : currentArticles.length > 0 ? (
                             currentArticles.map((article) => (
                                 <tr key={article.id} className={`${article.featured ? styles.featured : ""}`}>
                                     <td>

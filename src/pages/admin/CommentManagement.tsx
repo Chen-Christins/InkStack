@@ -28,6 +28,7 @@ import type { AdminComment } from "@/types/Comment.ts";
 import type { SelectOption } from "@/types";
 import type { CommentStatus } from "@/types/Enums.ts";
 import { useEnumLabels } from "@/i18n/UseEnumLabels";
+import { useInitialLoaded } from "@/hooks/UseInitialLoaded";
 import styles from "./CommentManagement.module.css";
 
 interface FilterOptions {
@@ -54,6 +55,7 @@ const CommentManagement: React.FC = () => {
     });
     const [currentPage, setCurrentPage] = useState(1);
     const [loading, setLoading] = useState(true);
+    const initialLoaded = useInitialLoaded(loading);
     const [selectedComments, setSelectedComments] = useState<string[]>([]);
     const [showReplies, setShowReplies] = useState<string[]>([]);
 
@@ -273,7 +275,7 @@ const CommentManagement: React.FC = () => {
         return pages;
     };
 
-    if (loading) {
+    if (loading && !initialLoaded) {
         return (
             <div className={styles.commentManagement}>
                 <Loading text={t("comments.loading")} size="large" />
@@ -393,7 +395,11 @@ const CommentManagement: React.FC = () => {
 
             {/* 评论列表 */}
             <div className={styles.commentsContainer}>
-                {comments.length > 0 ? (
+                {loading ? (
+                    <div style={{ textAlign: "center", padding: "40px" }}>
+                        <Loading size="small" />
+                    </div>
+                ) : comments.length > 0 ? (
                     comments.map((comment) => {
                         const replies = getReplies(comment.id);
                         const hasReplies = replies.length > 0;
