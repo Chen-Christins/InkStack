@@ -34,6 +34,23 @@
     gap: 1rem;
 }
 
+/* 胶囊布局：标题/搜索栏和分页固定，仅卡片区域滚动 */
+.articleListScrollable .listHeader {
+    flex: 0 0 auto;
+}
+
+.articleListScrollable .articles {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+.articleListScrollable .pagination {
+    flex: 0 0 auto;
+}
+
 /* 当文章数量少于每页数量时，用占位空间填充 */
 .articles::after {
     content: "";
