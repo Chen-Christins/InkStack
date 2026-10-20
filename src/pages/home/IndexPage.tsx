@@ -180,6 +180,7 @@ const IndexPage: React.FC = () => {
                                     categoryId={selectedCategoryId}
                                     categoryName={selectedCategoryName}
                                     searchKeyword={searchKeyword}
+                                    scrollable
                                     headerRight={
                                         <SearchBox
                                             placeholder={t("searchPlaceholder")}

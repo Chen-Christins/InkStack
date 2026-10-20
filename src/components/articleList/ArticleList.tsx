@@ -24,9 +24,19 @@ interface ArticleListProps {
     categoryName?: string;
     searchKeyword?: string;
     headerRight?: React.ReactNode;
+    /** 胶囊布局下让标题/搜索栏与分页固定，仅卡片区域滚动 */
+    scrollable?: boolean;
 }
 
-const ArticleList: React.FC<ArticleListProps> = ({ labelId, labelName, categoryId, categoryName, searchKeyword, headerRight }) => {
+const ArticleList: React.FC<ArticleListProps> = ({
+    labelId,
+    labelName,
+    categoryId,
+    categoryName,
+    searchKeyword,
+    headerRight,
+    scrollable = false,
+}) => {
     const [searchParams, setSearchParams] = useSearchParams();
     const currentPage = parseInt(searchParams.get("page") || "1", 10);
     const itemsPerPage = 6;
@@ -35,11 +45,12 @@ const ArticleList: React.FC<ArticleListProps> = ({ labelId, labelName, categoryI
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
     const { t } = useTranslation("article");
+    const articlesRef = useRef<HTMLDivElement>(null);
 
     // 切换页码
     const handlePageChange = (page: number) => {
         setSearchParams({ page: String(page) });
-        // 滚动到顶部
+        // 经典布局滚动窗口；胶囊布局由下方 effect 重置卡片区域
         window.scrollTo({ top: 0, behavior: "smooth" });
     };
 
@@ -155,6 +166,11 @@ const ArticleList: React.FC<ArticleListProps> = ({ labelId, labelName, categoryI
         };
     }, [currentPage, labelId, categoryId, searchKeyword, t]);
 
+    // 筛选或翻页后让卡片区域回到顶部
+    useEffect(() => {
+        articlesRef.current?.scrollTo({ top: 0 });
+    }, [currentPage, labelId, categoryId, searchKeyword]);
+
     const totalPages = Math.ceil(totalArticles / itemsPerPage);
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + articles.length;
@@ -190,7 +206,7 @@ const ArticleList: React.FC<ArticleListProps> = ({ labelId, labelName, categoryI
     };
 
     return (
-        <div className={styles.articleList}>
+        <div className={`${styles.articleList} ${scrollable ? styles.articleListScrollable : ""}`}>
             <div className={styles.listHeader}>
                 <h2 className={styles.title}>
                     {labelName
@@ -201,7 +217,7 @@ const ArticleList: React.FC<ArticleListProps> = ({ labelId, labelName, categoryI
                 </h2>
                 {headerRight && <div className={styles.headerRight}>{headerRight}</div>}
             </div>
-            <div className={styles.articles}>
+            <div ref={articlesRef} className={styles.articles}>
                 {loading ? (
                     Array.from({ length: 5 }, (_, index) => (
                         <div key={index} className={styles.articleItem}>
