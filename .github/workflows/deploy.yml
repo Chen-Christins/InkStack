@@ -4,14 +4,6 @@ on:
   push:
     tags: ["v*"]
   workflow_dispatch:
-    inputs:
-      branch:
-        description: "要部署的分支（默认 master）"
-        required: false
-        default: master
-
-permissions:
-  contents: write
 
 # 同一套线上目录只能同时执行一个发布，避免两个任务互相清理 release。
 concurrency:
@@ -25,7 +17,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.inputs.branch || github.ref_name }}
+          ref: ${{ github.ref_name }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -50,7 +42,7 @@ jobs:
           if [ "${{ github.event_name }}" = "push" ]; then
             VERSION="${{ github.ref_name }}"
           else
-            BRANCH="${{ github.event.inputs.branch || 'master' }}"
+            BRANCH="${{ github.ref_name }}"
             SHORT_SHA=$(git rev-parse --short HEAD)
             VERSION=$(echo "$BRANCH" | sed 's|/|-|g')-${SHORT_SHA}
           fi
