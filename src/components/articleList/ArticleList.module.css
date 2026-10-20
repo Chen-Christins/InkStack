@@ -28,28 +28,29 @@
     min-width: 0;
 }
 
+.scrollArea {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-height: 0;
+}
+
 .articles {
     display: flex;
     flex-direction: column;
     gap: 1rem;
 }
 
-/* 胶囊布局：标题/搜索栏和分页固定，仅卡片区域滚动 */
+/* 胶囊布局：标题/搜索栏固定，卡片和分页一起滚动 */
 .articleListScrollable .listHeader {
     flex: 0 0 auto;
 }
 
-.articleListScrollable .articles {
-    flex: 1 1 auto;
-    min-height: 0;
-    overflow-x: clip;          /* 关键：不创建滚动容器 */
+.articleListScrollable .scrollArea {
+    overflow-x: clip;
     overflow-y: auto;
     overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
-}
-
-.articleListScrollable .pagination {
-    flex: 0 0 auto;
 }
 
 /* 当文章数量少于每页数量时，用占位空间填充 */
@@ -65,7 +66,10 @@
     border: 1px solid var(--border-primary);
     box-shadow: none;
     position: relative;
-    transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+    transition:
+        transform 0.18s ease,
+        box-shadow 0.18s ease,
+        border-color 0.18s ease;
 }
 
 .articleItem:first-child:hover {
@@ -157,9 +161,10 @@
 /* 分页样式 */
 .pagination {
     display: flex;
+    flex: 0 0 auto;
     justify-content: space-between;
     align-items: center;
-    margin-top: auto;
+    margin-top: 1rem;
     padding: 0.75rem 1rem;
     background-color: var(--card-bg);
     border-radius: 10px;
