@@ -42,9 +42,10 @@
 .articleListScrollable .articles {
     flex: 1 1 auto;
     min-height: 0;
-    overflow-x: hidden;
+    overflow-x: clip;          /* 关键：不创建滚动容器 */
     overflow-y: auto;
     overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
 }
 
 .articleListScrollable .pagination {
@@ -64,6 +65,7 @@
     border: 1px solid var(--border-primary);
     box-shadow: none;
     position: relative;
+    transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
 }
 
 .articleItem:first-child:hover {
@@ -89,8 +91,7 @@
 
 .articleItem:hover::before {
     background: linear-gradient(180deg, var(--primary), var(--accent, #8b5cf6));
-    top: 12%;
-    bottom: 12%;
+    transform: scaleY(1.2);
 }
 
 .articleTitle {
