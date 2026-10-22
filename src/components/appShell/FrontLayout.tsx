@@ -19,7 +19,8 @@ const FrontLayout: React.FC = () => {
     const isProfile = location.pathname.startsWith("/profile");
     const isAssignment = location.pathname.startsWith("/assignment");
     const isMessages = location.pathname.startsWith("/messages");
-    const fit = isHome || isHelp || isEditor || isOrg || isProfile || isAssignment || isMessages;
+    const isProduct = location.pathname.startsWith("/products");
+    const fit = isHome || isHelp || isEditor || isOrg || isProfile || isAssignment || isMessages || isProduct;
 
     if (mode === "classic") {
         return (
