@@ -108,6 +108,8 @@ const section = {
         updatedAt: "Updated At",
         module: "Module",
         relatedRequirement: "Related Requirement",
+        deadline: "Deadline",
+        estimatedHours: "Estimated Hours",
         environment: "Environment",
         description: "Description",
         stepsToReproduce: "Steps to Reproduce",

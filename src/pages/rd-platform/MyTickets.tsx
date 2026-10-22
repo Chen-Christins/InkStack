@@ -1019,7 +1019,34 @@ const MyTickets: React.FC = () => {
                                             {renderPriorityBadge(task.priority)}
                                             {renderStatusBadge(task.status, taskStatusText)}
                                         </div>
-                                        <div className={myStyles.detailGrid}>className={myStyles.statusGridWithBorder}</div>
+                                        <div className={myStyles.statusGridWithBorder}>
+                                            {renderField_(
+                                                t("myTickets.detail.assignee"),
+                                                <AssigneeDisplay name={task.assignee} avatar={task.assigneeAvatar} />,
+                                            )}
+                                            {renderField_(t("myTickets.detail.creator"), task.creator)}
+                                            {renderField_(
+                                                t("myTickets.detail.organization"),
+                                                orgNameMap[task.organizationId] || task.organizationId,
+                                            )}
+                                            {renderField_(t("myTickets.detail.relatedRequirement"), task.requirementId)}
+                                            {renderField_(
+                                                t("myTickets.detail.deadline"),
+                                                task.deadline ? formatDateTime(task.deadline) : "-",
+                                            )}
+                                            {renderField_(
+                                                t("myTickets.detail.estimatedHours"),
+                                                task.estimatedHours ? `${task.estimatedHours}h` : "-",
+                                            )}
+                                            {renderField_(
+                                                t("myTickets.detail.createdAt"),
+                                                task.createdAt ? formatDateTime(task.createdAt) : "-",
+                                            )}
+                                            {renderField_(
+                                                t("myTickets.detail.updatedAt"),
+                                                task.updatedAt ? formatDateTime(task.updatedAt) : "-",
+                                            )}
+                                        </div>
                                         <div>
                                             <h4 className={myStyles.detailSectionTitle}>{t("myTickets.detail.description")}</h4>
                                             <div className={myStyles.detailDescription}>
