@@ -51,7 +51,9 @@ const ArticleList: React.FC<ArticleListProps> = ({
     const handlePageChange = (page: number) => {
         setSearchParams({ page: String(page) });
         // 经典布局滚动窗口；胶囊布局由下方 effect 重置卡片区域
-        window.scrollTo({ top: 0, behavior: "smooth" });
+        if (!scrollable) {
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        }
     };
 
     const prevLabelId = useRef<string | number | undefined>(labelId);

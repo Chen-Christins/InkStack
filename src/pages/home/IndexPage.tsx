@@ -195,7 +195,7 @@ const IndexPage: React.FC = () => {
                     {/* 右侧：侧边栏 */}
                     <div className={styles.rightColumn}>
                         {/* 每日名言 */}
-                        <div className={`${styles.panelSlot} ${styles.wide}`}>
+                        <div className={`${styles.panelSlot} ${styles.wide} ${styles.staticPanel}`}>
                             <DailyQuote />
                         </div>
                         {/* 访问统计 */}

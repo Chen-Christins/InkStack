@@ -51,6 +51,12 @@
     overflow-y: auto;
     overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
+    contain: layout paint;
+    transform: translateZ(0);
+}
+
+.articleListScrollable .articles {
+    flex: 0 0 auto;
 }
 
 /* 当文章数量少于每页数量时，用占位空间填充 */
