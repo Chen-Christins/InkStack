@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
+import { runRevealTransition, type RevealOrigin } from "../utils/ViewTransition";
 
 type Theme = "light" | "dark";
 
@@ -20,8 +21,9 @@ interface ThemeContextType {
     theme: Theme;
     preset: ThemePreset;
     cursorEnabled: boolean;
-    toggleTheme: () => void;
-    setTheme: (theme: Theme) => void;
+    /** 切换明暗主题；传入 origin（视口坐标）时以该点为圆心扩散切换 */
+    toggleTheme: (origin?: RevealOrigin) => void;
+    setTheme: (theme: Theme, origin?: RevealOrigin) => void;
     setPreset: (preset: ThemePreset) => void;
     setCursorEnabled: (enabled: boolean) => void;
 }
@@ -107,15 +109,39 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
         return () => mediaQuery.removeEventListener("change", handleChange);
     }, [hasManualTheme]);
 
-    const toggleTheme = () => {
-        setHasManualTheme(true);
-        setThemeState((prevTheme) => (prevTheme === "light" ? "dark" : "light"));
-    };
+    const toggleTheme = useCallback(
+        (origin?: RevealOrigin) => {
+            const next: Theme = theme === "light" ? "dark" : "light";
 
-    const setTheme = (newTheme: Theme) => {
-        setHasManualTheme(true);
-        setThemeState(newTheme);
-    };
+            const apply = () => {
+                setHasManualTheme(true);
+                setThemeState(next);
+            };
+
+            if (origin) {
+                runRevealTransition(origin, apply);
+            } else {
+                apply();
+            }
+        },
+        [theme],
+    );
+
+    const setTheme = useCallback(
+        (newTheme: Theme, origin?: RevealOrigin) => {
+            const apply = () => {
+                setHasManualTheme(true);
+                setThemeState(newTheme);
+            };
+
+            if (origin && newTheme !== theme) {
+                runRevealTransition(origin, apply);
+            } else {
+                apply();
+            }
+        },
+        [theme],
+    );
 
     const value: ThemeContextType = {
         theme,
