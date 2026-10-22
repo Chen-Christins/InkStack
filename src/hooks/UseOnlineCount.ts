@@ -21,7 +21,9 @@ export function useOnlineCount(): number | null {
     const [count, setCount] = useState(getOnlineCount());
 
     useEffect(() => {
-        return subscribeOnlineCount(setCount);
+        const unsubscribe = subscribeOnlineCount(setCount);
+        setCount(getOnlineCount());
+        return unsubscribe;
     }, []);
 
     return count;

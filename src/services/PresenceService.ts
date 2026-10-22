@@ -8,7 +8,10 @@ const listeners = new Set<OnlineCountListener>();
 let _onlineCount: number | null = null;
 
 presenceWS.onMessage("online_count", (data: any) => {
-    const count: number = data.count ?? data.online_users ?? 0;
+    const count = data?.count ?? data?.online_users;
+    if (typeof count !== "number" || !Number.isFinite(count) || count < 0) {
+        return;
+    }
     _onlineCount = count;
     listeners.forEach((fn) => fn(count));
 });
