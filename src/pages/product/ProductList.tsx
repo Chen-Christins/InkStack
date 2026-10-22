@@ -14,7 +14,7 @@ const GRADIENTS = [styles.gradient0, styles.gradient1, styles.gradient2, styles.
 
 const ProductList: React.FC = () => {
     return (
-        <div className={styles.container}>
+        <div className={styles.mainContent}>
             <div className={styles.pageHeader}>
                 <h1 className={styles.pageTitle}>
                     <FaCube /> 产品包
