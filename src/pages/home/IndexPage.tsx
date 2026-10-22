@@ -165,66 +165,60 @@ const IndexPage: React.FC = () => {
     }
 
     return (
-        <>
-            {isInitialLoad ? (
-                <PageSkeleton />
-            ) : (
-                <div className={styles.mainCardWrap}>
-                    <div className={`${styles.mainContent} ${showContent ? styles.contentVisible : styles.contentHidden}`}>
-                        <div className={styles.contentRow}>
-                            {/* 左侧：文章列表 */}
-                            <div className={styles.leftColumn}>
-                                <ArticleList
-                                    labelId={selectedLabelId}
-                                    labelName={selectedLabelName}
-                                    categoryId={selectedCategoryId}
-                                    categoryName={selectedCategoryName}
-                                    searchKeyword={searchKeyword}
-                                    scrollable
-                                    headerRight={
-                                        <SearchBox
-                                            placeholder={t("searchPlaceholder")}
-                                            size="small"
-                                            onSearch={(keyword) => setSearchKeyword(keyword.trim())}
-                                            onChange={(value) => {
-                                                if (!value) {
-                                                    setSearchKeyword("");
-                                                }
-                                            }}
-                                        />
-                                    }
+        <div className={styles.mainCardWrap}>
+            <div className={styles.mainContent}>
+                <div className={styles.contentRow}>
+                    {/* 左侧：文章列表 */}
+                    <div className={styles.leftColumn}>
+                        <ArticleList
+                            labelId={selectedLabelId}
+                            labelName={selectedLabelName}
+                            categoryId={selectedCategoryId}
+                            categoryName={selectedCategoryName}
+                            searchKeyword={searchKeyword}
+                            scrollable
+                            headerRight={
+                                <SearchBox
+                                    placeholder={t("searchPlaceholder")}
+                                    size="small"
+                                    onSearch={(keyword) => setSearchKeyword(keyword.trim())}
+                                    onChange={(value) => {
+                                        if (!value) {
+                                            setSearchKeyword("");
+                                        }
+                                    }}
                                 />
-                            </div>
+                            }
+                        />
+                    </div>
 
-                            {/* 右侧：侧边栏 */}
-                            <div className={styles.rightColumn}>
-                                {/* 每日名言 */}
-                                <div className={`${styles.panelSlot} ${styles.wide}`}>
-                                    <DailyQuote />
-                                </div>
-                                {/* 访问统计 */}
-                                <div className={`${styles.panelSlot} ${styles.wide}`}>
-                                    <StatsPanel />
-                                </div>
-                                {/* 文章标签 */}
-                                <div className={`${styles.panelSlot} ${styles.wide}`}>
-                                    <TagPanel
-                                        tags={tags}
-                                        loading={tagsLoading}
-                                        selectedTagId={selectedLabelId}
-                                        onTagClick={handleTagClick}
-                                    />
-                                </div>
-                                {/* 文章分类 */}
-                                <div className={`${styles.panelSlot} ${styles.wide}`}>
-                                    <CategoryPanel selectedCategoryId={selectedCategoryId} onCategoryClick={handleCategoryClick} />
-                                </div>
-                            </div>
+                    {/* 右侧：侧边栏 */}
+                    <div className={styles.rightColumn}>
+                        {/* 每日名言 */}
+                        <div className={`${styles.panelSlot} ${styles.wide}`}>
+                            <DailyQuote />
+                        </div>
+                        {/* 访问统计 */}
+                        <div className={`${styles.panelSlot} ${styles.wide}`}>
+                            <StatsPanel />
+                        </div>
+                        {/* 文章标签 */}
+                        <div className={`${styles.panelSlot} ${styles.wide}`}>
+                            <TagPanel
+                                tags={tags}
+                                loading={authLoading || tagsLoading}
+                                selectedTagId={selectedLabelId}
+                                onTagClick={handleTagClick}
+                            />
+                        </div>
+                        {/* 文章分类 */}
+                        <div className={`${styles.panelSlot} ${styles.wide}`}>
+                            <CategoryPanel selectedCategoryId={selectedCategoryId} onCategoryClick={handleCategoryClick} />
                         </div>
                     </div>
                 </div>
-            )}
-        </>
+            </div>
+        </div>
     );
 };
 

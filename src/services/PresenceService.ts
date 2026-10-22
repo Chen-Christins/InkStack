@@ -5,14 +5,15 @@ export const presenceWS = new WebSocketClient("/ws/v1/presence");
 
 type OnlineCountListener = (count: number) => void;
 const listeners = new Set<OnlineCountListener>();
-let _onlineCount = 0;
+let _onlineCount: number | null = null;
 
 presenceWS.onMessage("online_count", (data: any) => {
-    _onlineCount = data.count ?? data.online_users ?? 0;
-    listeners.forEach((fn) => fn(_onlineCount));
+    const count: number = data.count ?? data.online_users ?? 0;
+    _onlineCount = count;
+    listeners.forEach((fn) => fn(count));
 });
 
-export function getOnlineCount(): number {
+export function getOnlineCount(): number | null {
     return _onlineCount;
 }
 

@@ -17,7 +17,7 @@ export function usePresenceConnection() {
 }
 
 /** 在任何组件中使用：读取实时在线人数 */
-export function useOnlineCount(): number {
+export function useOnlineCount(): number | null {
     const [count, setCount] = useState(getOnlineCount());
 
     useEffect(() => {
