@@ -108,6 +108,8 @@ const section = {
         updatedAt: "更新时间",
         module: "所属模块",
         relatedRequirement: "关联需求",
+        deadline: "截止日期",
+        estimatedHours: "预估工时",
         environment: "运行环境",
         description: "描述",
         stepsToReproduce: "复现步骤",

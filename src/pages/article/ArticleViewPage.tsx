@@ -18,8 +18,10 @@ import { useAuth } from "@/contexts/AuthContext";
 import AuthRequired from "@/components/auth/AuthRequired";
 import ArticleErrorView from "@/components/articleView/ArticleErrorView";
 import SkeletonArticleView from "@/components/articleView/SkeletonArticleView";
+import { useDevToolsProtection } from "@/hooks/UseDevToolsProtection";
 
 const ArticleViewPage: React.FC = () => {
+    useDevToolsProtection();
     const { id: encodedId } = useParams<{ id: string }>();
     const id = encodedId ? decodeId(encodedId, "article") : null;
     const navigate = useNavigate();

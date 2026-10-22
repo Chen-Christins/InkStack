@@ -45,13 +45,15 @@ const ArticleList: React.FC<ArticleListProps> = ({
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
     const { t } = useTranslation("article");
-    const articlesRef = useRef<HTMLDivElement>(null);
+    const scrollRef = useRef<HTMLDivElement>(null);
 
     // 切换页码
     const handlePageChange = (page: number) => {
         setSearchParams({ page: String(page) });
         // 经典布局滚动窗口；胶囊布局由下方 effect 重置卡片区域
-        window.scrollTo({ top: 0, behavior: "smooth" });
+        if (!scrollable) {
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        }
     };
 
     const prevLabelId = useRef<string | number | undefined>(labelId);
@@ -168,7 +170,7 @@ const ArticleList: React.FC<ArticleListProps> = ({
 
     // 筛选或翻页后让卡片区域回到顶部
     useEffect(() => {
-        articlesRef.current?.scrollTo({ top: 0 });
+        scrollRef.current?.scrollTo({ top: 0 });
     }, [currentPage, labelId, categoryId, searchKeyword]);
 
     const totalPages = Math.ceil(totalArticles / itemsPerPage);
@@ -217,118 +219,124 @@ const ArticleList: React.FC<ArticleListProps> = ({
                 </h2>
                 {headerRight && <div className={styles.headerRight}>{headerRight}</div>}
             </div>
-            <div ref={articlesRef} className={styles.articles}>
-                {loading ? (
-                    Array.from({ length: 5 }, (_, index) => (
-                        <div key={index} className={styles.articleItem}>
-                            <div className={styles.articleMeta}>
-                                <Skeleton variant="text" width="70%" height={24} />
-                                <Skeleton variant="text" width={120} height={16} />
-                            </div>
-                            <Skeleton variant="text" width="60%" height={28} />
-                            <Skeleton variant="text" lines={3} />
-                            <div className={styles.articleMeta}>
-                                <Skeleton variant="circular" width={24} height={24} />
-                                <Skeleton variant="text" width={80} height={16} />
-                                <Skeleton variant="rectangular" width={60} height={20} />
-                                <Skeleton variant="rectangular" width={60} height={20} />
-                            </div>
-                        </div>
-                    ))
-                ) : articles.length === 0 ? (
-                    <></>
-                ) : (
-                    articles.map((article, _index) => {
-                        return (
-                            <div key={article.id} className={styles.articleItem}>
+            <div ref={scrollRef} className={styles.scrollArea}>
+                <div className={styles.articles}>
+                    {loading ? (
+                        Array.from({ length: 5 }, (_, index) => (
+                            <div key={index} className={styles.articleItem}>
                                 <div className={styles.articleMeta}>
-                                    <span>
-                                        <div className={styles.typeBadge}>{article.type}</div>
-                                    </span>
-                                    <span>
-                                        <FaCalendarAlt /> <span className={styles.metaText}>{article.publish_time}</span>
-                                    </span>
-                                    <span>
-                                        <FaUser /> <span className={styles.metaText}>{article.author}</span>
-                                    </span>
-                                    <span>
-                                        <FaEye /> {article.views ?? 0}
-                                    </span>
+                                    <Skeleton variant="text" width="70%" height={24} />
+                                    <Skeleton variant="text" width={120} height={16} />
                                 </div>
-                                <h3 className={styles.articleTitle}>{article.title || t("untitled")}</h3>
-                                <p className={styles.articleSummary}>
-                                    {article.summary ? article.summary.replace(/�/g, "") + "..." : t("list.noSummary")}
-                                </p>
-                                <Button
-                                    variant="light"
-                                    color="secondary"
-                                    size="small"
-                                    onClick={() => {
-                                        navigate(`/article/${encodeId(article.id, "article")}`);
-                                    }}
-                                >
-                                    {t("list.readMore")}
-                                </Button>
+                                <Skeleton variant="text" width="60%" height={28} />
+                                <Skeleton variant="text" lines={3} />
+                                <div className={styles.articleMeta}>
+                                    <Skeleton variant="circular" width={24} height={24} />
+                                    <Skeleton variant="text" width={80} height={16} />
+                                    <Skeleton variant="rectangular" width={60} height={20} />
+                                    <Skeleton variant="rectangular" width={60} height={20} />
+                                </div>
                             </div>
-                        );
-                    })
+                        ))
+                    ) : articles.length === 0 ? (
+                        <></>
+                    ) : (
+                        articles.map((article, _index) => {
+                            return (
+                                <div key={article.id} className={styles.articleItem}>
+                                    <div className={styles.articleMeta}>
+                                        <span>
+                                            <div className={styles.typeBadge}>{article.type}</div>
+                                        </span>
+                                        <span>
+                                            <FaCalendarAlt /> <span className={styles.metaText}>{article.publish_time}</span>
+                                        </span>
+                                        <span>
+                                            <FaUser /> <span className={styles.metaText}>{article.author}</span>
+                                        </span>
+                                        <span>
+                                            <FaEye /> {article.views ?? 0}
+                                        </span>
+                                    </div>
+                                    <h3 className={styles.articleTitle}>{article.title || t("untitled")}</h3>
+                                    <p className={styles.articleSummary}>
+                                        {article.summary ? article.summary.replace(/�/g, "") + "..." : t("list.noSummary")}
+                                    </p>
+                                    <Button
+                                        variant="light"
+                                        color="secondary"
+                                        size="small"
+                                        onClick={() => {
+                                            navigate(`/article/${encodeId(article.id, "article")}`);
+                                        }}
+                                    >
+                                        {t("list.readMore")}
+                                    </Button>
+                                </div>
+                            );
+                        })
+                    )}
+                </div>
+
+                {/* 分页 */}
+                {totalArticles > 0 && (
+                    <div className={styles.pagination}>
+                        <div className={styles.paginationInfo}>
+                            {t("list.paginationInfo", {
+                                start: startIndex + 1,
+                                end: Math.min(endIndex, totalArticles),
+                                total: totalArticles,
+                            })}
+                        </div>
+                        <div className={styles.paginationControls}>
+                            <button
+                                className={styles.paginationButton}
+                                onClick={() => handlePageChange(1)}
+                                disabled={currentPage === 1}
+                            >
+                                <FaAngleDoubleLeft />
+                            </button>
+                            <button
+                                className={styles.paginationButton}
+                                onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
+                                disabled={currentPage === 1}
+                            >
+                                <FaChevronLeft />
+                            </button>
+
+                            {getPageNumbers().map((page, index) => (
+                                <React.Fragment key={index}>
+                                    {page === "..." ? (
+                                        <span className={styles.paginationEllipsis}>...</span>
+                                    ) : (
+                                        <button
+                                            className={`${styles.paginationButton} ${currentPage === page ? styles.active : ""}`}
+                                            onClick={() => handlePageChange(page as number)}
+                                        >
+                                            {page}
+                                        </button>
+                                    )}
+                                </React.Fragment>
+                            ))}
+
+                            <button
+                                className={styles.paginationButton}
+                                onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
+                                disabled={currentPage === totalPages}
+                            >
+                                <FaChevronRight />
+                            </button>
+                            <button
+                                className={styles.paginationButton}
+                                onClick={() => handlePageChange(totalPages)}
+                                disabled={currentPage === totalPages}
+                            >
+                                <FaAngleDoubleRight />
+                            </button>
+                        </div>
+                    </div>
                 )}
             </div>
-
-            {/* 分页 */}
-            {totalArticles > 0 && (
-                <div className={styles.pagination}>
-                    <div className={styles.paginationInfo}>
-                        {t("list.paginationInfo", {
-                            start: startIndex + 1,
-                            end: Math.min(endIndex, totalArticles),
-                            total: totalArticles,
-                        })}
-                    </div>
-                    <div className={styles.paginationControls}>
-                        <button className={styles.paginationButton} onClick={() => handlePageChange(1)} disabled={currentPage === 1}>
-                            <FaAngleDoubleLeft />
-                        </button>
-                        <button
-                            className={styles.paginationButton}
-                            onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
-                            disabled={currentPage === 1}
-                        >
-                            <FaChevronLeft />
-                        </button>
-
-                        {getPageNumbers().map((page, index) => (
-                            <React.Fragment key={index}>
-                                {page === "..." ? (
-                                    <span className={styles.paginationEllipsis}>...</span>
-                                ) : (
-                                    <button
-                                        className={`${styles.paginationButton} ${currentPage === page ? styles.active : ""}`}
-                                        onClick={() => handlePageChange(page as number)}
-                                    >
-                                        {page}
-                                    </button>
-                                )}
-                            </React.Fragment>
-                        ))}
-
-                        <button
-                            className={styles.paginationButton}
-                            onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
-                            disabled={currentPage === totalPages}
-                        >
-                            <FaChevronRight />
-                        </button>
-                        <button
-                            className={styles.paginationButton}
-                            onClick={() => handlePageChange(totalPages)}
-                            disabled={currentPage === totalPages}
-                        >
-                            <FaAngleDoubleRight />
-                        </button>
-                    </div>
-                </div>
-            )}
         </div>
     );
 };

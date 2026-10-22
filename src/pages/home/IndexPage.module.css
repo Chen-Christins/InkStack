@@ -92,11 +92,24 @@
     border: 1px solid var(--border-primary);
     border-radius: 16px;
     min-width: 0;
-    transition: box-shadow 0.2s ease;
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
 }
 
-.panelSlot:hover {
+.panelSlot:not(.staticPanel):hover {
     box-shadow: var(--shadow-sm);
+    transform: translateY(-2px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .panelSlot {
+        transition: none;
+    }
+
+    .panelSlot:hover {
+        transform: none;
+    }
 }
 
 .panelSlot > div {
