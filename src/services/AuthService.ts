@@ -1,4 +1,4 @@
-import http, { type HttpResponse } from "../infra/Http.ts";
+import http, { type HttpRequestConfig, type HttpResponse } from "../infra/Http.ts";
 
 /**
  * 登录请求参数
@@ -10,18 +10,13 @@ interface LoginParams {
 
 /**
  * 登录响应数据
+ *
+ * 新认证体系不再返回 token；登录成功由服务端设置 HttpOnly SESSIONID。
+ * 启用 TOTP 的账号会先返回 require_2fa/temp_token，需要再调用 /user/2fa/verify。
  */
 interface LoginResponse {
-    token?: string;
-    user?: {
-        id: number;
-        name: string;
-        username: string;
-        email: string;
-        avatar: string;
-        role: string;
-        created_at: string;
-    };
+    require_2fa?: boolean;
+    temp_token?: string;
 }
 
 /**
@@ -49,7 +44,7 @@ interface ForgetPasswordParams {
 interface SendCodeParams {
     email: string; // 邮箱
     agent: string; // 用户代理
-    type: "1" | "2" | "3" | "4"; // 操作类型：1 注册 2 登录 3 密码重置 4 更换邮箱
+    type: "1" | "2" | "3" | "4" | "5"; // 操作类型：1 注册 2 登录 3 密码重置 4 更换邮箱 5 账号恢复
 }
 
 /**
@@ -60,15 +55,10 @@ const CodeType = {
     LOGIN: "2", // 登录
     PASSWORD_RESET: "3", // 密码重置
     EMAIL_CHANGE: "4", // 更换邮箱
+    RECOVERY: "5", // 账号恢复
 } as const;
 
 type CodeType = (typeof CodeType)[keyof typeof CodeType];
-
-const REQUIRE_CREDENTIALS = import.meta.env.VITE_REQUIRE_CREDENTIALS === "true";
-
-// 多个调用方同时续期时只允许后端处理一次 token 轮换。
-let refreshTokenPromise: Promise<Awaited<ReturnType<typeof http.post<{ uid: string; token: string; token_time: number }>>>> | null =
-    null;
 
 /**
  * 用户信息接口
@@ -161,14 +151,11 @@ export class AuthService {
             formData.append("auth_id", params.auth_id);
             formData.append("passwd", params.passwd);
 
-            const response = await http.post<LoginResponse>("/user/login", formData.toString(), {
+            return http.post<LoginResponse>("/user/login", formData.toString(), {
                 headers: {
                     "Content-Type": "application/x-www-form-urlencoded",
                 },
-                withCredentials: REQUIRE_CREDENTIALS,
             });
-
-            return response;
         } catch (error) {
             // 登录失败，抛出错误让调用方处理
             throw error;
@@ -179,7 +166,7 @@ export class AuthService {
      * 构建 GitHub OAuth 登录入口地址
      * 需要浏览器整页跳转（非 XHR），登录成功后由后端设置 Cookie 并回跳
      * @param redirect 登录成功后的站内回跳路径
-     * @returns 入口地址（经前端同源代理，保证 S_TOKEN Cookie 落在前端域）
+     * @returns 入口地址（经前端同源代理，保证 SESSIONID Cookie 落在前端域）
      */
     static githubLoginUrl(redirect?: string): string {
         const params = new URLSearchParams();
@@ -252,6 +239,15 @@ export class AuthService {
     }
 
     /**
+     * 账号恢复验证码
+     * @param email 邮箱地址
+     * @returns 发送结果
+     */
+    static async sendRecoveryCode(email: string) {
+        return this.sendVerificationCode(email, CodeType.RECOVERY);
+    }
+
+    /**
      * 用户注册
      * @param params 注册参数
      * @returns 注册响应
@@ -284,40 +280,50 @@ export class AuthService {
     }
 
     /**
-     * 刷新 token（无感续期）
-     * @param uid 用户ID（params 优先于 cookie）
-     * @returns 新 token / token_time，并写入新 cookie
+     * 完成 TOTP 两步验证
+     * @param tempToken 登录接口返回的临时凭证
+     * @param code 动态验证码
      */
-    static async refreshToken(uid: number | string) {
-        if (refreshTokenPromise) {
-            return refreshTokenPromise;
-        }
+    static async verify2fa(tempToken: string, code: string) {
+        return http.postForm("/user/2fa/verify", {
+            temp_token: tempToken,
+            code,
+        });
+    }
 
-        const formData = new URLSearchParams();
-        formData.append("uid", String(uid));
+    /**
+     * 使用恢复码完成两步验证
+     * @param tempToken 登录接口返回的临时凭证
+     * @param recoveryCode 一次性恢复码
+     */
+    static async verify2faRecovery(tempToken: string, recoveryCode: string) {
+        return http.postForm("/user/2fa/recovery", {
+            temp_token: tempToken,
+            recovery_code: recoveryCode,
+        });
+    }
 
-        refreshTokenPromise = http
-            .post<{ uid: string; token: string; token_time: number }>("/user/refresh_token", formData.toString(), {
-                headers: {
-                    "Content-Type": "application/x-www-form-urlencoded",
-                },
-                withCredentials: REQUIRE_CREDENTIALS,
-            })
-            .finally(() => {
-                refreshTokenPromise = null;
-            });
-
-        return refreshTokenPromise;
+    /**
+     * 邮箱验证码恢复登录
+     * @param email 邮箱
+     * @param authCode 邮箱验证码
+     */
+    static async recoverWithEmail(email: string, authCode: string) {
+        return http.postForm("/auth/email/recovery", {
+            email,
+            auth_code: authCode,
+        });
     }
 
     /**
      * 获取用户信息
      * @param userId 可选，用户ID。不传则获取当前用户信息
+     * @param config 可选请求配置；启动探测时可跳过 1101 全局跳转
      * @returns 用户信息
      */
-    static async getUserInfo(userId?: number | string): Promise<HttpResponse<UserInfo>> {
+    static async getUserInfo(userId?: number | string, config?: HttpRequestConfig): Promise<HttpResponse<UserInfo>> {
         const url = userId ? `/user/info?user_id=${userId}` : "/user/info";
-        return http.get<UserInfo>(url, { withCredentials: REQUIRE_CREDENTIALS });
+        return http.get<UserInfo>(url, config);
     }
 
     /**

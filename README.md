@@ -100,10 +100,9 @@ npm run dev
 
 | 变量                       | 作用                                                      |
 | -------------------------- | --------------------------------------------------------- |
-| `VITE_API_BASE_URL`        | API 直连地址，或 Vite 开发代理的目标地址                  |
-| `VITE_WS_URL`              | WebSocket 服务基础地址                                    |
-| `VITE_USE_PROXY`           | 为字符串 `"true"` 时，HTTP 请求使用同源 `/api/v1`         |
-| `VITE_REQUIRE_CREDENTIALS` | 为字符串 `"true"` 时，为 Axios 请求启用 `withCredentials` |
+| `VITE_API_BASE_URL` | API 直连地址，或 Vite 开发代理的目标地址          |
+| `VITE_WS_URL`       | WebSocket 服务基础地址                            |
+| `VITE_USE_PROXY`    | 为字符串 `"true"` 时，HTTP 请求使用同源 `/api/v1` |
 
 ### 请求模式
 
@@ -192,10 +191,10 @@ BrowserRouter
 
 ### 认证与存储
 
-- 页面启动时从 `S_TOKEN` Cookie 恢复 Token。
-- 运行期间由 `AuthContext` 和内存 `TokenManager` 管理 Token。
-- Axios 请求拦截器自动附加 Bearer Token。
-- Token、用户信息、角色和权限等敏感状态不得写入 `localStorage` 或 `sessionStorage`。
+- 认证使用服务端 Session + HttpOnly `SESSIONID` Cookie；前端不读取、不保存 token。
+- 页面启动时通过 `/user/info` 恢复用户态，Axios 统一携带 Cookie 凭据。
+- 支持密码 + TOTP、Passkey（WebAuthn）、邮箱验证码恢复登录。
+- 用户信息、角色和权限等敏感状态不得写入 `localStorage` 或 `sessionStorage`。
 - 主题、布局、公开配置缓存和内容草稿等非敏感数据可以按需持久化。
 - 所有前端权限判断只用于界面控制，后端仍必须执行实际权限校验。
 

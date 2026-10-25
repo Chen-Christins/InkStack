@@ -5,18 +5,17 @@
  * Http.ts 只负责调用 setBusinessErrorHandler 注册的回调。
  */
 
-import { tokenManager, detectInvalidReason, type SessionInvalidReason } from "../auth/TokenManager.ts";
-import { clearAuthCookies } from "../auth/CookieHelper.ts";
+import { sessionEvents, detectInvalidReason, type SessionInvalidReason } from "../auth/SessionEvents.ts";
+import { clearLegacyAuthCookies } from "../auth/CookieHelper.ts";
 import { setBusinessErrorHandler } from "../infra/Http.ts";
 
-// ---------- 1101：未登录（token 过期 / 被顶下线） ----------
+// ---------- 1101：未登录（会话过期 / 被顶下线） ----------
 
 setBusinessErrorHandler((errno, data) => {
     if (errno === 1101) {
         const fallback = data?.msg || data?.errstr || "";
         const reason: SessionInvalidReason = detectInvalidReason(String(fallback));
-        clearAuthCookies();
-        tokenManager.clearToken();
-        tokenManager.emitSessionInvalidated(reason);
+        clearLegacyAuthCookies();
+        sessionEvents.emitSessionInvalidated(reason);
     }
 });

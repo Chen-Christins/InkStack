@@ -1,6 +1,4 @@
 import { getErrorMsg } from "../utils/ErrorCodes.ts";
-import { tokenManager } from "../auth/TokenManager.ts";
-import { getCookie } from "../auth/CookieHelper.ts";
 
 type MessageHandler = (data: unknown) => void;
 type EventHandler = (event?: Event) => void;
@@ -96,34 +94,20 @@ export class WebSocketClient {
             return true;
         }
 
-        const token = tokenManager.getToken();
-        if (!token) {
-            return false;
-        }
         this.intentionalClose = false;
         this.clearReconnectTimer();
         const generation = ++this.connectionGeneration;
 
+        // 认证完全依赖同源 HttpOnly SESSIONID Cookie。
+        // uid 仅用于日志和后端 onClose 兜底，不参与鉴权。
         const params = new URLSearchParams();
-        const tokenTime = getCookie("S_TOKEN_TIME");
         if (this.uid !== undefined && this.uid !== null && this.uid !== "") {
             params.set("uid", String(this.uid));
         }
-        params.set("token", token);
-        if (tokenTime) {
-            params.set("token_time", tokenTime);
-        }
 
-        const connectUrl = `${this.basePath}?${params.toString()}`;
-
-        const logParams = new URLSearchParams(params);
-        if (logParams.has("token")) {
-            logParams.set("token", "***");
-        }
-        if (logParams.has("token_time")) {
-            logParams.set("token_time", "***");
-        }
-        console.log("[WS] 正在连接:", `${this.basePath}?${logParams.toString()}`, { uid: this.uid });
+        const query = params.toString();
+        const connectUrl = query ? `${this.basePath}?${query}` : this.basePath;
+        console.log("[WS] 正在连接:", connectUrl, { uid: this.uid, auth: "cookie" });
 
         const socket = new WebSocket(connectUrl);
         this.ws = socket;

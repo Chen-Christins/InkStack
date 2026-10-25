@@ -1,5 +1,4 @@
 import { useState, useRef, useCallback, useEffect } from "react";
-import { tokenManager } from "../auth/TokenManager.ts";
 import i18n from "@/i18n";
 
 /**
@@ -50,7 +49,6 @@ function useAiSummary(articleId?: string | number) {
         abortRef.current = controller;
 
         const useProxy = import.meta.env.VITE_USE_PROXY === "true";
-        const token = tokenManager.getToken();
 
         // SSE stream via Vite proxy in dev (no CORS), direct via nginx in prod.
         // A dedicated proxy rule in vite.config.ts handles /api/v1/article/ai-summary
@@ -64,11 +62,6 @@ function useAiSummary(articleId?: string | number) {
             "Content-Type": "application/x-www-form-urlencoded",
             Accept: "text/event-stream",
         };
-        // 走 Vite proxy 时带上 token header（同源无 CORS 问题）；
-        // 直连后端时不带 Authorization，避免触发 CORS preflight
-        if (token && useProxy) {
-            headers["Authorization"] = `Bearer ${token}`;
-        }
 
         // ---- 日志：请求开始 ----
         console.log(`${ts()} [AI-SSE] ╔══════════════════════════════════════╗`);
@@ -78,7 +71,7 @@ function useAiSummary(articleId?: string | number) {
         console.log(`${ts()} [AI-SSE] ║ articleId  : ${articleId}`);
         console.log(`${ts()} [AI-SSE] ║ proxy 模式 : ${useProxy}`);
         console.log(`${ts()} [AI-SSE] ║ 路由方式   : ${useProxy ? "Vite proxy → 后端" : "直连后端"}`);
-        console.log(`${ts()} [AI-SSE] ║ 携带 token : ${!!token}`);
+        console.log(`${ts()} [AI-SSE] ║ 认证方式   : Cookie (SESSIONID)`);
         console.log(`${ts()} [AI-SSE] ║ ⚠️ 如果下面长时间没有响应日志，检查终端里 Vite 的 proxy 日志`);
         console.log(`${ts()} [AI-SSE] ╚══════════════════════════════════════╝`);
 
@@ -95,6 +88,7 @@ function useAiSummary(articleId?: string | number) {
             method: "POST",
             headers,
             body: formData.toString(),
+            credentials: "include",
             signal: controller.signal,
         })
             .then(async (response) => {

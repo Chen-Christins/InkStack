@@ -1,7 +1,6 @@
 import axios, { type AxiosInstance, type AxiosRequestConfig, type AxiosResponse, AxiosError } from "axios";
 import i18n from "@/i18n";
 import { getErrorMsg } from "../utils/ErrorCodes.ts";
-import { tokenManager } from "../auth/TokenManager.ts";
 
 /**
  * HTTP 请求响应接口
@@ -35,6 +34,11 @@ export interface HttpRequestConfig extends AxiosRequestConfig {
     loading?: boolean;
     showError?: boolean;
     timeout?: number;
+    /**
+     * 跳过全局 1101 会话失效处理。
+     * 仅用于启动时探测 /user/info：匿名用户不应被当成会话过期而跳转登录页。
+     */
+    skipSessionInvalidation?: boolean;
 }
 
 /**
@@ -107,7 +111,6 @@ class HttpClient {
 
     constructor(config: { baseURL?: string; timeout?: number } = {}) {
         const useProxy = import.meta.env.VITE_USE_PROXY === "true";
-        const requireCredentials = import.meta.env.VITE_REQUIRE_CREDENTIALS === "true";
 
         this.baseURL = config.baseURL || (useProxy ? "/api/v1" : `${import.meta.env.VITE_API_BASE_URL}`);
         this.timeout = config.timeout || 10000;
@@ -115,7 +118,8 @@ class HttpClient {
         this.instance = axios.create({
             baseURL: this.baseURL,
             timeout: this.timeout,
-            withCredentials: requireCredentials,
+            // 认证完全依赖 HttpOnly SESSIONID Cookie；跨域直连时也必须携带凭据。
+            withCredentials: true,
             headers: {
                 "Content-Type": "application/json",
             },
@@ -125,19 +129,6 @@ class HttpClient {
     }
 
     private setupInterceptors(): void {
-        this.instance.interceptors.request.use(
-            (config) => {
-                const token = tokenManager.getToken();
-                if (token && config.headers && !config.headers.Authorization) {
-                    config.headers.Authorization = `Bearer ${token}`;
-                }
-                return config;
-            },
-            (error) => {
-                return Promise.reject(error);
-            },
-        );
-
         this.instance.interceptors.response.use(
             (response: AxiosResponse<HttpResponse>) => {
                 const { data } = response;
@@ -151,7 +142,8 @@ class HttpClient {
                 if (failed) {
                     const fallbackMessage = getResponseMessage(data) || i18n.t("services:http.requestFailed");
                     const mappedMessage = errno === undefined ? fallbackMessage : getErrorMsg(errno, fallbackMessage);
-                    if (errno !== undefined) {
+                    const requestConfig = response.config as HttpRequestConfig;
+                    if (errno !== undefined && !requestConfig.skipSessionInvalidation) {
                         businessErrorHandler?.(errno, data);
                     }
                     throw new HttpError(mappedMessage, response.status, response.config as HttpRequestConfig, {
@@ -195,7 +187,10 @@ class HttpClient {
 
                     if (responseErrno !== undefined) {
                         message = getErrorMsg(responseErrno, fallbackMsg);
-                        businessErrorHandler?.(responseErrno, data);
+                        const requestConfig = error.config as HttpRequestConfig | undefined;
+                        if (!requestConfig?.skipSessionInvalidation) {
+                            businessErrorHandler?.(responseErrno, data);
+                        }
                     } else {
                         message = fallbackMsg || i18n.t("services:http.requestFailedStatus", { status });
                     }

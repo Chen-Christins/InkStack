@@ -8,9 +8,10 @@
 实现任何 UI 时，**必须优先使用 `src/components/` 下已封装的自定义组件**，禁止使用 antd 原生组件或手写原生 HTML 元素替代。完整组件清单和使用指南见 `.claude/skills/use-existing-components/SKILL.md`。
 
 ### 2. 数据存储：内存优先
-- **敏感数据**（token、用户信息、权限标识）必须使用内存存储，**禁止**使用 `localStorage`/`sessionStorage`，防止用户篡改
+- **认证状态**由服务端 Session + HttpOnly `SESSIONID` Cookie 管理，前端不读取、不保存 token
+- **敏感数据**（用户信息、权限标识）必须使用内存存储，**禁止**使用 `localStorage`/`sessionStorage`，防止用户篡改
 - **非敏感配置**（主题偏好、布局宽度）方可例外使用 `localStorage`
-- 参考：`src/infra/Http.ts` 中的 `TokenManager`（内存存储）vs `ThemeContext`（localStorage 例外）
+- 参考：`src/contexts/AuthContext.tsx` 的内存用户态 vs `ThemeContext`（localStorage 例外）
 
 ### 3. 组件开发流程
 ```
@@ -40,8 +41,9 @@ npm run format  # Prettier 格式化
 ## 项目架构要点
 
 - **Provider 嵌套顺序**：BrowserRouter → Theme → Auth → LayoutWidth → SiteSettings → Message → Confirm
-- **Token 认证**：从 Cookie 提取 S_TOKEN，存于内存 TokenManager，HTTP 拦截器自动附加 Bearer header
-- **WebSocket**：`notificationWS` 单例，生命周期绑定 AuthContext（登录连/登出断），支持自动重连
+- **Session 认证**：服务端设置 HttpOnly `SESSIONID`，Axios 统一 `withCredentials: true`，不再附加 Bearer header
+- **登录方式**：密码 + TOTP、Passkey（WebAuthn）、邮箱验证码恢复；登录后统一通过 `/user/info` 恢复用户态
+- **WebSocket**：`notificationWS` 单例，生命周期绑定 AuthContext（登录连/登出断），握手依赖同源 Cookie，支持自动重连
 - **路由**：`/auth` 和 `/admin/*` 免维护模式守卫，其余路由受 `MaintenanceGuard` 保护
 - **样式**：CSS Modules + CSS 自定义属性（`data-theme` 驱动明暗主题，`data-width-mode` 驱动页面宽度）
 - **HTTP**：`src/infra/Http.ts` 封装，拦截器做了完整的中文业务状态码映射

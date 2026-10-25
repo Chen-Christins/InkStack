@@ -11,15 +11,20 @@ const auth = {
     backToLogin: "返回登录",
     or: "或",
     githubLogin: "使用 GitHub 登录",
+    passkeyLogin: "使用通行密钥登录",
     title: {
         login: "欢迎回来",
         register: "创建账号",
         forgotPassword: "重置密码",
+        recovery: "恢复登录",
+        twoFactor: "两步验证",
     },
     description: {
         login: "请输入您的账号信息登录",
         register: "创建新账号，开始您的旅程",
         forgotPassword: "输入您的邮箱，我们将发送验证码重置密码",
+        recovery: "使用邮箱验证码恢复登录，成功后其他设备会被下线",
+        twoFactor: "请输入身份验证器中的动态验证码，或使用一次性恢复码",
     },
     fields: {
         usernameOrEmail: "用户名或邮箱",
@@ -30,6 +35,8 @@ const auth = {
         newPassword: "新密码",
         confirmPassword: "确认密码",
         confirmNewPassword: "确认新密码",
+        twoFactorCode: "动态验证码",
+        recoveryCode: "恢复码",
     },
     placeholders: {
         usernameOrEmail: "请输入用户名或邮箱",
@@ -40,6 +47,8 @@ const auth = {
         newPassword: "请输入新密码",
         confirmPassword: "请确认密码",
         confirmNewPassword: "请确认新密码",
+        twoFactorCode: "请输入 6 位动态验证码",
+        recoveryCode: "请输入一次性恢复码",
     },
     validation: {
         usernameOrEmailRequired: "请输入用户名或邮箱",
@@ -58,6 +67,13 @@ const auth = {
         newPasswordRequired: "请输入新密码",
         newPasswordMin: "密码长度至少6位",
         confirmNewPasswordRequired: "请确认新密码",
+        twoFactorCodeRequired: "请输入动态验证码",
+        recoveryCodeRequired: "请输入恢复码",
+    },
+    hints: {
+        twoFactorCode: "动态验证码由身份验证器生成，每 30 秒更新一次。",
+        recoveryCode: "恢复码只能使用一次，请妥善保管。",
+        recoveryWarning: "恢复登录会撤销该账号的全部旧会话，请确认邮箱安全。",
     },
     message: {
         unsupportedCodeType: "不支持的验证码类型",
@@ -72,6 +88,13 @@ const auth = {
         resetFailed: "重置密码失败",
         tokenMissing: "登录成功但未获取到认证令牌",
         userInfoInvalid: "登录成功但用户信息校验失败",
+        passkeyLoginFailed: "通行密钥登录失败",
+        passkeyRegisterFailed: "通行密钥注册失败",
+        passkeyUnsupported: "当前浏览器或环境不支持通行密钥，请使用 HTTPS 或 localhost 访问",
+        passkeyCancelled: "已取消通行密钥操作",
+        twoFactorFailed: "两步验证失败，请检查验证码或重新登录",
+        recoverySuccess: "恢复登录成功，正在跳转...",
+        recoveryFailed: "恢复登录失败",
     },
     submit: {
         login: "登录",
@@ -80,6 +103,10 @@ const auth = {
         loggingIn: "登录中...",
         registering: "注册中...",
         resetting: "重置中...",
+        verify: "验证并登录",
+        verifying: "验证中...",
+        recovery: "恢复登录",
+        recovering: "恢复中...",
     },
     sendCode: {
         send: "获取验证码",
@@ -103,6 +130,10 @@ const auth = {
         haveAccount: "已有账号？",
         loginNow: "立即登录",
         rememberPassword: "想起密码了？",
+        recoveryPrompt: "无法使用密码或通行密钥？",
+        emailRecovery: "邮箱恢复",
+        useRecoveryCode: "使用恢复码",
+        useTotpCode: "使用动态验证码",
     },
 } as const;
 

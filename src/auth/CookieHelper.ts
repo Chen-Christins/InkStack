@@ -1,43 +1,14 @@
 /**
- * Cookie 工具
- */
-
-/**
- * 从 Cookie 中读取指定 key 的值
+ * 旧版认证 Cookie 清理
  *
- * 用 indexOf 而非 split("=") 取值：Cookie 值本身允许含 "="（base64 填充、JWT 分段等），
- * split 会在第一个 "=" 处切断导致 token 被静默截断。
+ * 新认证体系只使用 HttpOnly SESSIONID，JavaScript 读不到、也不应该尝试删除它。
+ * 这里仅保留迁移期需要的旧 S_TOKEN/S_UID/S_TOKEN_TIME 清理。
  */
-export function getCookie(key: string): string | null {
-    const cookies = document.cookie.split(";");
-    for (const cookie of cookies) {
-        const trimmed = cookie.trim();
-        const eq = trimmed.indexOf("=");
-        if (eq < 0) {
-            continue;
-        }
-        if (trimmed.slice(0, eq) !== key) {
-            continue;
-        }
-        return decodeURIComponent(trimmed.slice(eq + 1));
-    }
-    return null;
-}
 
-/**
- * 从 Cookie 中提取 S_TOKEN
- */
-export function getTokenFromCookie(): string | null {
-    return getCookie("S_TOKEN");
-}
+const LEGACY_AUTH_COOKIE_NAMES = ["S_TOKEN", "S_UID", "S_TOKEN_TIME"];
 
-/**
- * 清除会话认证 Cookie（S_TOKEN / S_UID / S_TOKEN_TIME）
- * 注意：DEVICE_ID 为 10 年设备标识，保留不删
- */
-export function clearAuthCookies(): void {
-    const authCookieNames = ["S_TOKEN", "S_UID", "S_TOKEN_TIME"];
-    authCookieNames.forEach((name) => {
+export function clearLegacyAuthCookies(): void {
+    LEGACY_AUTH_COOKIE_NAMES.forEach((name) => {
         document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
     });
 }

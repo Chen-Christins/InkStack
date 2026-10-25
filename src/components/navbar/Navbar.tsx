@@ -31,7 +31,7 @@ const Navbar: React.FC = () => {
     const navigate = useNavigate();
     const location = useLocation();
     // 获取认证状态
-    const { user, isAuthenticated, logout, token, loading } = useAuth();
+    const { user, isAuthenticated, logout, loading } = useAuth();
     const { settings: siteSettings } = useSiteSettings();
     const { t } = useTranslation("nav");
     const { t: tCommon } = useTranslation("common");
@@ -75,7 +75,7 @@ const Navbar: React.FC = () => {
         };
         window.addEventListener("scroll", handleScroll);
         return () => window.removeEventListener("scroll", handleScroll);
-    }, [user, isAuthenticated, token]);
+    }, [user, isAuthenticated]);
 
     // 点击外部关闭用户菜单
     useEffect(() => {
