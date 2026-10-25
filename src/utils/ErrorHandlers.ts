@@ -6,7 +6,6 @@
  */
 
 import { sessionEvents, detectInvalidReason, type SessionInvalidReason } from "../auth/SessionEvents.ts";
-import { clearLegacyAuthCookies } from "../auth/CookieHelper.ts";
 import { setBusinessErrorHandler } from "../infra/Http.ts";
 
 // ---------- 1101：未登录（会话过期 / 被顶下线） ----------
@@ -15,7 +14,6 @@ setBusinessErrorHandler((errno, data) => {
     if (errno === 1101) {
         const fallback = data?.msg || data?.errstr || "";
         const reason: SessionInvalidReason = detectInvalidReason(String(fallback));
-        clearLegacyAuthCookies();
         sessionEvents.emitSessionInvalidated(reason);
     }
 });

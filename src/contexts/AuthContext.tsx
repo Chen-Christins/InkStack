@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { AuthService } from "../services/AuthService.ts";
 import { PasskeyService } from "../services/PasskeyService.ts";
 import { sessionEvents } from "../auth/SessionEvents.ts";
-import { clearLegacyAuthCookies } from "../auth/CookieHelper.ts";
 import { notificationWS, chatWS } from "../services/WsInstances.ts";
 import { setFaviconBadge } from "../utils/Favicon.ts";
 import { resetNotificationState } from "../utils/NotificationState.ts";
@@ -87,9 +86,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setFaviconBadge(0);
     }, [disconnectWebSockets]);
 
-    const clearAuthStateAndLegacyCookies = useCallback(() => {
+    const clearAuthState = useCallback(() => {
         clearAuthRuntimeState();
-        clearLegacyAuthCookies();
     }, [clearAuthRuntimeState]);
 
     const completeLogin = useCallback(async (generation: number) => {
@@ -129,12 +127,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 } else {
                     setUser(null);
                 }
-            } catch (error: any) {
+            } catch {
                 if (generation === authGenerationRef.current) {
                     setUser(null);
-                    if (error?.errno === 1101) {
-                        clearLegacyAuthCookies();
-                    }
                 }
             } finally {
                 if (generation === authGenerationRef.current) {
@@ -155,7 +150,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     useEffect(() => {
         const handleSessionInvalidated = () => {
             authGenerationRef.current++;
-            clearAuthStateAndLegacyCookies();
+            clearAuthState();
             setLoading(false);
             if (!window.location.pathname.startsWith("/auth")) {
                 navigate("/auth");
@@ -165,7 +160,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         return () => {
             sessionEvents.removeSessionInvalidatedListener(handleSessionInvalidated);
         };
-    }, [clearAuthStateAndLegacyCookies, navigate]);
+    }, [clearAuthState, navigate]);
 
     // 计算是否已认证（必须在 WebSocket useEffect 之前声明）
     const isAuthenticated = Boolean(user);
@@ -247,11 +242,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 } catch {
                     // 登出失败不阻断重试
                 }
-                clearAuthStateAndLegacyCookies();
+                clearAuthState();
                 return loginWithRetry(authId, password, true);
             }
             setLoginError(getErrorMessage(error, i18n.t("auth:message.loginFailed")));
-            clearAuthStateAndLegacyCookies();
+            clearAuthState();
             throw error;
         } finally {
             if (generation === authGenerationRef.current) {
@@ -270,7 +265,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         } catch (error: any) {
             if (generation === authGenerationRef.current) {
                 setLoginError(getErrorMessage(error, i18n.t("auth:message.twoFactorFailed")));
-                clearAuthStateAndLegacyCookies();
+                clearAuthState();
             }
             throw error;
         } finally {
@@ -290,7 +285,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         } catch (error: any) {
             if (generation === authGenerationRef.current) {
                 setLoginError(getErrorMessage(error, i18n.t("auth:message.twoFactorFailed")));
-                clearAuthStateAndLegacyCookies();
+                clearAuthState();
             }
             throw error;
         } finally {
@@ -314,7 +309,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         } catch (error: any) {
             if (generation === authGenerationRef.current) {
                 setLoginError(getErrorMessage(error, i18n.t("auth:message.passkeyLoginFailed")));
-                clearAuthStateAndLegacyCookies();
+                clearAuthState();
             }
             throw error;
         } finally {
@@ -338,7 +333,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         } catch (error: any) {
             if (generation === authGenerationRef.current) {
                 setLoginError(getErrorMessage(error, i18n.t("auth:message.recoveryFailed")));
-                clearAuthStateAndLegacyCookies();
+                clearAuthState();
             }
             throw error;
         } finally {
@@ -357,7 +352,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             if (generation !== authGenerationRef.current) {
                 return;
             }
-            clearAuthStateAndLegacyCookies();
+            clearAuthState();
             setLoginError(null);
         } catch (error) {
             if (generation !== authGenerationRef.current) {
@@ -365,7 +360,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             }
             console.error("登出失败:", error);
             // 即使后端登出失败，也清除本地状态
-            clearAuthStateAndLegacyCookies();
+            clearAuthState();
         } finally {
             if (generation === authGenerationRef.current) {
                 setLoading(false);
