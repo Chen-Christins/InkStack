@@ -1,3 +1,56 @@
+.cardHeader {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.cardHeader button {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+.passkeyList {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.passkeyItem {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 16px;
+    border: 1px solid var(--border-primary);
+    border-radius: 10px;
+    background: var(--bg-secondary);
+}
+
+.passkeyIcon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: var(--card-bg);
+    border: 1px solid var(--border-primary);
+    color: var(--primary);
+    font-size: 18px;
+    flex-shrink: 0;
+}
+
+.passkeyInfo {
+    flex: 1;
+    min-width: 0;
+}
+
+.passkeyNameInput {
+    width: 100%;
+}
+
 .deviceList {
     display: flex;
     flex-direction: column;
@@ -82,4 +135,30 @@
     cursor: not-allowed;
     color: var(--text-tertiary);
     border-color: var(--border-primary);
+}
+
+@media (max-width: 640px) {
+    .cardHeader {
+        flex-direction: column;
+    }
+
+    .cardHeader button {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .passkeyItem,
+    .deviceItem {
+        align-items: flex-start;
+        flex-wrap: wrap;
+    }
+
+    .passkeyInfo,
+    .deviceInfo {
+        flex: 1 1 calc(100% - 54px);
+    }
+
+    .revokeBtn {
+        margin-left: 54px;
+    }
 }

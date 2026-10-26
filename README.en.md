@@ -100,10 +100,9 @@ Vite loads environment files according to the current mode, including `.env.deve
 
 | Variable                   | Purpose                                                                           |
 | -------------------------- | --------------------------------------------------------------------------------- |
-| `VITE_API_BASE_URL`        | Direct API URL, or the target URL for the Vite development proxy                  |
-| `VITE_WS_URL`              | Base URL of the WebSocket service                                                 |
-| `VITE_USE_PROXY`           | When set to the string `"true"`, HTTP requests use the same-origin `/api/v1` path |
-| `VITE_REQUIRE_CREDENTIALS` | When set to the string `"true"`, enables Axios `withCredentials`                  |
+| `VITE_API_BASE_URL` | Direct API URL, or the target URL for the Vite development proxy                  |
+| `VITE_WS_URL`       | Base URL of the WebSocket service                                                 |
+| `VITE_USE_PROXY`    | When set to the string `"true"`, HTTP requests use the same-origin `/api/v1` path |
 
 ### Request Modes
 
@@ -192,10 +191,10 @@ The `/rd` layout additionally mounts `RdOrgProvider` for the current organizatio
 
 ### Authentication and Storage
 
-- The application restores the token from the `S_TOKEN` Cookie at startup.
-- During runtime, the token is managed by `AuthContext` and the in-memory `TokenManager`.
-- The Axios request interceptor adds the Bearer token automatically.
-- Sensitive state such as tokens, user data, roles, and permissions must not be written to `localStorage` or `sessionStorage`.
+- Authentication uses a server-side session with an HttpOnly `SESSIONID` Cookie; the frontend never reads or stores tokens.
+- At startup the app restores the user state through `/user/info`, and Axios sends Cookie credentials on every request.
+- Supported sign-in methods include password + TOTP, Passkey (WebAuthn), and email-code account recovery.
+- Sensitive state such as user data, roles, and permissions must not be written to `localStorage` or `sessionStorage`.
 - Non-sensitive data such as themes, layout preferences, public configuration caches, and content drafts may be persisted when appropriate.
 - Frontend permission checks only control the UI; the backend must enforce actual permissions.
 

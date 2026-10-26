@@ -1,17 +1,11 @@
 import { describe, expect, it, beforeEach, afterEach, vi } from "vitest";
 import { WebSocketClient } from "./Websocket.ts";
-import { tokenManager } from "../auth/TokenManager.ts";
 
 /**
- * token 脱敏回归测试（R0 安全项）。
+ * WebSocket 建连回归测试。
  *
- * 背景：此前 `connect()` 会把含完整 token 的建连 URL 直接打进 console
- * （旁边那个 `token: "***"` 只是装饰，真正泄露的是 URL 本身）。
- * 这里锁死两件事：
- *   1. 传输方式不变——URL 里**仍要**带 token，因为后端鉴权依赖该 query 参数；
- *   2. 日志/控制台里**绝不能**出现 token 与 token_time 的原文。
- * 两者必须同时成立，任何只满足其一的改法（比如为了脱敏把 token 从 URL 里摘掉）
- * 都会让这里变红。
+ * 新认证体系使用 HttpOnly SESSIONID Cookie，浏览器在 WebSocket 握手时自动携带。
+ * URL 只保留 uid（用于后端 onClose 兜底），不能再出现 token/token_time。
  */
 
 /** 一个只记录入参、不真正建连的 WebSocket 替身 */
@@ -42,8 +36,6 @@ class MockWebSocket {
     }
 }
 
-const TOKEN = "S_TOKEN_VALUE_SUPER_SECRET_9f3a";
-const TOKEN_TIME = "1756000000000";
 /** 收集一次 connect 期间 console 的全部输出文本 */
 function captureConsole(client: WebSocketClient, uid: string | number | undefined): string[] {
     const lines: string[] = [];
@@ -62,76 +54,53 @@ function captureConsole(client: WebSocketClient, uid: string | number | undefine
     return lines;
 }
 
-describe("WebSocket 建连 token 处理", () => {
+describe("WebSocket Cookie 建连", () => {
     beforeEach(() => {
         MockWebSocket.instances = [];
-        tokenManager.clearToken();
         (globalThis as { WebSocket?: unknown }).WebSocket = MockWebSocket;
-        // jsdom 下直接写 document.cookie 即可，过期时间设到未来避免被丢弃
-        document.cookie = `S_TOKEN=${TOKEN}; path=/`;
-        document.cookie = `S_TOKEN_TIME=${TOKEN_TIME}; path=/`;
-        tokenManager.setToken(TOKEN);
     });
 
     afterEach(() => {
         vi.restoreAllMocks();
     });
 
-    it("建连 URL 仍携带 token（后端鉴权依赖该 query 参数，传输方式未变）", () => {
+    it("建连 URL 只携带 uid，不再携带 token/token_time", () => {
         const client = new WebSocketClient("/ws/v1/notification");
         captureConsole(client, 42);
 
         expect(MockWebSocket.instances).toHaveLength(1);
-        const url = MockWebSocket.instances[0].url;
-        expect(url).toContain(`token=${TOKEN}`);
-        expect(url).toContain(`token_time=${TOKEN_TIME}`);
-        expect(url).toContain("uid=42");
+        const url = new URL(MockWebSocket.instances[0].url);
+        expect(url.searchParams.get("uid")).toBe("42");
+        expect(url.searchParams.has("token")).toBe(false);
+        expect(url.searchParams.has("token_time")).toBe(false);
     });
 
-    it("控制台输出绝不出现 token / token_time 原文", () => {
+    it("没有内存 token 也可以建连（认证依赖 Cookie）", () => {
+        const client = new WebSocketClient("/ws/v1/notification");
+        expect(client.connect(7)).toBe(true);
+        expect(MockWebSocket.instances).toHaveLength(1);
+    });
+
+    it("日志包含 uid 和 Cookie 认证标记，且不出现 token", () => {
         const client = new WebSocketClient("/ws/v1/notification");
         const lines = captureConsole(client, 42);
-
-        expect(lines.length).toBeGreaterThan(0);
         const joined = lines.join("\n");
-        expect(joined).not.toContain(TOKEN);
-        expect(joined).not.toContain(TOKEN_TIME);
-        // 脱敏占位必须真的出现，防止「干脆不打印」也算通过
-        expect(joined).toContain("***");
+
+        expect(joined).toContain("42");
+        expect(joined).toContain("cookie");
+        expect(joined).not.toContain("token=");
     });
 
-    it("脱敏不误伤 uid：uid 仍完整出现在日志里", () => {
+    it("重复 connect 不会重复建连", () => {
         const client = new WebSocketClient("/ws/v1/notification");
-        const lines = captureConsole(client, 42);
-        expect(lines.join("\n")).toContain("42");
+        captureConsole(client, 1);
+        const second = client.connect(1);
+
+        expect(second).toBe(true);
+        expect(MockWebSocket.instances).toHaveLength(1);
     });
 
-    it("内存中没有 token 时拒绝建连，即使 Cookie 中存在 token", () => {
-        tokenManager.clearToken();
-        const client = new WebSocketClient("/ws/v1/notification");
-        const lines = captureConsole(client, 7);
-
-        expect(MockWebSocket.instances).toHaveLength(0);
-        expect(client.connect(7)).toBe(false);
-        expect(lines).toHaveLength(0);
-        expect(lines.join("\n")).not.toContain("***");
-    });
-
-    it("Cookie 值含 = 时不截断（base64 填充 / JWT 分段场景）", () => {
-        // 含两个 "=" 的 token：split("=") 会把值切在第一处，只剩 "PADDED_"
-        const padded = "PADDED_BASE64_TOKEN_==";
-        tokenManager.setToken(padded);
-
-        const client = new WebSocketClient("/ws/v1/notification");
-        captureConsole(client, 9);
-
-        const url = MockWebSocket.instances[0].url;
-        // 必须带上完整值（URLSearchParams 会转义，故用解码后的参数断言）
-        const token = new URL(url).searchParams.get("token");
-        expect(token).toBe(padded);
-    });
-
-    it("重连不会绕过脱敏：每次 connect 都重新脱敏", () => {
+    it("重连仍只携带 uid", () => {
         const client = new WebSocketClient("/ws/v1/notification");
         captureConsole(client, 1);
         // 手动置为 CLOSED，绕开「已连接/连接中就不重复建连」的短路
@@ -139,8 +108,10 @@ describe("WebSocket 建连 token 处理", () => {
         const second = captureConsole(client, 1);
 
         expect(MockWebSocket.instances).toHaveLength(2);
-        expect(second.join("\n")).not.toContain(TOKEN);
-        expect(second.join("\n")).toContain("***");
+        const url = new URL(MockWebSocket.instances[1].url);
+        expect(url.searchParams.get("uid")).toBe("1");
+        expect(url.searchParams.get("token")).toBeNull();
+        expect(second.join("\n")).not.toContain("token=");
     });
 
     it("旧连接异步关闭时不会为新连接调度重连", () => {

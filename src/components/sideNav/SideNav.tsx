@@ -1,7 +1,7 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { FaHome, FaBuilding, FaQuestionCircle } from "react-icons/fa";
+import { FaHome, FaBuilding, FaQuestionCircle, FaCube } from "react-icons/fa";
 import styles from "./SideNav.module.css";
 import ThemeToggle from "../themeToggle/ThemeToggle";
 import LayoutModeToggle from "../layoutModeToggle/LayoutModeToggle";
@@ -31,6 +31,7 @@ const SideNav: React.FC<SideNavProps> = ({ open = false, onClose }) => {
     const navItems = [
         { label: t("home"), icon: <FaHome />, path: "/index" },
         { label: t("organizationsShort"), icon: <FaBuilding />, path: "/organizations/list" },
+        ...(import.meta.env.DEV ? [{ label: "产品", icon: <FaCube />, path: "/products" }] : []),
         { label: t("help"), icon: <FaQuestionCircle />, path: "/help" },
     ];
 
@@ -40,6 +41,9 @@ const SideNav: React.FC<SideNavProps> = ({ open = false, onClose }) => {
         }
         if (path === "/organizations/list") {
             return location.pathname.startsWith("/organizations") || location.pathname.startsWith("/organization");
+        }
+        if (path === "/products") {
+            return location.pathname.startsWith("/products");
         }
         return location.pathname === path;
     };

@@ -11,6 +11,7 @@ import {
     FaTimes,
     FaRegComments,
     FaQuestionCircle,
+    FaCube,
 } from "react-icons/fa";
 import { useTranslation } from "react-i18next";
 import styles from "./Navbar.module.css";
@@ -30,7 +31,7 @@ const Navbar: React.FC = () => {
     const navigate = useNavigate();
     const location = useLocation();
     // 获取认证状态
-    const { user, isAuthenticated, logout, token, loading } = useAuth();
+    const { user, isAuthenticated, logout, loading } = useAuth();
     const { settings: siteSettings } = useSiteSettings();
     const { t } = useTranslation("nav");
     const { t: tCommon } = useTranslation("common");
@@ -74,7 +75,7 @@ const Navbar: React.FC = () => {
         };
         window.addEventListener("scroll", handleScroll);
         return () => window.removeEventListener("scroll", handleScroll);
-    }, [user, isAuthenticated, token]);
+    }, [user, isAuthenticated]);
 
     // 点击外部关闭用户菜单
     useEffect(() => {
@@ -133,11 +134,18 @@ const Navbar: React.FC = () => {
         if (path === "/messages") {
             return location.pathname === "/messages";
         }
+        if (path === "/products") {
+            return location.pathname.startsWith("/products");
+        }
         return location.pathname === path;
     };
 
     const getNavLinks = () => {
-        const links = [...navLinks, { label: t("help"), icon: <FaQuestionCircle />, path: "/help" }];
+        const links = [
+            ...navLinks,
+            ...(import.meta.env.DEV ? [{ label: "产品", icon: <FaCube />, path: "/products" }] : []),
+            { label: t("help"), icon: <FaQuestionCircle />, path: "/help" },
+        ];
         return links;
     };
 

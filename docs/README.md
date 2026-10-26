@@ -1,6 +1,6 @@
 # 接口与数据协议（前端新增界面）
 
-本目录收录本次新增的 5 个用户界面所需的接口与数据协议。这些界面当前均使用 `src` 内的本地 mock 数据渲染，下列协议用于指导后端对接时提供一致的契约。
+本目录收录用户界面相关的接口与数据协议。部分界面仍使用 `src` 内的本地 mock 数据渲染；账户安全已接入服务端会话、登录设备与 Passkey 接口。
 
 涉及界面：
 
@@ -17,7 +17,7 @@
 所有接口基于 `../src/infra/Http.ts` 中的 `HttpClient`，遵循以下约定：
 
 - **Base URL**：`VITE_USE_PROXY=true` 时为 `/api/v1`，否则为 `VITE_API_BASE_URL`（如 `http://8.148.82.38:8078`）。
-- **鉴权**：请求拦截器自动附加 `Authorization: Bearer <token>`，token 来自内存态 `TokenManager`（取自 `S_TOKEN` Cookie），**不**使用 localStorage。
+- **鉴权**：服务端 Session + HttpOnly `SESSIONID` Cookie；Axios 统一 `withCredentials: true`，前端不读取、不保存 token。
 - **响应包络（HttpResponse）**：
   ```ts
   interface HttpResponse<T = any> {

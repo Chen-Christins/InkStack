@@ -1,6 +1,5 @@
 import { describe, expect, it, beforeEach } from "vitest";
 import { HttpClient, HttpError, setBusinessErrorHandler } from "./Http.ts";
-import { tokenManager } from "../auth/TokenManager.ts";
 
 it("postForm preserves falsy values, encodes special text and omits only nullish fields", async () => {
     let sent = "";
@@ -45,12 +44,10 @@ const unauthorizedAdapter: import("axios").AxiosRequestConfig["adapter"] = async
 
 describe("HTTP 未授权（1101）处理", () => {
     beforeEach(() => {
-        tokenManager.clearToken();
         setBusinessErrorHandler(null);
     });
 
     it("收到 1101 时抛出 HttpError", async () => {
-        tokenManager.setToken("tok-123");
         const client = new HttpClient({ baseURL: "http://test.local" });
         await expect(client.get("/x", { adapter: unauthorizedAdapter })).rejects.toMatchObject({
             errno: 1101,
@@ -95,14 +92,26 @@ describe("HTTP 未授权（1101）处理", () => {
                 notified += 1;
             }
         });
-        tokenManager.setToken("tok-123");
         const client = new HttpClient({ baseURL: "http://test.local" });
         await expect(client.get("/x", { adapter: unauthorizedAdapter })).rejects.toBeInstanceOf(HttpError);
         expect(notified).toBe(1);
     });
 
-    it("请求拦截器为已登录请求附加 Bearer token", async () => {
-        tokenManager.setToken("tok-456");
+    it("启动探测可跳过 1101 全局处理", async () => {
+        let notified = 0;
+        setBusinessErrorHandler((errno) => {
+            if (errno === 1101) {
+                notified += 1;
+            }
+        });
+        const client = new HttpClient({ baseURL: "http://test.local" });
+        await expect(client.get("/user/info", { adapter: unauthorizedAdapter, skipSessionInvalidation: true })).rejects.toBeInstanceOf(
+            HttpError,
+        );
+        expect(notified).toBe(0);
+    });
+
+    it("请求不再附加 Authorization，认证依赖 Cookie", async () => {
         let captured: import("axios").AxiosRequestConfig | undefined;
         const client = new HttpClient({ baseURL: "http://test.local" });
         await client.get("/ok", {
@@ -117,26 +126,7 @@ describe("HTTP 未授权（1101）处理", () => {
                 };
             },
         });
-        expect(captured?.headers?.Authorization).toBe("Bearer tok-456");
-    });
-
-    it("不覆盖调用方显式提供的 Authorization", async () => {
-        tokenManager.setToken("tok-456");
-        let captured: import("axios").AxiosRequestConfig | undefined;
-        const client = new HttpClient({ baseURL: "http://test.local" });
-        await client.get("/ok", {
-            headers: { Authorization: "Basic explicit" },
-            adapter: async (config) => {
-                captured = config;
-                return {
-                    data: { errno: 0, success: true, data: null },
-                    status: 200,
-                    statusText: "OK",
-                    headers: {},
-                    config,
-                };
-            },
-        });
-        expect(captured?.headers?.Authorization).toBe("Basic explicit");
+        expect(captured?.headers?.Authorization).toBeUndefined();
+        expect(captured?.withCredentials).toBe(true);
     });
 });

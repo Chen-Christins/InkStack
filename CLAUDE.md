@@ -26,9 +26,10 @@ BrowserRouter → ThemeProvider → AuthProvider → LayoutWidthProvider → Sit
 
 ### 认证与 HTTP 层
 
-- Token 使用 **内存存储**（`TokenManager` 类，见 `src/infra/Http.ts`），不使用 localStorage/Cookie 直接读写，避免 XSS 风险
-- Token 来源：登录时从响应的 `Set-Cookie` header 中提取 `S_TOKEN`，或从 `document.cookie` 回退读取
-- 所有 API 请求通过 `src/infra/Http.ts` 的 `http` 实例发送，拦截器自动附加 `Authorization: Bearer <token>` header
+- 认证使用 **服务端 Session + HttpOnly `SESSIONID` Cookie**；前端不读取、不保存 token
+- 所有 API 请求通过 `src/infra/Http.ts` 的 `http` 实例发送，统一 `withCredentials: true`，不再附加 `Authorization` header
+- 页面启动时通过 `/user/info` 恢复用户态；匿名 1101 需要跳过全局会话失效跳转
+- 支持密码 + TOTP、Passkey（WebAuthn）、邮箱验证码恢复登录
 - 后端返回统一结构 `{ code, data, message/msg, success }`，响应拦截器做了完整的业务状态码映射（400-504 均有中文错误提示）
 - API Service 层位于 `src/services/`，每个 service 文件封装一类业务接口
 

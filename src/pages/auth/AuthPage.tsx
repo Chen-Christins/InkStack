@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import type { TFunction } from "i18next";
-import { Eye, EyeOff, Mail, User, Lock, ArrowLeft, Check, AlertCircle } from "lucide-react";
+import { Eye, EyeOff, Mail, User, Lock, ArrowLeft, Check, AlertCircle, Fingerprint, KeyRound } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import styles from "./AuthPage.module.css"; // 导入 CSS Modules
 import Button from "@/components/button/Button";
@@ -9,9 +9,10 @@ import Footer from "@/components/footer/Footer";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSiteSettings } from "@/contexts/SiteSettingsContext";
 import { AuthService } from "@/services/AuthService.ts";
+import { PasskeyService } from "@/services/PasskeyService.ts";
 
 // 定义表单类型
-type FormType = "login" | "register" | "forgotPassword";
+type FormType = "login" | "register" | "forgotPassword" | "recovery";
 
 // 规整登录后回跳地址：仅允许站内相对路径，且不把登录页自身当作目标（避免 /auth?redirect=... 嵌套）
 const resolveRedirect = (raw: string | null): string => {
@@ -100,6 +101,18 @@ const validateForm = (type: FormType, formData: any, t: TFunction<"auth">) => {
         } else if (formData.newPassword !== formData.confirmNewPassword) {
             errors.confirmNewPassword = t("validation.passwordMismatch");
         }
+    } else if (type === "recovery") {
+        if (!formData.email) {
+            errors.email = t("validation.emailRequired");
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+            errors.email = t("validation.emailInvalid");
+        }
+
+        if (!formData.auth_code) {
+            errors.auth_code = t("validation.codeRequired");
+        } else if (formData.auth_code.length < 4) {
+            errors.auth_code = t("validation.codeMin");
+        }
     }
 
     return errors;
@@ -107,11 +120,12 @@ const validateForm = (type: FormType, formData: any, t: TFunction<"auth">) => {
 
 const AuthPage: React.FC = () => {
     // 获取认证状态
-    const { login } = useAuth();
+    const { login, verifyTwoFactor, verifyTwoFactorRecovery, loginWithPasskey, recoverWithEmail, isAuthenticated } = useAuth();
     const { settings } = useSiteSettings();
     const { t } = useTranslation("auth");
     const navigate = useNavigate();
     const location = useLocation();
+    const passkeySupported = PasskeyService.isSupported();
 
     // 状态管理
     const [formType, setFormType] = useState<FormType>("login");
@@ -133,6 +147,8 @@ const AuthPage: React.FC = () => {
     const [showNewPassword, setShowNewPassword] = useState(false);
     const [showConfirmNewPassword, setShowConfirmNewPassword] = useState(false);
     const [countdown, setCountdown] = useState(0);
+    const [twoFactor, setTwoFactor] = useState<{ tempToken: string; useRecoveryCode: boolean } | null>(null);
+    const [twoFactorInput, setTwoFactorInput] = useState("");
     const [message, setMessage] = useState<{
         text: string;
         type: "success" | "error";
@@ -156,6 +172,21 @@ const AuthPage: React.FC = () => {
         const query = params.toString();
         navigate(`${location.pathname}${query ? `?${query}` : ""}`, { replace: true });
     }, [location.pathname, location.search, navigate, t]);
+
+    // GitHub 回调成功后后端已设置 SESSIONID，AuthContext 会恢复用户；落在 /auth 时补一次跳转。
+    useEffect(() => {
+        const params = new URLSearchParams(location.search);
+        if (params.get("oauth") !== "1" || !isAuthenticated) {
+            return;
+        }
+        navigate(resolveRedirect(params.get("redirect")), { replace: true });
+    }, [isAuthenticated, location.search, navigate]);
+
+    const goAfterLogin = () => {
+        const params = new URLSearchParams(location.search);
+        const redirect = resolveRedirect(params.get("redirect"));
+        navigate(redirect);
+    };
 
     // 处理输入变化
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -197,6 +228,8 @@ const AuthPage: React.FC = () => {
                 await AuthService.sendRegisterCode(email);
             } else if (formType === "forgotPassword") {
                 await AuthService.sendPasswordResetCode(email);
+            } else if (formType === "recovery") {
+                await AuthService.sendRecoveryCode(email);
             } else {
                 throw new Error(t("message.unsupportedCodeType"));
             }
@@ -238,13 +271,14 @@ const AuthPage: React.FC = () => {
 
         try {
             if (formType === "login") {
-                await login(formData.usernameOrEmail, formData.password);
+                const result = await login(formData.usernameOrEmail, formData.password);
+                if (result.requires2fa) {
+                    setTwoFactor({ tempToken: result.tempToken ?? "", useRecoveryCode: false });
+                    setTwoFactorInput("");
+                    return;
+                }
                 setMessage({ text: t("message.loginSuccess"), type: "success" });
-                const params = new URLSearchParams(location.search);
-                const redirect = resolveRedirect(params.get("redirect"));
-                setTimeout(() => {
-                    navigate(redirect);
-                }, 200);
+                setTimeout(goAfterLogin, 200);
             } else if (formType === "register") {
                 await AuthService.register({
                     account: formData.account,
@@ -258,6 +292,10 @@ const AuthPage: React.FC = () => {
                 await AuthService.forgetPassword(formData.email, formData.newPassword, formData.code);
                 setMessage({ text: t("message.resetSuccess"), type: "success" });
                 setTimeout(() => setFormType("login"), 200);
+            } else if (formType === "recovery") {
+                await recoverWithEmail(formData.email, formData.auth_code);
+                setMessage({ text: t("message.recoverySuccess"), type: "success" });
+                setTimeout(goAfterLogin, 200);
             }
         } catch (error: any) {
             setMessage({
@@ -268,7 +306,9 @@ const AuthPage: React.FC = () => {
                         ? t("message.loginFailed")
                         : formType === "register"
                           ? t("message.registerFailed")
-                          : t("message.resetFailed")),
+                          : formType === "recovery"
+                            ? t("message.recoveryFailed")
+                            : t("message.resetFailed")),
                 type: "error",
             });
         } finally {
@@ -283,11 +323,75 @@ const AuthPage: React.FC = () => {
         window.location.href = AuthService.githubLoginUrl(redirect);
     };
 
+    const handlePasskeyLogin = async () => {
+        setIsSubmitting(true);
+        setMessage(null);
+        try {
+            await loginWithPasskey(formData.usernameOrEmail.trim() || undefined);
+            setMessage({ text: t("message.loginSuccess"), type: "success" });
+            setTimeout(goAfterLogin, 200);
+        } catch (error: any) {
+            setMessage({
+                text:
+                    error?.name === "NotAllowedError"
+                        ? t("message.passkeyCancelled")
+                        : error.msg || error.message || t("message.passkeyLoginFailed"),
+                type: "error",
+            });
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const handleTwoFactorSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!twoFactor) {
+            return;
+        }
+        if (!twoFactorInput.trim()) {
+            setMessage({
+                text: twoFactor.useRecoveryCode ? t("validation.recoveryCodeRequired") : t("validation.twoFactorCodeRequired"),
+                type: "error",
+            });
+            return;
+        }
+
+        setIsSubmitting(true);
+        setMessage(null);
+        try {
+            if (twoFactor.useRecoveryCode) {
+                await verifyTwoFactorRecovery(twoFactor.tempToken, twoFactorInput.trim());
+            } else {
+                await verifyTwoFactor(twoFactor.tempToken, twoFactorInput.trim());
+            }
+            setMessage({ text: t("message.loginSuccess"), type: "success" });
+            setTimeout(goAfterLogin, 200);
+        } catch (error: any) {
+            setMessage({
+                text: error.msg || error.message || t("message.twoFactorFailed"),
+                type: "error",
+            });
+            // 后端在第一次校验时会消费掉 temp_token，失败后必须重新走密码登录。
+            setTwoFactor(null);
+            setTwoFactorInput("");
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const backToPasswordLogin = () => {
+        setTwoFactor(null);
+        setTwoFactorInput("");
+        setMessage(null);
+    };
+
     // 切换表单视图
     const switchForm = (type: FormType) => {
         setFormType(type);
         setErrors({});
         setMessage(null);
+        setTwoFactor(null);
+        setTwoFactorInput("");
         // 重置相关表单字段
         setFormData((prev) => ({
             ...prev,
@@ -310,6 +414,8 @@ const AuthPage: React.FC = () => {
                 return t("title.register");
             case "forgotPassword":
                 return t("title.forgotPassword");
+            case "recovery":
+                return t("title.recovery");
             default:
                 return "";
         }
@@ -324,10 +430,92 @@ const AuthPage: React.FC = () => {
                 return t("description.register");
             case "forgotPassword":
                 return t("description.forgotPassword");
+            case "recovery":
+                return t("description.recovery");
             default:
                 return "";
         }
     };
+
+    if (twoFactor) {
+        return (
+            <div className={styles.authPage}>
+                <div className={styles.mainContent}>
+                    <div className={styles.authCard}>
+                        <div className={styles.topBar}></div>
+                        <div className={styles.content}>
+                            <button onClick={backToPasswordLogin} className={styles.backButton}>
+                                <ArrowLeft size={18} />
+                                <span>{t("backToLogin")}</span>
+                            </button>
+
+                            <div>
+                                <h2 className={styles.title}>{t("title.twoFactor")}</h2>
+                                <p className={styles.description}>{t("description.twoFactor")}</p>
+                            </div>
+
+                            {message && (
+                                <div
+                                    className={`${styles.message} ${message.type === "success" ? styles.messageSuccess : styles.messageError}`}
+                                >
+                                    {message.type === "success" ? <Check size={16} /> : <AlertCircle size={16} />}
+                                    <span>{message.text}</span>
+                                </div>
+                            )}
+
+                            <form onSubmit={handleTwoFactorSubmit} className={styles.form}>
+                                <div className={styles.formGroup}>
+                                    <label htmlFor="twoFactorCode" className={styles.label}>
+                                        {twoFactor.useRecoveryCode ? t("fields.recoveryCode") : t("fields.twoFactorCode")}
+                                    </label>
+                                    <div className={styles.formControl}>
+                                        <KeyRound size={18} className={styles.icon} />
+                                        <input
+                                            type="text"
+                                            id="twoFactorCode"
+                                            name="twoFactorCode"
+                                            value={twoFactorInput}
+                                            onChange={(event) => setTwoFactorInput(event.target.value)}
+                                            className={styles.input}
+                                            placeholder={
+                                                twoFactor.useRecoveryCode
+                                                    ? t("placeholders.recoveryCode")
+                                                    : t("placeholders.twoFactorCode")
+                                            }
+                                            autoComplete="one-time-code"
+                                            autoFocus
+                                        />
+                                    </div>
+                                    <p className={styles.hintText}>
+                                        {twoFactor.useRecoveryCode ? t("hints.recoveryCode") : t("hints.twoFactorCode")}
+                                    </p>
+                                </div>
+
+                                <button type="submit" disabled={isSubmitting} className={`${styles.btn} ${styles.primaryBtn}`}>
+                                    {isSubmitting ? t("submit.verifying") : t("submit.verify")}
+                                </button>
+
+                                <div className={styles.formSwitch}>
+                                    <button
+                                        type="button"
+                                        className={`${styles.btn} ${styles.textBtn}`}
+                                        onClick={() => {
+                                            setTwoFactor({ ...twoFactor, useRecoveryCode: !twoFactor.useRecoveryCode });
+                                            setTwoFactorInput("");
+                                            setMessage(null);
+                                        }}
+                                    >
+                                        {twoFactor.useRecoveryCode ? t("links.useTotpCode") : t("links.useRecoveryCode")}
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <Footer startYear={2025} />
+            </div>
+        );
+    }
 
     return (
         <div className={styles.authPage}>
@@ -422,6 +610,20 @@ const AuthPage: React.FC = () => {
                                             </p>
                                         )}
                                     </div>
+
+                                    <Button
+                                        type="button"
+                                        color="secondary"
+                                        variant="outline"
+                                        className={styles.githubBtn}
+                                        onClick={handlePasskeyLogin}
+                                        disabled={!passkeySupported || isSubmitting}
+                                        title={!passkeySupported ? t("message.passkeyUnsupported") : undefined}
+                                    >
+                                        <Fingerprint size={18} />
+                                        <span>{t("passkeyLogin")}</span>
+                                    </Button>
+                                    {!passkeySupported && <p className={styles.hintText}>{t("message.passkeyUnsupported")}</p>}
                                 </>
                             )}
 
@@ -699,6 +901,69 @@ const AuthPage: React.FC = () => {
                                 </>
                             )}
 
+                            {/* 邮箱恢复登录字段 */}
+                            {formType === "recovery" && (
+                                <>
+                                    <div className={styles.formGroup}>
+                                        <label htmlFor="recoveryEmail" className={styles.label}>
+                                            {t("fields.email")}
+                                        </label>
+                                        <div className={styles.formControl}>
+                                            <Mail size={18} className={styles.icon} />
+                                            <input
+                                                type="email"
+                                                id="recoveryEmail"
+                                                name="email"
+                                                value={formData.email}
+                                                onChange={handleInputChange}
+                                                className={`${styles.input} ${errors.email ? styles.inputError : ""}`}
+                                                placeholder={t("placeholders.email")}
+                                            />
+                                        </div>
+                                        {errors.email && (
+                                            <p className={styles.errorText}>
+                                                <AlertCircle size={14} />
+                                                {errors.email}
+                                            </p>
+                                        )}
+                                    </div>
+
+                                    <div className={styles.formGroup}>
+                                        <label htmlFor="recoveryCode" className={styles.label}>
+                                            {t("fields.code")}
+                                        </label>
+                                        <div className={styles.formControl}>
+                                            <KeyRound size={18} className={styles.icon} />
+                                            <input
+                                                type="text"
+                                                id="recoveryCode"
+                                                name="auth_code"
+                                                value={formData.auth_code}
+                                                onChange={handleInputChange}
+                                                className={`${styles.input} ${errors.auth_code ? styles.inputError : ""}`}
+                                                placeholder={t("placeholders.code")}
+                                                autoComplete="one-time-code"
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={handleSendCode}
+                                                disabled={countdown > 0}
+                                                className={styles.actionButton}
+                                            >
+                                                {countdown > 0 ? t("sendCode.resend", { seconds: countdown }) : t("sendCode.send")}
+                                            </button>
+                                        </div>
+                                        {errors.auth_code && (
+                                            <p className={styles.errorText}>
+                                                <AlertCircle size={14} />
+                                                {errors.auth_code}
+                                            </p>
+                                        )}
+                                        <p className={styles.hintText}>{t("hints.recoveryWarning")}</p>
+                                    </div>
+                                </>
+                            )}
+
                             {/* 提交按钮 */}
                             <button type="submit" disabled={isSubmitting} className={`${styles.btn} ${styles.primaryBtn}`}>
                                 {isSubmitting ? (
@@ -709,13 +974,17 @@ const AuthPage: React.FC = () => {
                                                 ? t("submit.loggingIn")
                                                 : formType === "register"
                                                   ? t("submit.registering")
-                                                  : t("submit.resetting")}
+                                                  : formType === "recovery"
+                                                    ? t("submit.recovering")
+                                                    : t("submit.resetting")}
                                         </span>
                                     </div>
                                 ) : formType === "login" ? (
                                     t("submit.login")
                                 ) : formType === "register" ? (
                                     t("submit.register")
+                                ) : formType === "recovery" ? (
+                                    t("submit.recovery")
                                 ) : (
                                     t("submit.resetPassword")
                                 )}
@@ -769,6 +1038,17 @@ const AuthPage: React.FC = () => {
                                                 </span>
                                             </>
                                         )}
+                                        <div className={styles.formSwitchDivider}></div>
+                                        <span className={styles.formSwitchItem}>
+                                            {t("links.recoveryPrompt")}
+                                            <button
+                                                type="button"
+                                                onClick={() => switchForm("recovery")}
+                                                className={`${styles.btn} ${styles.textBtn}`}
+                                            >
+                                                {t("links.emailRecovery")}
+                                            </button>
+                                        </span>
                                     </div>
                                 ) : formType === "register" ? (
                                     <div>

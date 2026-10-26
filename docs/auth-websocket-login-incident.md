@@ -1,5 +1,8 @@
 # 登录与 WebSocket 认证故障复盘
 
+> 历史文档：本文记录的是旧 token 认证时期的问题。当前前端已改为服务端 Session + HttpOnly `SESSIONID` Cookie，
+> WebSocket 握手依赖同源 Cookie，不再使用 `TokenManager` / `refresh_token` / `S_TOKEN_TIME`。
+
 ## 故障概述
 
 生产环境曾出现登录后立即失效、页面跳转到 `/auth`，以及浏览器控制台持续输出以下错误的问题：
