@@ -14,6 +14,9 @@ const section = {
         clear: "Clear Filters",
         searchLabel: "Search Categories",
         searchPlaceholder: "Category name or description",
+        userLabel: "Owner",
+        userPlaceholder: "Select user...",
+        allUsers: "All Users",
         statusLabel: "Category Status",
         statusPlaceholder: "Select status...",
         sortLabel: "Sort By",
@@ -41,6 +44,7 @@ const section = {
     },
     icons: {
         default: "Default",
+        folder: "Folder",
         tech: "Technology",
         life: "Life",
         travel: "Travel",
@@ -58,6 +62,7 @@ const section = {
         total: "{{total}} categories in total",
         headers: {
             info: "Category Info",
+            owner: "Owner",
             parent: "Parent Category",
             status: "Status",
             stats: "Stats",
@@ -74,6 +79,8 @@ const section = {
     modal: {
         createTitle: "New Category",
         editTitle: "Edit Category",
+        ownerLabel: "Owner",
+        ownerPlaceholder: "Select owner",
         nameLabel: "Category Name *",
         namePlaceholder: "Enter category name",
         slugLabel: "URL Slug *",

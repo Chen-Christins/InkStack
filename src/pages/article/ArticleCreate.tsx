@@ -132,8 +132,8 @@ const ArticleCreate: React.FC<ArticleCreateProps> = ({ onSaveDraft, onPublish, i
                 let formattedTags: Tag[] = [];
 
                 try {
-                    // 获取所有分类，保证每项都有 color 字段
-                    const categoryData = await CategoryService.queryCategory();
+                    // 获取当前用户的分类，保证每项都有 color 字段
+                    const categoryData = await CategoryService.queryMyCategory();
                     formattedCategories = categoryData.list.map((cat) => ({
                         id: cat.id,
                         name: cat.name,
@@ -304,6 +304,33 @@ const ArticleCreate: React.FC<ArticleCreateProps> = ({ onSaveDraft, onPublish, i
             }
         } catch (err) {
             console.error("标签创建失败:", err);
+        }
+    };
+
+    const handleAddCategory = async (newCategory: SelectOption) => {
+        // 创建个人分类到后端，成功后自动选中
+        try {
+            const created = await CategoryService.createMyCategory({
+                name: newCategory.name,
+                url: newCategory.name,
+                icon: "📁",
+                color: newCategory.color || "#4361ee",
+            });
+            const categoryToAdd: SelectOption = {
+                id: created.id,
+                name: created.name,
+                color: created.color || newCategory.color || "#4361ee",
+            };
+            setCategories((prev) => {
+                if (prev.some((item) => item.id === categoryToAdd.id)) {
+                    return prev;
+                }
+                return [...prev, categoryToAdd];
+            });
+            setFormData((prev) => ({ ...prev, category: categoryToAdd }));
+        } catch (err) {
+            console.error("分类创建失败:", err);
+            message.error(t("create.categoryCreateFailed"));
         }
     };
 
@@ -637,6 +664,7 @@ const ArticleCreate: React.FC<ArticleCreateProps> = ({ onSaveDraft, onPublish, i
                     <div className={styles.formSectionTitle}>
                         <i className="bi bi-folder"></i>
                         {t("create.categoryLabel")}
+                        <AddButton name={t("create.categorySelect")} onAdd={handleAddCategory} />
                     </div>
                     <div style={{ position: "relative" }}>
                         <CustomSelect

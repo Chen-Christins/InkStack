@@ -101,6 +101,7 @@ const article = {
         typeRepost: "Repost",
         categoryLabel: "Category",
         categorySelect: "Category",
+        categoryCreateFailed: "Failed to create category",
         tagLabel: "Tags",
         tagSelect: "Tag",
         contentLabel: "Content",

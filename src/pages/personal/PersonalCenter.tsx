@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import {
     FaTag,
+    FaFolderOpen,
     FaFileAlt,
     FaChartBar,
     FaBars,
@@ -32,6 +33,7 @@ import AuthService, { type UserStats } from "@/services/AuthService.ts";
 import styles from "./PersonalCenter.module.css";
 import MyArticlesTab from "./components/MyArticlesTab";
 import MyTagsTab from "./components/MyTagsTab";
+import MyCategoriesTab from "./components/MyCategoriesTab";
 import StatsTab from "./components/StatsTab";
 import MyOrganizationsTab from "./components/MyOrganizationsTab";
 import NotificationsTab from "./components/NotificationsTab";
@@ -53,6 +55,7 @@ type TabId =
     | "articles"
     | "assignments"
     | "tags"
+    | "categories"
     | "stats"
     | "organizations"
     | "notifications"
@@ -66,6 +69,7 @@ const TAB_IDS: TabId[] = [
     "articles",
     "assignments",
     "tags",
+    "categories",
     "stats",
     "organizations",
     "notifications",
@@ -148,6 +152,12 @@ const PersonalCenter: React.FC = () => {
             path: "/personal?tab=edit",
         },
         { id: "tags", label: t("center.nav.tags"), icon: <FaTag />, path: "/personal?tab=tags" },
+        {
+            id: "categories",
+            label: t("center.nav.categories"),
+            icon: <FaFolderOpen />,
+            path: "/personal?tab=categories",
+        },
         {
             id: "stats",
             label: t("center.nav.stats"),
@@ -584,6 +594,9 @@ const PersonalCenter: React.FC = () => {
 
                         {/* 标签管理 */}
                         {activeTab === "tags" && <MyTagsTab />}
+
+                        {/* 分类管理 */}
+                        {activeTab === "categories" && <MyCategoriesTab />}
 
                         {/* 数据统计 */}
                         {activeTab === "stats" && stats && <StatsTab stats={stats} />}

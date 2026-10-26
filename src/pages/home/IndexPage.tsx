@@ -147,9 +147,11 @@ const IndexPage: React.FC = () => {
                                     onTagClick={handleTagClick}
                                 />
                             </div>
-                            <div className={classicStyles.panelSlot}>
-                                <CategoryPanel selectedCategoryId={selectedCategoryId} onCategoryClick={handleCategoryClick} />
-                            </div>
+                            {user && (
+                                <div className={classicStyles.panelSlot}>
+                                    <CategoryPanel selectedCategoryId={selectedCategoryId} onCategoryClick={handleCategoryClick} />
+                                </div>
+                            )}
                             <div className={classicStyles.panelSlot}>
                                 <StatsPanel />
                             </div>
@@ -212,9 +214,11 @@ const IndexPage: React.FC = () => {
                             />
                         </div>
                         {/* 文章分类 */}
-                        <div className={`${styles.panelSlot} ${styles.wide}`}>
-                            <CategoryPanel selectedCategoryId={selectedCategoryId} onCategoryClick={handleCategoryClick} />
-                        </div>
+                        {user && (
+                            <div className={`${styles.panelSlot} ${styles.wide}`}>
+                                <CategoryPanel selectedCategoryId={selectedCategoryId} onCategoryClick={handleCategoryClick} />
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
