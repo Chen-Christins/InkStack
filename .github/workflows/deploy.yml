@@ -5,6 +5,11 @@ on:
     tags: ["v*"]
   workflow_dispatch:
 
+# 创建 GitHub Release 需要写权限；缺少此声明时 GITHUB_TOKEN 为只读，
+# softprops/action-gh-release 会返回 403 Resource not accessible by integration。
+permissions:
+  contents: write
+
 # 同一套线上目录只能同时执行一个发布，避免两个任务互相清理 release。
 concurrency:
   group: techhaven-production-deploy
@@ -150,9 +155,17 @@ jobs:
         id: changelog
         run: |
           TAG="${{ github.ref_name }}"
-          awk -v tag="$TAG" 'BEGIN{f=0} /^## /{if(f)exit} $0 ~ ("^## +\\[" tag "\\]"){f=1;next} f{print}' CHANGELOG.md > release_notes.md
+          # 预发布 tag（如 v1.2.1-rc1）回退到对应的正式版本段落
+          BASE_TAG="${TAG%%-*}"
+          extract() {
+            awk -v tag="$1" 'BEGIN{f=0} /^## /{if(f)exit} $0 ~ ("^## +\\[" tag "\\]"){f=1;next} f{print}' CHANGELOG.md > release_notes.md
+          }
+          extract "$TAG"
+          if [ ! -s release_notes.md ] && [ "$BASE_TAG" != "$TAG" ]; then
+            extract "$BASE_TAG"
+          fi
           if [ ! -s release_notes.md ]; then
-            echo "见 CHANGELOG.md" > release_notes.md
+            echo "Release ${TAG}" > release_notes.md
           fi
 
       - name: Create GitHub Release
@@ -162,3 +175,5 @@ jobs:
           tag_name: ${{ github.ref_name }}
           name: ${{ github.ref_name }}
           body_path: release_notes.md
+          # 预发布 tag（含 -rc/-beta 等）标记为 prerelease，避免被当成 Latest
+          prerelease: ${{ contains(github.ref_name, '-') }}
