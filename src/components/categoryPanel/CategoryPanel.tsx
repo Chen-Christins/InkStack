@@ -6,6 +6,7 @@ import styles from "./CategoryPanel.module.css";
 import CategoryService from "@/services/CategoryService.ts";
 import Skeleton from "../skeleton/Skeleton";
 import { useAsyncResource } from "@/hooks/UseAsyncResource";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface CategoryPanelProps {
     selectedCategoryId?: string | number;
@@ -55,11 +56,21 @@ const buildCategoryTree = (list: RawCategory[]): Category[] => {
 
 const CategoryPanel: React.FC<CategoryPanelProps> = ({ selectedCategoryId, onCategoryClick }) => {
     const { t } = useTranslation("components");
+    const { user, loading: authLoading } = useAuth();
     const [expanded, setExpanded] = useState<Record<string, boolean>>({});
-    const { data: categories = [], loading } = useAsyncResource<Category[]>(async (signal) => {
-        const response = await CategoryService.queryCategory({ signal });
-        return buildCategoryTree(response?.list || []);
-    }, []);
+    const { data: categories = [], loading } = useAsyncResource<Category[]>(
+        async (signal) => {
+            const response = await CategoryService.queryMyCategory({ signal });
+            return buildCategoryTree(response?.list || []);
+        },
+        [user?.id],
+        { enabled: !!user?.id },
+    );
+
+    // 分类已下放到个人用户，游客没有分类，整块面板不展示
+    if (authLoading || !user) {
+        return null;
+    }
 
     const toggleExpand = (categoryId: string | number) => {
         setExpanded((prev) => ({

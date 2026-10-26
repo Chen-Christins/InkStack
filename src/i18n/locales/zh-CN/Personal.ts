@@ -2,6 +2,7 @@ import stats from "./personal/Stats";
 import center from "./personal/Center";
 import articles from "./personal/Articles";
 import tags from "./personal/Tags";
+import categories from "./personal/Categories";
 import assignments from "./personal/Assignments";
 import organizations from "./personal/Organizations";
 import notifications from "./personal/Notifications";
@@ -15,6 +16,7 @@ const personal = {
     center,
     articles,
     tags,
+    categories,
     assignments,
     organizations,
     notifications,

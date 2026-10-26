@@ -1,0 +1,36 @@
+const section = {
+    title: "My Categories",
+    createCategory: "New Category",
+    loading: "Loading categories...",
+    emptyTitle: "No categories yet",
+    emptyHint: 'Click the "New Category" button to create your first article category',
+    unknownDescription: "N/A",
+    unknownTime: "Unknown time",
+    articleCount: "{{value}} articles",
+    createdOn: "Created on {{value}}",
+    parentNone: "None (Top-level category)",
+    parentLabel: "Parent Category",
+    parentPlaceholder: "Select parent category",
+    parentValue: "Parent: {{value}}",
+    editTitle: "Edit Category",
+    nameLabel: "Category Name",
+    namePlaceholder: "Enter category name",
+    descLabel: "Category Description",
+    descPlaceholder: "Enter category description",
+    colorLabel: "Category Color",
+    cancel: "Cancel",
+    saving: "Saving...",
+    update: "Update",
+    create: "Create",
+    nameRequired: "Please enter a category name",
+    deleteConfirmTitle: "Confirm Deletion",
+    deleteConfirmContent:
+        'Are you sure you want to delete the category "{{name}}"? Articles associated with it will lose this category.',
+    delete: "Delete",
+    message: {
+        saveFailed: "Failed to save the category, please try again",
+        deleteFailed: "Failed to delete the category, please try again",
+    },
+} as const;
+
+export default section;

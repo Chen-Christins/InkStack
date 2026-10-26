@@ -6,6 +6,7 @@ const section = {
         assignments: "我的任务",
         edit: "编辑资料",
         tags: "我的标签",
+        categories: "我的分类",
         stats: "数据统计",
         organizations: "我的组织",
         following: "我的关注",

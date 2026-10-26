@@ -140,7 +140,7 @@ const ArticleManagement: React.FC = () => {
                 if (res) {
                     const options = res.list.map((cat) => ({
                         id: cat.id,
-                        name: cat.name,
+                        name: cat.author ? `${cat.name} · ${cat.author}` : cat.name,
                         color: cat.color || "#007bff",
                     }));
                     setCategoryOptions([{ id: "", name: t("articles.filter.allCategories"), color: "#6c757d" }, ...options]);

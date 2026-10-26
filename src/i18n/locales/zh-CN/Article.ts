@@ -101,6 +101,7 @@ const article = {
         typeRepost: "转载文章",
         categoryLabel: "文章分类",
         categorySelect: "分类",
+        categoryCreateFailed: "创建分类失败",
         tagLabel: "文章标签",
         tagSelect: "标签",
         contentLabel: "文章内容",

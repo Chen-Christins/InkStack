@@ -11,6 +11,8 @@ import message from "@/components/message/Message";
 import type { SelectOption } from "@/types";
 import styles from "./CategoryManagement.module.css";
 import CategoryService from "@/services/CategoryService.ts";
+import AuthService from "@/services/AuthService.ts";
+import { useAuth } from "@/contexts/AuthContext";
 import { formatDateTime } from "@/utils/Utils.ts";
 
 interface Category {
@@ -21,6 +23,8 @@ interface Category {
     color: string;
     icon?: string;
     parentId?: string | number;
+    userId: string | number;
+    author?: string;
     articleCount: number;
     views: number;
     createdAt: string;
@@ -37,6 +41,7 @@ interface CategoryFormData {
     color: string;
     icon: string;
     parentId: string;
+    ownerId: string;
     status: "active" | "inactive";
 }
 
@@ -49,6 +54,7 @@ interface CategoryStats {
 
 interface FilterOptions {
     search: string;
+    userId: string;
     status: string;
     sortBy: "name" | "articleCount" | "views" | "createdAt";
     sortOrder: "asc" | "desc";
@@ -56,8 +62,10 @@ interface FilterOptions {
 
 const CategoryManagement: React.FC = () => {
     const { t } = useTranslation("admin");
+    const { user } = useAuth();
     const iconMap: Record<string, string> = {
         "": t("categories.icons.default"),
+        "📁": t("categories.icons.folder"),
         "💻": t("categories.icons.tech"),
         "🌟": t("categories.icons.life"),
         "✈️": t("categories.icons.travel"),
@@ -69,9 +77,11 @@ const CategoryManagement: React.FC = () => {
         "📷": t("categories.icons.photography"),
     };
     const [categories, setCategories] = useState<Category[]>([]);
+    const [userOptions, setUserOptions] = useState<SelectOption[]>([]);
     const [loading, setLoading] = useState(true);
     const [filters, setFilters] = useState<FilterOptions>({
         search: "",
+        userId: "",
         status: "",
         sortBy: "name",
         sortOrder: "asc",
@@ -85,6 +95,7 @@ const CategoryManagement: React.FC = () => {
         color: "#4361ee",
         icon: "",
         parentId: "",
+        ownerId: "",
         status: "active",
     });
     const [submitting, setSubmitting] = useState(false);
@@ -110,7 +121,14 @@ const CategoryManagement: React.FC = () => {
 
     const getParentCategoryOptions = (): SelectOption[] => {
         const options: SelectOption[] = [{ id: "", name: t("categories.parent.none"), color: "#6c757d" }];
-        const activeCategories = categories.filter((cat) => cat.level === 0 && cat.status === "active");
+        const ownerId = formData.ownerId || String(user?.id || "");
+        const activeCategories = categories.filter(
+            (cat) =>
+                cat.level === 0 &&
+                cat.status === "active" &&
+                String(cat.userId) === ownerId &&
+                String(cat.id) !== String(editingCategory?.id ?? ""),
+        );
         options.push(
             ...activeCategories.map((cat) => ({
                 id: cat.id.toString(),
@@ -123,6 +141,23 @@ const CategoryManagement: React.FC = () => {
 
     useEffect(() => {
         loadCategories();
+    }, []);
+
+    useEffect(() => {
+        const fetchUsers = async () => {
+            try {
+                const res = await AuthService.listUsersAdmin({ page_num: 1, page_size: 1000 });
+                const options = (res.list || []).map((item) => ({
+                    id: String(item.id),
+                    name: item.name || item.email,
+                    color: "#17a2b8",
+                }));
+                setUserOptions([{ id: "", name: t("categories.filter.allUsers"), color: "#6c757d" }, ...options]);
+            } catch (error) {
+                console.error("加载用户列表失败:", error);
+            }
+        };
+        fetchUsers();
     }, []);
 
     const loadCategories = async () => {
@@ -139,6 +174,8 @@ const CategoryManagement: React.FC = () => {
                 color: item.color,
                 icon: item.icon,
                 parentId: item.parent_id,
+                userId: item.user_id ?? "",
+                author: item.author || "",
                 articleCount: item.article_count || 0,
                 views: item.view_count || 0,
                 createdAt: item.create_time ? formatDateTime(item.create_time) : "-",
@@ -175,7 +212,7 @@ const CategoryManagement: React.FC = () => {
     };
 
     const clearFilters = () => {
-        setFilters({ search: "", status: "", sortBy: "name", sortOrder: "asc" });
+        setFilters({ search: "", userId: "", status: "", sortBy: "name", sortOrder: "asc" });
     };
 
     const openModal = (category?: Category) => {
@@ -183,11 +220,12 @@ const CategoryManagement: React.FC = () => {
             setEditingCategory(category);
             setFormData({
                 name: category.name,
-                slug: category.slug,
+                slug: category.slug || category.name,
                 description: category.description,
                 color: category.color,
                 icon: category.icon || "",
-                parentId: category.parentId?.toString() || "",
+                parentId: category.parentId && String(category.parentId) !== "0" ? String(category.parentId) : "",
+                ownerId: String(category.userId || ""),
                 status: category.status,
             });
         } else {
@@ -199,6 +237,7 @@ const CategoryManagement: React.FC = () => {
                 color: "#4361ee",
                 icon: "",
                 parentId: "",
+                ownerId: String(user?.id || ""),
                 status: "active",
             });
         }
@@ -222,12 +261,15 @@ const CategoryManagement: React.FC = () => {
         }
         setSubmitting(true);
         try {
+            const ownerId = formData.ownerId || String(user?.id || "");
+            const ownerName = userOptions.find((option) => option.id === ownerId)?.name || "";
             const response = await CategoryService.createCategory({
                 id: editingCategory ? editingCategory.id : undefined,
+                user_id: ownerId || undefined,
                 name: formData.name,
-                url: formData.slug,
+                url: formData.slug || formData.name,
                 color: formData.color,
-                icon: formData.icon,
+                icon: formData.icon || "📁",
                 description: formData.description,
                 parent_id: formData.parentId,
                 status: formData.status === "active" ? 1 : 0,
@@ -236,7 +278,19 @@ const CategoryManagement: React.FC = () => {
             if (editingCategory) {
                 setCategories((prev) =>
                     prev.map((cat) =>
-                        cat.id === editingCategory.id ? { ...cat, ...formData, updatedAt: formatDateTime(new Date()) } : cat,
+                        cat.id === editingCategory.id
+                            ? {
+                                  ...cat,
+                                  name: response.name,
+                                  slug: formData.slug || formData.name,
+                                  description: formData.description,
+                                  color: response.color,
+                                  icon: formData.icon || "📁",
+                                  parentId: response.parent_id,
+                                  status: formData.status,
+                                  updatedAt: formatDateTime(new Date()),
+                              }
+                            : cat,
                     ),
                 );
                 message.success(t("categories.request.updated"));
@@ -244,11 +298,13 @@ const CategoryManagement: React.FC = () => {
                 const newCategory: Category = {
                     id: response.id,
                     name: response.name,
-                    slug: formData.slug,
+                    slug: formData.slug || formData.name,
                     description: formData.description,
                     color: response.color,
-                    icon: formData.icon,
+                    icon: formData.icon || "📁",
                     parentId: response.parent_id,
+                    userId: ownerId,
+                    author: ownerName,
                     articleCount: 0,
                     views: 0,
                     createdAt: formatDateTime(new Date()),
@@ -289,8 +345,8 @@ const CategoryManagement: React.FC = () => {
         }
 
         try {
-            await CategoryService.deleteCategory({ ids: String(category.id) });
-            setCategories((prev) => prev.filter((cat) => cat.id !== category.id));
+            await CategoryService.deleteCategory({ ids: String(category.id), user_id: category.userId });
+            await loadCategories();
             message.success(t("categories.request.deleted"));
         } catch (error) {
             message.error(t("categories.request.deleteFailed"));
@@ -301,12 +357,14 @@ const CategoryManagement: React.FC = () => {
         const newStatus = category.status === "active" ? "inactive" : "active";
         try {
             await CategoryService.createCategory({
+                id: category.id,
+                user_id: category.userId,
                 name: category.name,
-                url: category.slug,
+                url: category.slug || category.name,
                 color: category.color,
-                icon: category.icon || "",
+                icon: category.icon || "📁",
                 description: category.description,
-                parent_id: category.parentId,
+                parent_id: category.parentId || "",
                 status: newStatus === "active" ? 1 : 0,
             });
             setCategories((prev) =>
@@ -328,6 +386,9 @@ const CategoryManagement: React.FC = () => {
 
     const filteredCategories = categories
         .filter((cat) => {
+            if (filters.userId && String(cat.userId) !== filters.userId) {
+                return false;
+            }
             if (
                 filters.search &&
                 !cat.name.toLowerCase().includes(filters.search.toLowerCase()) &&
@@ -439,6 +500,18 @@ const CategoryManagement: React.FC = () => {
                         />
                     </div>
                     <div className={styles.filterGroup}>
+                        <label className={styles.filterLabel}>{t("categories.filter.userLabel")}</label>
+                        <CustomSelect
+                            name={t("categories.filter.userLabel")}
+                            options={userOptions}
+                            value={userOptions.find((option) => option.id === filters.userId) || userOptions[0] || null}
+                            onChange={handleSelectChange("userId")}
+                            placeholder={t("categories.filter.userPlaceholder")}
+                            className="adminCustomSelect"
+                            hideBadge={true}
+                        />
+                    </div>
+                    <div className={styles.filterGroup}>
                         <label className={styles.filterLabel}>{t("categories.filter.statusLabel")}</label>
                         <CustomSelect
                             name={t("categories.filter.statusLabel")}
@@ -489,6 +562,7 @@ const CategoryManagement: React.FC = () => {
                     <thead>
                         <tr>
                             <th>{t("categories.table.headers.info")}</th>
+                            <th>{t("categories.table.headers.owner")}</th>
                             <th>{t("categories.table.headers.parent")}</th>
                             <th>{t("categories.table.headers.status")}</th>
                             <th>{t("categories.table.headers.stats")}</th>
@@ -513,6 +587,12 @@ const CategoryManagement: React.FC = () => {
                                                 )}
                                             </div>
                                         </div>
+                                    </td>
+                                    <td>
+                                        {category.author ||
+                                            userOptions.find((option) => option.id === String(category.userId))?.name ||
+                                            category.userId ||
+                                            "-"}
                                     </td>
                                     <td>
                                         {category.parentId ? (
@@ -581,7 +661,7 @@ const CategoryManagement: React.FC = () => {
                         ) : (
                             <tr>
                                 <td
-                                    colSpan={6}
+                                    colSpan={7}
                                     style={{
                                         textAlign: "center",
                                         padding: "40px",
@@ -618,12 +698,34 @@ const CategoryManagement: React.FC = () => {
                 }
             >
                 <div className={styles.formGroup}>
+                    <label className={styles.formLabel}>{t("categories.modal.ownerLabel")}</label>
+                    <CustomSelect
+                        name={t("categories.modal.ownerLabel")}
+                        options={userOptions.filter((option) => option.id !== "")}
+                        value={userOptions.find((option) => option.id === formData.ownerId) || null}
+                        onChange={(option) =>
+                            setFormData((prev) => ({
+                                ...prev,
+                                ownerId: String(option?.id || ""),
+                                parentId: "",
+                            }))
+                        }
+                        hideBadge={true}
+                        placeholder={t("categories.modal.ownerPlaceholder")}
+                        disabled={!!editingCategory}
+                    />
+                </div>
+                <div className={styles.formGroup}>
                     <label className={styles.formLabel}>{t("categories.modal.nameLabel")}</label>
                     <Input
                         placeholder={t("categories.modal.namePlaceholder")}
                         value={formData.name}
                         onChange={(value) => {
-                            setFormData((prev) => ({ ...prev, name: value, slug: value ? generateSlug(value) : "" }));
+                            setFormData((prev) => ({
+                                ...prev,
+                                name: value,
+                                slug: value ? generateSlug(value) || value : "",
+                            }));
                         }}
                         className={styles.formInput}
                         size="large"

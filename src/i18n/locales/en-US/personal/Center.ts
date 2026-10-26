@@ -6,6 +6,7 @@ const section = {
         assignments: "My Tasks",
         edit: "Edit Profile",
         tags: "My Tags",
+        categories: "My Categories",
         stats: "Statistics",
         organizations: "My Organizations",
         following: "My Following",

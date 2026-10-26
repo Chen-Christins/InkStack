@@ -14,6 +14,9 @@ const section = {
         clear: "清除筛选",
         searchLabel: "搜索分类",
         searchPlaceholder: "分类名称或描述",
+        userLabel: "所属用户",
+        userPlaceholder: "选择用户...",
+        allUsers: "全部用户",
         statusLabel: "分类状态",
         statusPlaceholder: "选择状态...",
         sortLabel: "排序方式",
@@ -41,6 +44,7 @@ const section = {
     },
     icons: {
         default: "默认",
+        folder: "文件夹",
         tech: "技术",
         life: "生活",
         travel: "旅行",
@@ -58,6 +62,7 @@ const section = {
         total: "共 {{total}} 个分类",
         headers: {
             info: "分类信息",
+            owner: "所属用户",
             parent: "父级分类",
             status: "状态",
             stats: "统计数据",
@@ -74,6 +79,8 @@ const section = {
     modal: {
         createTitle: "新增分类",
         editTitle: "编辑分类",
+        ownerLabel: "所属用户",
+        ownerPlaceholder: "选择所属用户",
         nameLabel: "分类名称 *",
         namePlaceholder: "输入分类名称",
         slugLabel: "URL标识 *",
