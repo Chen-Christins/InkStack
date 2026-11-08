@@ -29,6 +29,25 @@ import { useLayoutMode } from "@/contexts/LayoutModeContext";
 import type { SelectOption } from "../../types";
 import { HelpService, type HelpFaq } from "../../services/HelpService.ts";
 
+function normalizeFaqs(payload: unknown): HelpFaq[] {
+    if (Array.isArray(payload)) {
+        return payload;
+    }
+    if (typeof payload === "object" && payload !== null) {
+        const record = payload as Record<string, unknown>;
+        if (Array.isArray(record.list)) {
+            return record.list as HelpFaq[];
+        }
+        if (Array.isArray(record.items)) {
+            return record.items as HelpFaq[];
+        }
+        if (Array.isArray(record.faqs)) {
+            return record.faqs as HelpFaq[];
+        }
+    }
+    return [];
+}
+
 const HelpCenter: React.FC = () => {
     const { t } = useTranslation("user");
     const navigate = useNavigate();
@@ -58,7 +77,7 @@ const HelpCenter: React.FC = () => {
     const { data: faqs = [], loading: faqLoading } = useAsyncResource<HelpFaq[]>(async () => {
         try {
             const res = await HelpService.getFaqs();
-            return res.data || [];
+            return normalizeFaqs(res.data);
         } catch (err) {
             message.error(t("helpCenter.messages.loadFaqFailed"));
             throw err;
