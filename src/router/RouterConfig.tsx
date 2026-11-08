@@ -12,6 +12,7 @@ import Profile from "../pages/profile/ProfilePage";
 import PersonalCenter from "../pages/personal/PersonalCenter";
 import AdminLayout from "../pages/admin/AdminLayout";
 import Dashboard from "../pages/admin/Dashboard";
+import Metrics from "../pages/admin/Metrics";
 import UserManagement from "../pages/admin/UserManagement";
 import ArticleManagement from "../pages/admin/ArticleManagement";
 import AssignmentManagement from "../pages/admin/AssignmentManagement";
@@ -59,6 +60,7 @@ const RouterConfig: React.FC = () => {
             {/* 管理中心不受维护模式限制（管理员需要关闭维护模式） */}
             <Route path="/admin" element={<AdminLayout />}>
                 <Route index element={<Dashboard />} />
+                <Route path="metrics" element={<Metrics />} />
                 <Route path="users" element={<UserManagement />} />
                 <Route path="articles" element={<ArticleManagement />} />
                 <Route path="assignments" element={<AssignmentManagement />} />

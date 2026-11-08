@@ -123,10 +123,10 @@ const Dashboard: React.FC = () => {
             path: "/admin/settings",
         },
         {
-            title: t("dashboard.quickActions.viewAnalytics.title"),
-            description: t("dashboard.quickActions.viewAnalytics.description"),
+            title: t("dashboard.quickActions.viewMetrics.title"),
+            description: t("dashboard.quickActions.viewMetrics.description"),
             icon: <FaChartBar />,
-            path: "/admin/analytics",
+            path: "/admin/metrics",
         },
     ];
 

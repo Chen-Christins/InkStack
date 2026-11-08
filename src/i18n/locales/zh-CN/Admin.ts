@@ -1,5 +1,6 @@
 import layout from "./admin/Layout";
 import dashboard from "./admin/Dashboard";
+import metrics from "./admin/Metrics";
 import users from "./admin/Users";
 import articles from "./admin/Articles";
 import assignments from "./admin/Assignments";
@@ -16,6 +17,7 @@ import feedbacks from "./admin/Feedbacks";
 const admin = {
     layout,
     dashboard,
+    metrics,
     users,
     articles,
     assignments,

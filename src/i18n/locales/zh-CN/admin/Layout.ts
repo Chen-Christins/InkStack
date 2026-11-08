@@ -27,6 +27,7 @@ const section = {
         categories: "分类管理",
         media: "媒体库",
         database: "数据管理",
+        metrics: "运行指标",
         settings: "系统设置",
         feedbacks: "帮助运营",
     },

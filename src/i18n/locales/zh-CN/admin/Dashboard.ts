@@ -42,9 +42,9 @@ const section = {
             title: "系统设置",
             description: "配置系统参数",
         },
-        viewAnalytics: {
-            title: "查看统计",
-            description: "查看详细数据分析",
+        viewMetrics: {
+            title: "查看运行指标",
+            description: "查看接口 QPS、延迟与资源占用",
         },
     },
     recentActivity: {
