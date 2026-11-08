@@ -529,62 +529,27 @@
     color: var(--text-primary);
 }
 
-.bucketTableWrapper {
-    overflow-x: auto;
+.bucketChartContainer {
     border: 1px solid var(--border-primary);
     border-radius: 8px;
+    padding: 10px 10px 6px;
+    background-color: var(--card-bg);
 }
 
-.bucketTable {
-    width: 100%;
-    min-width: 420px;
-    border-collapse: collapse;
-}
-
-.bucketTable th {
-    padding: 10px 12px;
-    text-align: center;
+.bucketChartLegend {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 2px 2px 8px;
+    border-bottom: 1px solid var(--border-primary);
     font-size: 12px;
     font-weight: 600;
     color: var(--text-secondary);
-    background-color: var(--bg-secondary);
-    border-bottom: 1px solid var(--border-primary);
-    white-space: nowrap;
 }
 
-.bucketTable td {
-    padding: 10px 12px;
-    text-align: center;
-    font-size: 13px;
-    color: var(--text-primary);
-    border-bottom: 1px solid var(--border-primary);
-    font-variant-numeric: tabular-nums;
-}
-
-.bucketTable tbody tr:last-child td {
-    border-bottom: none;
-}
-
-.bucketRatioCell {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    min-width: 180px;
-}
-
-.bucketBar {
-    flex: 1;
-    height: 6px;
-    min-width: 80px;
-    border-radius: 999px;
-    background-color: var(--bg-secondary);
-    overflow: hidden;
-}
-
-.bucketBarFill {
-    height: 100%;
-    border-radius: 999px;
-    background-color: var(--primary);
+.bucketEchart {
+    width: 100%;
+    height: 320px;
 }
 
 .detailEmpty {
@@ -675,5 +640,15 @@
 
     .pagination {
         padding: 14px 16px;
+    }
+
+    .bucketChartLegend {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+    }
+
+    .bucketEchart {
+        height: 280px;
     }
 }
