@@ -43,9 +43,9 @@ const section = {
             title: "System Settings",
             description: "Configure system parameters",
         },
-        viewAnalytics: {
-            title: "View Analytics",
-            description: "View detailed data analysis",
+        viewMetrics: {
+            title: "View Runtime Metrics",
+            description: "Inspect endpoint QPS, latency, and resource usage",
         },
     },
     recentActivity: {

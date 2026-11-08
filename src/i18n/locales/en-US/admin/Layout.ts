@@ -27,6 +27,7 @@ const section = {
         categories: "Categories",
         media: "Media Library",
         database: "Data",
+        metrics: "Runtime Metrics",
         settings: "Settings",
         feedbacks: "Support",
     },

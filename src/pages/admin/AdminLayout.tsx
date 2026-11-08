@@ -17,6 +17,7 @@ import {
     FaBuilding,
     FaBell,
     FaPaperPlane,
+    FaChartLine,
 } from "react-icons/fa";
 import styles from "./AdminLayout.module.css";
 import ThemeToggle from "@/components/themeToggle/ThemeToggle";
@@ -238,6 +239,12 @@ const AdminLayout: React.FC = () => {
         {
             title: t("layout.sections.system"),
             items: [
+                {
+                    id: "metrics",
+                    label: t("layout.nav.metrics"),
+                    icon: <FaChartLine />,
+                    path: "/admin/metrics",
+                },
                 {
                     id: "settings",
                     label: t("layout.nav.settings"),
