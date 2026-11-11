@@ -32,7 +32,7 @@ import {
     subscribe as subscribeSettings,
     type NotifType,
 } from "@/utils/NotificationSettingsState.ts";
-import { notificationWS } from "@/services/WsInstances.ts";
+import { sessionWS } from "@/services/WsInstances.ts";
 import CustomSelect from "@/components/customSelect/CustomSelect";
 import Modal from "@/components/modal/Modal";
 import Switch from "@/components/switch/Switch";
@@ -195,7 +195,7 @@ const NotificationsTab: React.FC = () => {
 
     // Listen for real-time notifications via WebSocket — reset to page 1
     useEffect(() => {
-        const unsub = notificationWS.onMessage("notification", () => {
+        const unsub = sessionWS.onMessage("notification", () => {
             setCurrentPage(1);
             setRefreshKey((k) => k + 1);
         });

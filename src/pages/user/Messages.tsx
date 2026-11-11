@@ -7,7 +7,7 @@ import Avatar from "@/components/avatar/Avatar";
 import Input from "@/components/input/Input";
 import MessageService from "@/services/MessageService.ts";
 import FollowService from "@/services/FollowService.ts";
-import { chatWS } from "@/services/WsInstances.ts";
+import { sessionWS } from "@/services/WsInstances.ts";
 import { confirm } from "@/components/confirm/Confirm";
 import { useAuth } from "@/contexts/AuthContext";
 import { isNormalUser } from "@/types/Roles.ts";
@@ -124,8 +124,8 @@ const Messages: React.FC = () => {
     // 标记会话已读：优先走 WS（可推送已读回执），未连接时退回 HTTP
     const sendRead = useCallback((convId: string) => {
         setConversations((prev) => prev.map((c) => (String(c.id) === convId ? { ...c, unread: 0 } : c)));
-        if (chatWS.isConnected) {
-            chatWS.send({ type: "read", conversation_id: Number(convId) });
+        if (sessionWS.isConnected) {
+            sessionWS.send({ type: "read", conversation_id: Number(convId) });
         } else {
             MessageService.markRead(convId).catch(() => {});
         }
@@ -136,7 +136,7 @@ const Messages: React.FC = () => {
         if (denied) {
             return;
         }
-        const unsubMsg = chatWS.onMessage("message", (data: any) => {
+        const unsubMsg = sessionWS.onMessage("message", (data: any) => {
             const convId = String(data?.conversation_id ?? "");
             const msg = data?.message as ChatMsg | undefined;
             if (!convId || !msg) {
@@ -174,7 +174,7 @@ const Messages: React.FC = () => {
             }
         });
 
-        const unsubAck = chatWS.onMessage("message_ack", (data: any) => {
+        const unsubAck = sessionWS.onMessage("message_ack", (data: any) => {
             const convId = String(data?.conversation_id ?? "");
             const clientId = String(data?.client_id ?? "");
             const saved = data?.message as ChatMsg | undefined;
@@ -188,7 +188,7 @@ const Messages: React.FC = () => {
             );
         });
 
-        const unsubErr = chatWS.onMessage("send_error", (data: any) => {
+        const unsubErr = sessionWS.onMessage("send_error", (data: any) => {
             const clientId = String(data?.client_id ?? "");
             if (!clientId) {
                 return;
@@ -289,9 +289,9 @@ const Messages: React.FC = () => {
         setConversations((prev) => prev.map((c) => (String(c.id) === convId ? { ...c, last_time: now, messages: [tempMsg] } : c)));
         setInput("");
 
-        if (chatWS.isConnected) {
-            // 标准路径：经聊天 WS 发送，message_ack / send_error 事件负责对齐与回滚
-            chatWS.send({ type: "send", client_id: clientId, conversation_id: Number(active.id), text });
+        if (sessionWS.isConnected) {
+            // 标准路径：经统一会话 WS 发送，message_ack / send_error 事件负责对齐与回滚
+            sessionWS.send({ type: "send", client_id: clientId, conversation_id: Number(active.id), text });
             return;
         }
 

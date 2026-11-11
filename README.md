@@ -57,7 +57,7 @@ InkStack 是一个面向技术团队的知识与协作平台前端，将技术�
 - 明暗模式、主题皮肤、自定义光标和页面宽度切换。
 - 响应式布局、骨架屏、空状态、错误状态和统一反馈组件。
 - 维护模式守卫和空闲会话超时。
-- 通知与在线状态 WebSocket 自动重连。
+- 通知、在线人数与私信共用一条会话 WebSocket，自动重连。
 
 ## 技术架构
 
@@ -109,7 +109,7 @@ npm run dev
 - `VITE_USE_PROXY=true`：浏览器请求同源 `/api/v1`。开发环境由 Vite 转发，生产环境需要由 Nginx、网关或其他 Web 服务器提供对应的反向代理。
 - `VITE_USE_PROXY=false`：Axios 直接使用 `VITE_API_BASE_URL`。
 - Vite 开发代理覆盖 AI 摘要 SSE、通用 `/api/v1` 请求和 `/file` 文件服务。
-- WebSocket 会在 `VITE_WS_URL` 后连接通知与在线状态端点。
+- WebSocket 会在 `VITE_WS_URL` 后连接统一会话端点 `/ws/v1/session`。
 
 所有 `VITE_*` 环境变量都会暴露给浏览器，禁止在其中保存密码、私钥、服务端密钥或其他敏感信息。本地覆盖配置可以放在被 Git 忽略的 `.env.local` 或 `.env.*.local` 中。
 
@@ -203,7 +203,7 @@ BrowserRouter
 - 普通业务 API 按领域封装在 `src/services/` 中，并复用 `src/infra/Http.ts` 的 Axios 实例。
 - HTTP 层统一处理业务 `errno`、动态错误码表、HTTP 错误和认证失效。
 - AI 摘要使用原生 Fetch 读取 SSE 流。
-- 通知和在线状态使用两个独立 WebSocket 连接，登录后连接、登出后断开，并支持自动重连。
+- 通知、在线人数和私信复用同一条会话 WebSocket（`/ws/v1/session`），登录后连接、登出后断开，并支持自动重连；下行帧按 `channel` 分发。
 
 ### UI 开发
 

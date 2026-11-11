@@ -121,7 +121,7 @@ export default defineConfig(({ mode }) => {
             });
           },
         },
-        // WebSocket 代理（通知 / 在线 / 聊天）
+        // 统一会话 WebSocket 代理（通知 / 在线 / 聊天）
         "^/ws/v1": {
           target: env.VITE_WS_URL || "ws://127.0.0.1:8091",
           ws: true,

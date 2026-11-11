@@ -113,7 +113,7 @@ WebSocket is closed before the connection was established
 
 如果以后再次出现该错误，应按以下顺序排查：
 
-1. 查看 WebSocket URL 的路径，确认是 `/ws/v1/notification`、`/ws/v1/presence` 还是 `/ws/v1/messages`。
+1. 查看 WebSocket URL 的路径，当前应为唯一的 `/ws/v1/session`（旧文档中的 `/ws/v1/notification`、`/ws/v1/presence`、`/ws/v1/messages` 已下线）。
 2. 查看是否存在多个不同 token 的握手请求，确认是否发生 token 轮换竞态。
 3. 检查前端是否在 `CONNECTING` 状态调用了 `disconnect()` 或重复 `connect()`。
 4. 检查服务端或 Nginx 是否返回了 WebSocket Upgrade：

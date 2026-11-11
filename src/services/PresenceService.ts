@@ -1,19 +1,42 @@
-import { WebSocketClient } from "../infra/Websocket.ts";
+import { sessionWS } from "./WsInstances.ts";
 
-/** 在线状态 WebSocket 单例 */
-export const presenceWS = new WebSocketClient("/ws/v1/presence");
+/**
+ * 实时在线人数
+ *
+ * 复用统一会话长连接：
+ * - 握手成功后服务端下发 `connected` 帧，携带 `online_users`
+ * - 在线人数变化时下发 `online_count` 帧
+ *
+ * 连接生命周期由 AuthContext 统一管理，这里只负责缓存与订阅。
+ */
 
-type OnlineCountListener = (count: number) => void;
+type OnlineCountListener = (count: number | null) => void;
 const listeners = new Set<OnlineCountListener>();
 let _onlineCount: number | null = null;
 
-presenceWS.onMessage("online_count", (data: any) => {
-    const count = data?.count ?? data?.online_users;
-    if (typeof count !== "number" || !Number.isFinite(count) || count < 0) {
+function updateOnlineCount(raw: unknown) {
+    if (typeof raw !== "number" || !Number.isFinite(raw) || raw < 0) {
         return;
     }
-    _onlineCount = count;
-    listeners.forEach((fn) => fn(count));
+    _onlineCount = raw;
+    listeners.forEach((fn) => fn(raw));
+}
+
+sessionWS.onMessage("online_count", (data: any) => {
+    updateOnlineCount(data?.count ?? data?.online_users);
+});
+
+sessionWS.onMessage("connected", (data: any) => {
+    updateOnlineCount(data?.online_users);
+});
+
+// 连接断开时清空，避免展示过期人数。
+sessionWS.onClose(() => {
+    if (_onlineCount === null) {
+        return;
+    }
+    _onlineCount = null;
+    listeners.forEach((fn) => fn(null));
 });
 
 export function getOnlineCount(): number | null {
@@ -25,12 +48,4 @@ export function subscribeOnlineCount(listener: OnlineCountListener): () => void 
     return () => {
         listeners.delete(listener);
     };
-}
-
-export function connectPresence(uid: string | number) {
-    presenceWS.connect(uid);
-}
-
-export function disconnectPresence() {
-    presenceWS.disconnect();
 }

@@ -4,6 +4,11 @@
 
 发版时请新增一个 `## [vX.Y.Z] - YYYY-MM-DD` 段落，CI 会自动将其作为 GitHub Release 的说明。
 
+## [Unreleased]
+
+### 变更
+- WebSocket 合并为统一会话长连接 `/ws/v1/session`：通知、在线人数、私信和系统消息复用同一个 `sessionWS` 单例，按 `channel` 分发；同一设备建立新连接时会顶掉旧连接，前端收到 `replaced` 后停止重连。
+
 ## [v1.2.1] - 2026-10-26
 
 ### 新增
