@@ -38,7 +38,7 @@ import {
     decrementUnreadCount,
 } from "@/utils/NotificationState.ts";
 import { getSettings, setTypeEnabled, subscribe as subscribeSettings, type NotifType } from "@/utils/NotificationSettingsState.ts";
-import { notificationWS } from "@/services/WsInstances.ts";
+import { sessionWS } from "@/services/WsInstances.ts";
 import { playNotificationSound } from "@/utils/NotificationSound.ts";
 import { useAuth } from "@/contexts/AuthContext";
 import Modal from "../modal/Modal";
@@ -201,16 +201,15 @@ const Notification: React.FC = () => {
             setFaviconBadge(getUnreadCount());
         };
 
-        // 注册指定 type="notification" 的处理器
-        const unsub1 = notificationWS.onMessage("notification", handleNotification);
-        // 兜底：同时注册通配符处理器，覆盖服务端 type 字段不一致的情况
-        const unsub2 = notificationWS.onMessage("*", (data: any) => {
-            // 如果已有精确匹配的 "notification" 处理器触发过，这里就不重复处理
-            // 通配符只在消息格式不标准时兜底
+        // 注册统一网关的 channel="notification" 处理器
+        const unsub1 = sessionWS.onMessage("notification", handleNotification);
+        // 兜底：同时注册通配符处理器，覆盖服务端 channel 字段缺失的情况
+        const unsub2 = sessionWS.onMessage("*", (data: any) => {
+            // 已有精确匹配的 "notification" 处理器触发过，这里就不重复处理
             const msgType = data?.type || data?.event || "";
-            if (msgType === "notification") {
+            if (data?.channel === "notification" || msgType === "notification") {
                 return;
-            } // 已由精确处理器处理
+            }
             // 只要携带了通知相关字段就视为通知
             if (data?.notification_id || data?.title || data?.content) {
                 handleNotification(data);
@@ -236,7 +235,7 @@ const Notification: React.FC = () => {
     // WebSocket 重连后刷新通知列表（全局计数已本地维护，无需再拉 API）
     const wsFirstOpen = useRef(true);
     useEffect(() => {
-        const unsub = notificationWS.onOpen(() => {
+        const unsub = sessionWS.onOpen(() => {
             if (wsFirstOpen.current) {
                 wsFirstOpen.current = false;
                 return;
@@ -279,9 +278,9 @@ const Notification: React.FC = () => {
         if (!import.meta.env.DEV) {
             return;
         }
-        setWsConnected(notificationWS.isConnected);
-        const unsubOpen = notificationWS.onOpen(() => setWsConnected(true));
-        const unsubClose = notificationWS.onClose(() => setWsConnected(false));
+        setWsConnected(sessionWS.isConnected);
+        const unsubOpen = sessionWS.onOpen(() => setWsConnected(true));
+        const unsubClose = sessionWS.onClose(() => setWsConnected(false));
         return () => {
             unsubOpen();
             unsubClose();

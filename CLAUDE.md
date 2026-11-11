@@ -35,8 +35,9 @@ BrowserRouter → ThemeProvider → AuthProvider → LayoutWidthProvider → Sit
 
 ### WebSocket 连接管理
 
-- WebSocket 客户端封装在 `src/infra/Websocket.ts`（`WebSocketClient` 类），支持自动重连（指数退避，最多 50 次，最长间隔 30s）、消息类型分发、Cookie 鉴权
-- 通知 WebSocket 是全局单例 `notificationWS`，**连接生命周期绑定在 AuthContext 中** — 登录成功自动 connect，登出自动 disconnect，不会随路由切换重连
+- WebSocket 客户端封装在 `src/infra/Websocket.ts`（`WebSocketClient` 类），支持自动重连（指数退避）、按 `type` / `channel` 双路分发、Cookie 鉴权
+- 统一会话 WebSocket 是全局单例 `sessionWS`（`/ws/v1/session`），**连接生命周期绑定在 AuthContext 中** — 登录成功自动 connect，登出自动 disconnect，不会随路由切换重连
+- 通知、在线人数、私信和系统消息复用同一条连接，业务侧按 `channel`（`system` / `notification` / `presence` / `chat`）区分
 - WebSocket 路径通过 `VITE_WS_URL` 环境变量配置
 
 ### 路由结构
