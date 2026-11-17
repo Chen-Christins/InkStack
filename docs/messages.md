@@ -75,5 +75,5 @@ interface Conversation {
 **响应 data**：更新后的未读计数 `{ "unread": 0 }`。
 
 ## 备注
-- 当前消息为前端内存态模拟，刷新即重置；真实环境建议配合 WebSocket（项目已有 `notificationWS` 单例）推送新消息。
+- 实时推送复用统一会话 WebSocket（`sessionWS`，`/ws/v1/session`），私信、通知和在线状态都走同一条连接。
 - 移动端通过 CSS 类 `showChat` 在会话列表与聊天窗之间切换，接口无需区分端。

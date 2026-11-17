@@ -88,6 +88,8 @@ const Metrics: FC = () => {
 
     const chartRef = useRef<HTMLDivElement>(null);
     const chartInstance = useRef<echarts.ECharts | null>(null);
+    const bucketChartRef = useRef<HTMLDivElement>(null);
+    const bucketChartInstance = useRef<echarts.ECharts | null>(null);
 
     const fetcher = useCallback((signal: AbortSignal) => MetricsService.getMetrics(signal), []);
     const { data: samples, loading, error, reload } = useAsyncResource<MetricSample[]>(fetcher, [], { timeoutMs: 15000 });
@@ -310,9 +312,159 @@ const Metrics: FC = () => {
     }, [chartRoutes, preset, t]);
 
     useEffect(() => {
+        if (!selectedRoute || selectedRoute.buckets.length === 0) {
+            bucketChartInstance.current?.dispose();
+            bucketChartInstance.current = null;
+            return;
+        }
+
+        if (!bucketChartRef.current) {
+            return;
+        }
+
+        if (!bucketChartInstance.current) {
+            bucketChartInstance.current = echarts.init(bucketChartRef.current, "light", { renderer: "canvas" });
+        }
+
+        const chart = bucketChartInstance.current;
+        const themeFont = getThemeFontFamily();
+        const rows = selectedRoute.buckets.map((bucket, index) => {
+            const prev = index > 0 ? selectedRoute.buckets[index - 1] : null;
+            const intervalCount = Math.max(0, bucket.cumulative - (prev?.cumulative ?? 0));
+            const intervalRatio = selectedRoute.count > 0 ? (intervalCount / selectedRoute.count) * 100 : 0;
+            const label = prev
+                ? `${formatLatencyValue(prev.le * 1000)} ~ ${formatLatencyValue(bucket.le * 1000)}`
+                : `0 ~ ${formatLatencyValue(bucket.le * 1000)}`;
+            return {
+                label,
+                count: intervalCount,
+                ratio: Number(intervalRatio.toFixed(2)),
+            };
+        });
+
+        const option: echarts.EChartsOption = {
+            textStyle: {
+                fontFamily: themeFont,
+            },
+            tooltip: {
+                trigger: "axis",
+                axisPointer: { type: "shadow" },
+                backgroundColor: "#ffffff",
+                borderColor: "#e1e5e9",
+                borderWidth: 1,
+                borderRadius: 6,
+                padding: [8, 12],
+                textStyle: {
+                    color: "#333333",
+                    fontSize: 12,
+                    fontFamily: themeFont,
+                },
+                formatter: (params: any) => {
+                    const point = Array.isArray(params) ? params[0] : params;
+                    const row = rows[point?.dataIndex];
+                    if (!row) {
+                        return "";
+                    }
+                    return `
+                        <div style="padding: 4px 0; max-width: 360px;">
+                            <div style="font-weight: 600; margin-bottom: 4px; color: #333; word-break: break-all;">${row.label}</div>
+                            <div style="color: #4361ee;">${t("metrics.detail.bucketIntervalCount")}: ${formatNumber(row.count)}</div>
+                            <div style="color: #666;">${t("metrics.detail.bucketRatio")}: ${row.ratio.toFixed(2)}%</div>
+                        </div>
+                    `;
+                },
+            },
+            grid: {
+                left: "2%",
+                right: "8%",
+                top: "8%",
+                bottom: "2%",
+                containLabel: true,
+            },
+            xAxis: {
+                type: "value",
+                axisLine: {
+                    show: false,
+                },
+                axisTick: {
+                    show: false,
+                },
+                axisLabel: {
+                    color: "#999999",
+                    fontSize: 10,
+                },
+                splitLine: {
+                    lineStyle: {
+                        color: "#f0f0f0",
+                        type: "dashed",
+                    },
+                },
+            },
+            yAxis: {
+                type: "category",
+                inverse: true,
+                data: rows.map((row) => row.label),
+                axisLine: {
+                    show: false,
+                },
+                axisTick: {
+                    show: false,
+                },
+                axisLabel: {
+                    color: "#666666",
+                    fontSize: 11,
+                    width: 180,
+                    overflow: "truncate",
+                    fontFamily: themeFont,
+                },
+            },
+            series: [
+                {
+                    name: t("metrics.detail.bucketIntervalCount"),
+                    type: "bar",
+                    data: rows.map((row) => row.count),
+                    barMaxWidth: 18,
+                    itemStyle: {
+                        borderRadius: [0, 4, 4, 0],
+                        color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [
+                            { offset: 0, color: "#4361ee" },
+                            { offset: 1, color: "#7c9cff" },
+                        ]),
+                    },
+                    label: {
+                        show: true,
+                        position: "right",
+                        color: "#666666",
+                        fontSize: 11,
+                        formatter: (params: any) => {
+                            const row = rows[params.dataIndex];
+                            if (!row) {
+                                return "";
+                            }
+                            return `${formatNumber(Number(params.value))} (${row.ratio.toFixed(2)}%)`;
+                        },
+                    },
+                },
+            ],
+        };
+
+        chart.setOption(option, true);
+
+        const handleResize = () => {
+            chart.resize();
+        };
+        window.addEventListener("resize", handleResize);
+        return () => {
+            window.removeEventListener("resize", handleResize);
+        };
+    }, [preset, selectedRoute, t]);
+
+    useEffect(() => {
         return () => {
             chartInstance.current?.dispose();
             chartInstance.current = null;
+            bucketChartInstance.current?.dispose();
+            bucketChartInstance.current = null;
         };
     }, []);
 
@@ -747,42 +899,20 @@ const Metrics: FC = () => {
 
                     <h4 className={styles.detailSectionTitle}>{t("metrics.detail.buckets")}</h4>
                     {selectedRoute.buckets.length > 0 ? (
-                        <div className={styles.bucketTableWrapper}>
-                            <table className={styles.bucketTable}>
-                                <thead>
-                                    <tr>
-                                        <th scope="col">{t("metrics.detail.bucketLe")}</th>
-                                        <th scope="col">{t("metrics.detail.bucketCount")}</th>
-                                        <th scope="col">{t("metrics.detail.bucketRatio")}</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {selectedRoute.buckets.map((bucket) => {
-                                        const ratio = selectedRoute.count > 0 ? (bucket.cumulative / selectedRoute.count) * 100 : 0;
-                                        return (
-                                            <tr key={bucket.le}>
-                                                <td>{formatLatencyValue(bucket.le * 1000)}</td>
-                                                <td>{formatNumber(bucket.cumulative)}</td>
-                                                <td>
-                                                    <div className={styles.bucketRatioCell}>
-                                                        <div className={styles.bucketBar}>
-                                                            <div
-                                                                className={styles.bucketBarFill}
-                                                                style={{ width: `${Math.min(100, ratio)}%` }}
-                                                            />
-                                                        </div>
-                                                        <span>{ratio.toFixed(2)}%</span>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        );
-                                    })}
-                                </tbody>
-                            </table>
+                        <div className={styles.bucketChartContainer}>
+                            <div className={styles.bucketChartLegend}>
+                                <span>{t("metrics.detail.bucketRange")}</span>
+                                <span>
+                                    {t("metrics.detail.bucketIntervalCount")}
+                                    {` / ${t("metrics.detail.bucketRatio")}`}
+                                </span>
+                            </div>
+                            <div className={styles.bucketEchart} ref={bucketChartRef} />
                         </div>
                     ) : (
                         <p className={styles.detailEmpty}>{t("metrics.detail.noBuckets")}</p>
                     )}
+                    <p className={styles.detailHint}>{t("metrics.detail.intervalHint")}</p>
                     <p className={styles.detailHint}>{t("metrics.detail.overflowHint")}</p>
                 </Modal>
             ) : null}

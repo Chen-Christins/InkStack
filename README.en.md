@@ -57,7 +57,7 @@ Users can publish and read technical articles, participate in discussions, and m
 - Light and dark modes, theme skins, custom cursors, and layout width switching.
 - Responsive layouts, skeleton screens, empty states, error states, and shared feedback components.
 - Maintenance-mode guarding and idle session timeouts.
-- Automatic reconnect for notification and presence WebSocket connections.
+- Automatic reconnect for the shared session WebSocket used by notifications, presence, and direct messages.
 
 ## Architecture and Stack
 
@@ -109,7 +109,7 @@ Vite loads environment files according to the current mode, including `.env.deve
 - `VITE_USE_PROXY=true`: the browser requests same-origin `/api/v1`. In development, Vite forwards these requests. In production, Nginx, an API gateway, or another web server must provide the equivalent reverse proxy.
 - `VITE_USE_PROXY=false`: Axios uses `VITE_API_BASE_URL` directly.
 - The Vite development proxy covers the AI summary SSE endpoint, general `/api/v1` requests, and the `/file` file service.
-- WebSocket connections use `VITE_WS_URL` as their base and connect to notification and presence endpoints.
+- WebSocket connections use `VITE_WS_URL` as their base and connect to the unified session endpoint `/ws/v1/session`.
 
 All `VITE_*` variables are exposed to browser code. Never put passwords, private keys, server secrets, or other sensitive values in them. Local overrides can be placed in Git-ignored `.env.local` or `.env.*.local` files.
 
@@ -203,7 +203,7 @@ The `/rd` layout additionally mounts `RdOrgProvider` for the current organizatio
 - Regular business APIs are organized by domain under `src/services/` and reuse the shared Axios instance from `src/infra/Http.ts`.
 - The HTTP layer handles business `errno` values, dynamic error-code tables, HTTP errors, and authentication expiration.
 - AI summaries use the native Fetch API to consume an SSE stream.
-- Notifications and presence use separate WebSocket connections, connect after login, disconnect after logout, and support automatic reconnects.
+- Notifications, presence, and direct messages share one session WebSocket (`/ws/v1/session`) that connects after login, disconnects after logout, and supports automatic reconnects; downstream frames are dispatched by `channel`.
 
 ### UI Development
 

@@ -17,12 +17,10 @@ import IdleTimeoutHandler from "./components/sessionTimeout/IdleTimeoutHandler";
 import RouterConfig from "./router/RouterConfig";
 import ThemeBackground from "./components/themeBackground";
 import SessionNotifier from "./components/auth/SessionNotifier";
-import { usePresenceConnection } from "./hooks/UseOnlineCount.ts";
 import { initErrorCodes } from "./utils/ErrorCodes.ts";
 import "./utils/ErrorHandlers.ts"; // 注册业务 errno 处理器（1101 等）
 
 function AppContent() {
-    usePresenceConnection();
     useLanguageSync();
 
     // 启动时立即加载错误码（不依赖 settings）

@@ -43,7 +43,7 @@ npm run format  # Prettier 格式化
 - **Provider 嵌套顺序**：BrowserRouter → Theme → Auth → LayoutWidth → SiteSettings → Message → Confirm
 - **Session 认证**：服务端设置 HttpOnly `SESSIONID`，Axios 统一 `withCredentials: true`，不再附加 Bearer header
 - **登录方式**：密码 + TOTP、Passkey（WebAuthn）、邮箱验证码恢复；登录后统一通过 `/user/info` 恢复用户态
-- **WebSocket**：`notificationWS` 单例，生命周期绑定 AuthContext（登录连/登出断），握手依赖同源 Cookie，支持自动重连
+- **WebSocket**：统一会话单例 `sessionWS`（`/ws/v1/session`），生命周期绑定 AuthContext（登录连/登出断），握手依赖同源 Cookie，支持自动重连；通知、在线人数和私信按 `channel` 分发
 - **路由**：`/auth` 和 `/admin/*` 免维护模式守卫，其余路由受 `MaintenanceGuard` 保护
 - **样式**：CSS Modules + CSS 自定义属性（`data-theme` 驱动明暗主题，`data-width-mode` 驱动页面宽度）
 - **HTTP**：`src/infra/Http.ts` 封装，拦截器做了完整的中文业务状态码映射

@@ -16,6 +16,8 @@ export interface WsServerError {
     errno: number;
     errstr: string;
     message: string;
+    /** 统一网关的业务通道：system / notification / presence / chat */
+    channel?: string;
 }
 
 type ServerErrorHandler = (err: WsServerError) => void;
@@ -63,7 +65,7 @@ export class WebSocketClient {
         this.reconnectDelay = Math.max(0, options.reconnectDelay ?? 1000);
         this.maxReconnectDelay = Math.max(this.reconnectDelay, options.maxReconnectDelay ?? 30000);
         this.maxPendingMessages = Math.max(0, options.maxPendingMessages ?? 100);
-        this.heartbeatInterval = Math.max(0, options.heartbeatInterval ?? 30000);
+        this.heartbeatInterval = Math.max(0, options.heartbeatInterval ?? 5000);
 
         window.addEventListener(
             "beforeunload",
@@ -161,11 +163,18 @@ export class WebSocketClient {
                         errno: data.errno,
                         errstr,
                         message: getErrorMsg(data.errno, errstr),
+                        channel: typeof data.channel === "string" ? data.channel : undefined,
                     };
                     this.dispatchHandlers(this.serverErrorHandlers, parsed, "server error");
                 }
                 const type = typeof data.type === "string" ? data.type : typeof data.event === "string" ? data.event : "message";
+                // 统一网关的下行帧同时带 channel。通知帧的 type 是业务类型（comment/praise/...），
+                // 因此额外按 channel 分发一次，业务侧可以直接 onMessage("notification")。
+                const channel = typeof data.channel === "string" ? data.channel : "";
                 this.dispatchMessage(type, data);
+                if (channel && channel !== type) {
+                    this.dispatchMessage(channel, data);
+                }
             } else {
                 this.dispatchMessage("message", data);
             }

@@ -65,7 +65,7 @@ describe("WebSocket Cookie 建连", () => {
     });
 
     it("建连 URL 只携带 uid，不再携带 token/token_time", () => {
-        const client = new WebSocketClient("/ws/v1/notification");
+        const client = new WebSocketClient("/ws/v1/session");
         captureConsole(client, 42);
 
         expect(MockWebSocket.instances).toHaveLength(1);
@@ -76,13 +76,13 @@ describe("WebSocket Cookie 建连", () => {
     });
 
     it("没有内存 token 也可以建连（认证依赖 Cookie）", () => {
-        const client = new WebSocketClient("/ws/v1/notification");
+        const client = new WebSocketClient("/ws/v1/session");
         expect(client.connect(7)).toBe(true);
         expect(MockWebSocket.instances).toHaveLength(1);
     });
 
     it("日志包含 uid 和 Cookie 认证标记，且不出现 token", () => {
-        const client = new WebSocketClient("/ws/v1/notification");
+        const client = new WebSocketClient("/ws/v1/session");
         const lines = captureConsole(client, 42);
         const joined = lines.join("\n");
 
@@ -92,7 +92,7 @@ describe("WebSocket Cookie 建连", () => {
     });
 
     it("重复 connect 不会重复建连", () => {
-        const client = new WebSocketClient("/ws/v1/notification");
+        const client = new WebSocketClient("/ws/v1/session");
         captureConsole(client, 1);
         const second = client.connect(1);
 
@@ -101,7 +101,7 @@ describe("WebSocket Cookie 建连", () => {
     });
 
     it("重连仍只携带 uid", () => {
-        const client = new WebSocketClient("/ws/v1/notification");
+        const client = new WebSocketClient("/ws/v1/session");
         captureConsole(client, 1);
         // 手动置为 CLOSED，绕开「已连接/连接中就不重复建连」的短路
         MockWebSocket.instances[0].readyState = MockWebSocket.CLOSED;
@@ -116,7 +116,7 @@ describe("WebSocket Cookie 建连", () => {
 
     it("旧连接异步关闭时不会为新连接调度重连", () => {
         vi.useFakeTimers();
-        const client = new WebSocketClient("/ws/v1/notification");
+        const client = new WebSocketClient("/ws/v1/session");
         captureConsole(client, 1);
         const first = MockWebSocket.instances[0];
         first.readyState = MockWebSocket.CLOSED;
@@ -131,7 +131,7 @@ describe("WebSocket Cookie 建连", () => {
 
     it("握手从未成功时不会自动重连刷屏", () => {
         vi.useFakeTimers();
-        const client = new WebSocketClient("/ws/v1/notification");
+        const client = new WebSocketClient("/ws/v1/session");
         captureConsole(client, 1);
         const socket = MockWebSocket.instances[0];
 
@@ -144,7 +144,7 @@ describe("WebSocket Cookie 建连", () => {
     });
 
     it("单个消息处理器抛错不会重复分发或阻断其他处理器", () => {
-        const client = new WebSocketClient("/ws/v1/notification");
+        const client = new WebSocketClient("/ws/v1/session");
         captureConsole(client, 1);
         const socket = MockWebSocket.instances[0];
         const first = vi.fn(() => {
@@ -166,7 +166,7 @@ describe("WebSocket Cookie 建连", () => {
     });
 
     it("待发送队列有上限并在连接成功后按顺序清空", () => {
-        const client = new WebSocketClient("/ws/v1/notification", { maxPendingMessages: 2 });
+        const client = new WebSocketClient("/ws/v1/session", { maxPendingMessages: 2 });
         captureConsole(client, 1);
         const socket = MockWebSocket.instances[0];
 
@@ -180,7 +180,7 @@ describe("WebSocket Cookie 建连", () => {
     });
 
     it("不可序列化消息返回 false 且不会进入队列", () => {
-        const client = new WebSocketClient("/ws/v1/notification", { maxPendingMessages: 1 });
+        const client = new WebSocketClient("/ws/v1/session", { maxPendingMessages: 1 });
         captureConsole(client, 1);
         vi.spyOn(console, "error").mockImplementation(() => undefined);
         const circular: Record<string, unknown> = {};
@@ -192,16 +192,33 @@ describe("WebSocket Cookie 建连", () => {
     });
 
     it("主动断开后拒绝缓存新消息", () => {
-        const client = new WebSocketClient("/ws/v1/notification");
+        const client = new WebSocketClient("/ws/v1/session");
         captureConsole(client, 1);
         client.disconnect();
 
         expect(client.send("stale message")).toBe(false);
     });
 
+    it("默认心跳间隔为 5 秒", () => {
+        vi.useFakeTimers();
+        const client = new WebSocketClient("/ws/v1/session");
+        captureConsole(client, 1);
+        const socket = MockWebSocket.instances[0];
+        socket.readyState = MockWebSocket.OPEN;
+        socket.onopen?.();
+
+        vi.advanceTimersByTime(4999);
+        expect(socket.sent).not.toContainEqual('{"type":"ping"}');
+
+        vi.advanceTimersByTime(1);
+        expect(socket.sent).toContainEqual('{"type":"ping"}');
+
+        vi.useRealTimers();
+    });
+
     it("连接建立后启动心跳定时器", () => {
         vi.useFakeTimers();
-        const client = new WebSocketClient("/ws/v1/notification", { heartbeatInterval: 30000 });
+        const client = new WebSocketClient("/ws/v1/session", { heartbeatInterval: 30000 });
         captureConsole(client, 1);
         const socket = MockWebSocket.instances[0];
         socket.readyState = MockWebSocket.OPEN;
@@ -218,7 +235,7 @@ describe("WebSocket Cookie 建连", () => {
 
     it("连接关闭后停止心跳", () => {
         vi.useFakeTimers();
-        const client = new WebSocketClient("/ws/v1/notification", { heartbeatInterval: 30000 });
+        const client = new WebSocketClient("/ws/v1/session", { heartbeatInterval: 30000 });
         captureConsole(client, 1);
         const socket = MockWebSocket.instances[0];
         socket.readyState = MockWebSocket.OPEN;
@@ -239,7 +256,7 @@ describe("WebSocket Cookie 建连", () => {
 
     it("disconnect() 后停止心跳", () => {
         vi.useFakeTimers();
-        const client = new WebSocketClient("/ws/v1/notification", { heartbeatInterval: 30000 });
+        const client = new WebSocketClient("/ws/v1/session", { heartbeatInterval: 30000 });
         captureConsole(client, 1);
         const socket = MockWebSocket.instances[0];
         socket.readyState = MockWebSocket.OPEN;
@@ -258,7 +275,7 @@ describe("WebSocket Cookie 建连", () => {
     });
 
     it("pong 消息不触发用户注册的 handler", () => {
-        const client = new WebSocketClient("/ws/v1/notification");
+        const client = new WebSocketClient("/ws/v1/session");
         captureConsole(client, 1);
         const socket = MockWebSocket.instances[0];
         const handler = vi.fn();
@@ -271,7 +288,7 @@ describe("WebSocket Cookie 建连", () => {
 
     it("heartbeatInterval 设为 0 时禁用心跳", () => {
         vi.useFakeTimers();
-        const client = new WebSocketClient("/ws/v1/notification", { heartbeatInterval: 0 });
+        const client = new WebSocketClient("/ws/v1/session", { heartbeatInterval: 0 });
         captureConsole(client, 1);
         const socket = MockWebSocket.instances[0];
         socket.readyState = MockWebSocket.OPEN;
@@ -281,5 +298,50 @@ describe("WebSocket Cookie 建连", () => {
         expect(socket.sent).not.toContainEqual('{"type":"ping"}');
 
         vi.useRealTimers();
+    });
+
+    it("统一网关帧同时按 type 和 channel 分发", () => {
+        const client = new WebSocketClient("/ws/v1/session");
+        captureConsole(client, 1);
+        const socket = MockWebSocket.instances[0];
+        const byType = vi.fn();
+        const byChannel = vi.fn();
+        client.onMessage("comment", byType);
+        client.onMessage("notification", byChannel);
+
+        const frame = { channel: "notification", type: "comment", id: 1 };
+        socket.onmessage?.({ data: JSON.stringify(frame) } as MessageEvent);
+
+        expect(byType).toHaveBeenCalledOnce();
+        expect(byChannel).toHaveBeenCalledOnce();
+        expect(byType).toHaveBeenCalledWith(frame);
+        expect(byChannel).toHaveBeenCalledWith(frame);
+    });
+
+    it("channel 与 type 相同时不会重复分发", () => {
+        const client = new WebSocketClient("/ws/v1/session");
+        captureConsole(client, 1);
+        const socket = MockWebSocket.instances[0];
+        const handler = vi.fn();
+        client.onMessage("notification", handler);
+
+        socket.onmessage?.({ data: JSON.stringify({ channel: "notification", type: "notification" }) } as MessageEvent);
+
+        expect(handler).toHaveBeenCalledOnce();
+    });
+
+    it("server error 帧保留 channel，供业务区分聊天错误", () => {
+        const client = new WebSocketClient("/ws/v1/session");
+        captureConsole(client, 1);
+        const socket = MockWebSocket.instances[0];
+        const handler = vi.fn();
+        client.onServerError(handler);
+
+        socket.onmessage?.({
+            data: JSON.stringify({ channel: "chat", type: "error", errno: 12003, errstr: "Message too long" }),
+        } as MessageEvent);
+
+        expect(handler).toHaveBeenCalledOnce();
+        expect(handler.mock.calls[0][0]).toMatchObject({ errno: 12003, errstr: "Message too long", channel: "chat" });
     });
 });

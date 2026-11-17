@@ -3,10 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { AuthService } from "../services/AuthService.ts";
 import { PasskeyService } from "../services/PasskeyService.ts";
 import { sessionEvents } from "../auth/SessionEvents.ts";
-import { notificationWS, chatWS } from "../services/WsInstances.ts";
+import { sessionWS } from "../services/WsInstances.ts";
 import { setFaviconBadge } from "../utils/Favicon.ts";
 import { resetNotificationState } from "../utils/NotificationState.ts";
-import { canChat } from "../types/Roles.ts";
 import i18n from "../i18n";
 
 // 用户信息类型
@@ -75,8 +74,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const authGenerationRef = useRef(0);
 
     const disconnectWebSockets = useCallback(() => {
-        notificationWS.disconnect();
-        chatWS.disconnect();
+        sessionWS.disconnect();
     }, []);
 
     const clearAuthRuntimeState = useCallback(() => {
@@ -165,43 +163,60 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     // 计算是否已认证（必须在 WebSocket useEffect 之前声明）
     const isAuthenticated = Boolean(user);
 
-    // WebSocket 连接管理 — 浏览器会自动携带同源 SESSIONID Cookie
+    // 统一会话 WebSocket 连接管理 — 浏览器会自动携带同源 SESSIONID Cookie
+    // 普通用户同样建立连接（接收通知与在线人数），私信帧由后端拒绝。
     useEffect(() => {
         if (isAuthenticated && user) {
-            notificationWS.connect(user.id);
-            // 普通用户无私信权限，不建立聊天连接（后端同样拒绝，避免重连循环）
-            if (canChat(user.role)) {
-                chatWS.connect(user.id);
-            } else {
-                chatWS.disconnect();
-            }
+            sessionWS.connect(user.id);
         } else {
-            notificationWS.disconnect();
-            chatWS.disconnect();
+            sessionWS.disconnect();
             setFaviconBadge(0); // 退出登录或未认证时清除 favicon 角标
         }
     }, [isAuthenticated, user]);
 
+    // 统一会话系统帧：顶号 / 会话失效 / 设备被踢
+    useEffect(() => {
+        // 同一设备的新连接顶掉当前连接：主动断开且不再重连，避免多标签页互相顶号形成重连循环。
+        const unsubReplaced = sessionWS.onMessage("replaced", () => {
+            sessionWS.disconnect();
+        });
+        const unsubExpired = sessionWS.onMessage("session_expired", () => {
+            sessionEvents.emitSessionInvalidated("expired");
+        });
+        const unsubRevoked = sessionWS.onMessage("session_revoked", () => {
+            sessionEvents.emitSessionInvalidated("expired");
+        });
+        const unsubKicked = sessionWS.onMessage("device_kicked", () => {
+            sessionEvents.emitSessionInvalidated("kicked");
+        });
+        return () => {
+            unsubReplaced();
+            unsubExpired();
+            unsubRevoked();
+            unsubKicked();
+        };
+    }, []);
+
     // WebSocket 错误不负责刷新会话。HTTP 请求收到 1101 时仍由 Http.ts 统一处理。
     useEffect(() => {
-        // 聊天 WS 失败（如无权限/账号异常）绝不影响登录态，仅停止重连避免循环。
-        const unsubChatError = chatWS.onServerError(() => {
-            chatWS.disconnect();
-        });
-        const unsubError = notificationWS.onServerError((err) => {
+        const unsubError = sessionWS.onServerError((err) => {
+            // 聊天帧的权限/参数错误只影响该次操作，不影响登录态。
+            if (err.channel === "chat") {
+                return;
+            }
             // 账号状态异常（1103），直接按会话失效处理。
             if (err.errno === 1103) {
                 sessionEvents.emitSessionInvalidated("expired");
                 return;
             }
-            // 1101 只代表该 WebSocket 会话被服务端拒绝，不能据此判定 HTTP 会话已失效。
+            // 1101：连接身份已失效，停止重连并按会话失效处理，避免重连循环。
             if (err.errno === 1101) {
-                notificationWS.disconnect();
+                sessionWS.disconnect();
+                sessionEvents.emitSessionInvalidated("expired");
             }
         });
         return () => {
             unsubError();
-            unsubChatError();
         };
     }, []);
 
