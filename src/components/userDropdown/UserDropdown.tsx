@@ -7,6 +7,7 @@ import styles from "./UserDropdown.module.css";
 import type { PlatformRole } from "@/types/Roles.ts";
 import { useTranslation } from "react-i18next";
 import { useEnumLabels } from "@/i18n/UseEnumLabels";
+import { useLayoutMode } from "@/contexts/LayoutModeContext";
 
 interface User {
     id: number | string;
@@ -40,6 +41,9 @@ const UserDropdown: React.FC<UserDropdownProps> = ({
     const navigate = useNavigate();
     const enums = useEnumLabels();
     const { t } = useTranslation("nav");
+    const { mode } = useLayoutMode();
+    // 胶囊布局下与首页顶栏保持一致：仅展示头像触发，菜单采用胶囊圆角样式
+    const capsule = mode === "appShell";
     // 点击外部关闭下拉菜单
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -75,10 +79,23 @@ const UserDropdown: React.FC<UserDropdownProps> = ({
     };
 
     return (
-        <div ref={dropdownRef} className={`${styles.userDropdown} ${className}`}>
+        <div ref={dropdownRef} className={`${styles.userDropdown} ${capsule ? styles.capsule : ""} ${className}`}>
             {/* 用户显示区域 */}
-            <div className={styles.userDisplay} onClick={toggleDropdown}>
-                <Avatar src={user.avatar} name={user.name} size={36} className={styles.userAvatar} />
+            <div
+                className={styles.userDisplay}
+                onClick={toggleDropdown}
+                role="button"
+                tabIndex={0}
+                aria-haspopup="menu"
+                aria-expanded={isOpen}
+                onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        toggleDropdown();
+                    }
+                }}
+            >
+                <Avatar src={user.avatar} name={user.name} size={capsule ? 30 : 36} className={styles.userAvatar} />
                 <div className={styles.userDetails}>
                     <div className={styles.userName}>{user.name}</div>
                     {(roleOverride || user.role) && (
